@@ -6,6 +6,7 @@
   import { tt, tLayer } from '../i18n.svelte';
   import { addLayer, groupSelected, quickExport } from '../actions';
   import { LAYER_PRESETS } from '../presets/builtin';
+  import { applyLayerPreset, listUserPresets, type UserPreset } from '../presets/user';
 
   interface Entry {
     id: string;
@@ -18,6 +19,7 @@
   let q = $state('');
   let active = $state(0);
   let input: HTMLInputElement;
+  let userPresets = $state<UserPreset[]>([]);
 
   const entries = $derived.by<Entry[]>(() => {
     void app.pluginsLoaded;
@@ -39,7 +41,14 @@
       { id: 'cmd:group', label: tt('layers.group'), hint: tt('palette.command'), icon: '▤', run: groupSelected },
       { id: 'cmd:export', label: tt('menu.file.quickExport'), hint: tt('palette.command'), icon: '⤓', run: quickExport },
     ];
-    return [...layers, ...presets, ...cmds];
+    const mine: Entry[] = userPresets.map((u) => ({
+      id: `user:${u.path}`,
+      label: u.name,
+      hint: tt('presets.user'),
+      icon: '★',
+      run: () => applyLayerPreset(u.path),
+    }));
+    return [...layers, ...presets, ...mine, ...cmds];
   });
 
   const results = $derived.by(() => {
@@ -62,7 +71,10 @@
     active = 0;
   });
 
-  onMount(() => input.focus());
+  onMount(() => {
+    input.focus();
+    listUserPresets().then((l) => (userPresets = l.filter((u) => u.kind === 'layer')));
+  });
 
   function run(e: Entry | undefined) {
     if (!e) return;

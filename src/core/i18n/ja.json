@@ -1,4 +1,8 @@
 {
+  "gizmo.spot": "ドラッグで光の向き・ホイールで範囲",
+  "gizmo.rim": "ドラッグでパワー・Shift+ドラッグでバイアス",
+  "layers.presets": "プリセット",
+  "layers.morePresets": "その他…",
   "common.ok": "OK",
   "common.cancel": "キャンセル",
   "common.close": "閉じる",

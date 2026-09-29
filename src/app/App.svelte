@@ -9,6 +9,7 @@
   import StatusBar from './layout/StatusBar.svelte';
   import Toasts from './layout/Toasts.svelte';
   import LayerPanel from './panels/LayerPanel.svelte';
+  import PresetStrip from './panels/PresetStrip.svelte';
   import Inspector from './panels/Inspector.svelte';
   import Viewport from './viewport/Viewport.svelte';
   import ExportDialog from './dialogs/ExportDialog.svelte';
@@ -17,11 +18,21 @@
   import ConfirmDialog from './dialogs/ConfirmDialog.svelte';
   import WarningsDialog from './dialogs/WarningsDialog.svelte';
   import CommandPalette from './dialogs/CommandPalette.svelte';
+  import PresetGallery from './dialogs/PresetGallery.svelte';
+  import SavePresetDialog from './dialogs/SavePresetDialog.svelte';
+  import ShortcutsDialog from './dialogs/ShortcutsDialog.svelte';
+  import RecoveryDialog from './dialogs/RecoveryDialog.svelte';
+  import TourDialog from './dialogs/TourDialog.svelte';
+  import BenchmarkDialog from './dialogs/BenchmarkDialog.svelte';
+  import { checkRecovery, clearRecovery, startAutosave } from './recovery.svelte';
+  import { dropHint, handleDrop, setDropHover } from './drop';
+  import { checkForUpdates } from './updates';
   import { basename } from '$platform/types';
 
   let winW = $state(window.innerWidth);
   let winH = $state(window.innerHeight);
   const portrait = $derived(winH > winW * 1.05 || winW < 900);
+  let recovery = $state<{ path: string; modified: number } | null>(null);
 
   onMount(() => {
     window.addEventListener('error', (e) => platform.log('error', `${e.message} @ ${e.filename}:${e.lineno}`));
@@ -37,12 +48,19 @@
       changeLocale(app.settings.language);
       platform.onCloseRequested(async () => {
         if (!(await confirmDiscard())) return false;
+        // clean exit: the autosave is no longer needed
+        await clearRecovery();
         return true;
       });
+      platform.onFileDrop((e) => handleDrop(e), setDropHover);
       const launch = await platform.launchFile().catch(() => null);
+      recovery = await checkRecovery();
       if (launch) await openPath(launch);
       platform.onOpenFile((p) => openPath(p));
+      startAutosave();
       updateTitle();
+      if (!recovery && !app.settings.tourDone) app.dialog = 'tour';
+      checkForUpdates();
     })();
     return () => window.removeEventListener('resize', onResize);
   });
@@ -106,6 +124,7 @@
     <aside class="left" class:collapsed={app.settings.leftCollapsed}>
       {#if !app.settings.leftCollapsed}
         <LayerPanel />
+        <PresetStrip />
       {/if}
     </aside>
     {#if !portrait}
@@ -140,10 +159,30 @@
 {#if app.dialog === 'about'}<AboutDialog />{/if}
 {#if app.dialog === 'warnings'}<WarningsDialog />{/if}
 {#if app.dialog === 'palette'}<CommandPalette />{/if}
+{#if app.dialog === 'presets'}<PresetGallery />{/if}
+{#if app.dialog === 'savePreset'}<SavePresetDialog />{/if}
+{#if app.dialog === 'shortcuts'}<ShortcutsDialog />{/if}
+{#if app.dialog === 'tour'}<TourDialog />{/if}
+{#if app.dialog === 'benchmark'}<BenchmarkDialog />{/if}
+{#if recovery}<RecoveryDialog info={recovery} ondone={() => (recovery = null)} />{/if}
 {#if app.confirm}<ConfirmDialog />{/if}
+{#if app.dropHover}
+  <div class="drop-hint" style:left={`${app.dropHover.x}px`} style:top={`${app.dropHover.y}px`}>{dropHint(app.dropHover.x, app.dropHover.y)}</div>
+{/if}
 <Toasts />
 
 <style>
+  .drop-hint {
+    position: fixed;
+    z-index: 990;
+    transform: translate(12px, 12px);
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #fff;
+    pointer-events: none;
+    box-shadow: var(--shadow);
+  }
   .app {
     display: flex;
     flex-direction: column;

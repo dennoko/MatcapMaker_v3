@@ -234,6 +234,12 @@ export class DocumentStore {
     this.emitHistory();
   }
 
+  /** Forces the dirty state (e.g. a restored autosave that was never saved). */
+  markUnsaved() {
+    this.savedAt = null;
+    this.emitHistory();
+  }
+
   get isDirty(): boolean {
     const top = this.undoStack.length ? this.undoStack[this.undoStack.length - 1].id : 0;
     return top !== this.savedAt;

@@ -174,6 +174,7 @@ export async function saveProject(forceDialog = false): Promise<boolean> {
       pushRecent(path);
     }
     store.markSaved();
+    await platform.recoveryClear().catch(() => undefined);
     updateTitle();
     toast(tt('toast.saved', { name: basename(path) }), 'success');
     return true;
@@ -197,7 +198,11 @@ async function readBundleProject(bundle: ProjectBundle): Promise<LoadResult> {
 }
 
 /** Opens a .mcproj or a v3 .json from a path (desktop) or bytes (web / drop). */
-export async function openFile(src: { path?: string; name: string; bytes?: Uint8Array }, skipConfirm = false) {
+export async function openFile(
+  src: { path?: string; name: string; bytes?: Uint8Array },
+  skipConfirm = false,
+  remember = true,
+) {
   if (!skipConfirm && !(await confirmDiscard())) return;
   const lower = src.name.toLowerCase();
   try {
@@ -226,7 +231,7 @@ export async function openFile(src: { path?: string; name: string; bytes?: Uint8
       if (!result.project.meta.name || result.project.meta.name === 'Untitled') result.project.meta.name = stripExt(src.name);
     }
     setDocument(result.project, result.view, platform.kind === 'tauri' ? path : null);
-    if (path) pushRecent(path);
+    if (path && remember) pushRecent(path);
     if (result.warnings.length) {
       app.warnings = result.warnings;
       app.dialog = 'warnings';

@@ -1,4 +1,8 @@
 {
+  "gizmo.spot": "Drag to aim the light · wheel: range",
+  "gizmo.rim": "Drag: power · Shift+drag: bias",
+  "layers.presets": "Presets",
+  "layers.morePresets": "More…",
   "common.ok": "OK",
   "common.cancel": "Cancel",
   "common.close": "Close",

@@ -45,7 +45,9 @@
 <div class="section-title">{tt('preview.normalMap')}</div>
 <div class="grid top">
   <label for="nm">{tt('preview.normalMap.image')}</label>
-  <AssetField value={v.normalMap.asset} onpick={pickNormal} onclear={() => (app.view.normalMap.asset = null)} placeholder={tt('preview.normalMap.builtin')} />
+  <div data-drop-normal>
+    <AssetField value={v.normalMap.asset} onpick={pickNormal} onclear={() => (app.view.normalMap.asset = null)} placeholder={tt('preview.normalMap.builtin')} />
+  </div>
   <label for="nms">{tt('preview.normalMap.strength')}</label>
   <ScrubNumber value={v.normalMap.strength} min={0} max={10} softMax={5} defaultValue={1} onedit={(x) => (app.view.normalMap.strength = x)} />
   <label for="nmsc">{tt('preview.normalMap.scale')}</label>
