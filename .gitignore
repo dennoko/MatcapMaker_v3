@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-web/
+src-tauri/target/
+src-tauri/gen/
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+test-results/
+tests/golden/__output__/
+playwright-report/

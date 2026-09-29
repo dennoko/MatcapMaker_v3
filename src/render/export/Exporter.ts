@@ -1,0 +1,284 @@
+import { RenderTarget, type GLContext } from '../gl/gl';
+import { MatcapPipeline } from '../pipeline/MatcapPipeline';
+import type { ResourceCache } from '../pipeline/resources';
+import { withCommon } from '../pipeline/shaderBuilder';
+import type { Project } from '$core/model/types';
+import { dilateRGBA8 } from '$core/io/padding';
+
+export type ExportFormat = 'png8' | 'png16' | 'jpg' | 'exr';
+
+export interface ExportSpec {
+  size: number;
+  padding: number;
+  format: ExportFormat;
+  /** JPG background (also used for the flat backdrop), sRGB 0..1 */
+  background: [number, number, number];
+  /** alpha threshold for what counts as "inside" when padding */
+  alphaThreshold: number;
+  /** extra 3x3 averaging pass over padded pixels (closer to v3's look) */
+  smoothPadding: boolean;
+  jpgQuality: number;
+}
+
+export interface EncodedPixels {
+  width: number;
+  height: number;
+  /** png8: RGBA8, png16: RGBA16BE, jpg: RGB8, exr: RGBA f16 LE — rows top-down */
+  data: Uint8Array;
+  channels: number;
+  bitDepth: 8 | 16;
+  timings: Record<string, number>;
+}
+
+const JFA_SEED = withCommon(`
+uniform sampler2D u_src;
+uniform float u_threshold;
+void main() {
+  vec4 c = texelFetch(u_src, ivec2(gl_FragCoord.xy), 0);
+  o_color = c.a > u_threshold ? vec4(gl_FragCoord.xy, 0.0, 1.0) : vec4(-1.0, -1.0, 0.0, 1.0);
+}`);
+
+const JFA_STEP = withCommon(`
+uniform sampler2D u_seeds;
+uniform int u_step;
+void main() {
+  ivec2 px = ivec2(gl_FragCoord.xy);
+  ivec2 size = textureSize(u_seeds, 0);
+  vec2 best = vec2(-1.0);
+  float bestD = 1e20;
+  for (int y = -1; y <= 1; y++) {
+    for (int x = -1; x <= 1; x++) {
+      ivec2 q = px + ivec2(x, y) * u_step;
+      if (q.x < 0 || q.y < 0 || q.x >= size.x || q.y >= size.y) continue;
+      vec2 s = texelFetch(u_seeds, q, 0).xy;
+      if (s.x < 0.0) continue;
+      vec2 d = s - gl_FragCoord.xy;
+      float dd = dot(d, d);
+      if (dd < bestD) { bestD = dd; best = s; }
+    }
+  }
+  o_color = vec4(best, 0.0, 1.0);
+}`);
+
+const JFA_RESOLVE = withCommon(`
+uniform sampler2D u_src;
+uniform sampler2D u_seeds;
+uniform float u_padding;
+uniform float u_threshold;
+void main() {
+  ivec2 px = ivec2(gl_FragCoord.xy);
+  vec4 own = texelFetch(u_src, px, 0);
+  if (own.a > u_threshold) { o_color = vec4(own.rgb, 1.0); return; }
+  vec2 s = texelFetch(u_seeds, px, 0).xy;
+  if (s.x >= 0.0 && distance(s, gl_FragCoord.xy) <= u_padding + 0.5) {
+    o_color = vec4(texelFetch(u_src, ivec2(s), 0).rgb, 1.0);
+  } else {
+    o_color = own;
+  }
+}`);
+
+const PAD_SMOOTH = withCommon(`
+uniform sampler2D u_padded;
+uniform sampler2D u_src;
+uniform float u_threshold;
+void main() {
+  ivec2 px = ivec2(gl_FragCoord.xy);
+  vec4 c = texelFetch(u_padded, px, 0);
+  if (texelFetch(u_src, px, 0).a > u_threshold || c.a <= 0.0) { o_color = c; return; }
+  ivec2 size = textureSize(u_padded, 0);
+  vec3 sum = vec3(0.0);
+  float n = 0.0;
+  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+    ivec2 q = clamp(px + ivec2(x, y), ivec2(0), size - 1);
+    vec4 v = texelFetch(u_padded, q, 0);
+    if (v.a > 0.0) { sum += v.rgb; n += 1.0; }
+  }
+  o_color = vec4(sum / max(n, 1.0), c.a);
+}`);
+
+// Packs the final image into RGBA8 so it can be read back portably.
+// mode 0: 8-bit straight, 1: jpg (flattened on bg), 2/3: 16-bit hi/lo bytes,
+// 4/5: half-float hi/lo bytes.
+const ENCODE = withCommon(`
+uniform sampler2D u_src;
+uniform int u_encMode;
+uniform vec3 u_bg;
+uniform int u_hdr;
+void main() {
+  vec4 c = texelFetch(u_src, ivec2(gl_FragCoord.xy), 0);
+  if (u_encMode >= 4) {
+    uvec4 h = uvec4(packHalf2x16(vec2(c.r, 0.0)), packHalf2x16(vec2(c.g, 0.0)),
+                    packHalf2x16(vec2(c.b, 0.0)), packHalf2x16(vec2(c.a, 0.0))) & 0xffffu;
+    uvec4 b = u_encMode == 4 ? (h >> 8u) : (h & 0xffu);
+    o_color = vec4(b) / 255.0;
+    return;
+  }
+  c = clamp(c, 0.0, 1.0);
+  if (u_encMode == 1) { o_color = vec4(mix(u_bg, c.rgb, c.a), 1.0); return; }
+  if (u_encMode == 0) { o_color = c; return; }
+  uvec4 v = uvec4(round(c * 65535.0));
+  uvec4 b = u_encMode == 2 ? (v >> 8u) : (v & 0xffu);
+  o_color = vec4(b) / 255.0;
+}`);
+
+export class Exporter {
+  constructor(
+    private ctx: GLContext,
+    private res: ResourceCache,
+  ) {}
+
+  /** Renders the project at the target size, pads it and returns encoded pixels. */
+  run(project: Project, spec: ExportSpec): EncodedPixels {
+    const timings: Record<string, number> = {};
+    const size = Math.min(spec.size, this.ctx.caps.maxTextureSize);
+    let t = performance.now();
+    const lap = (name: string) => {
+      const now = performance.now();
+      timings[name] = now - t;
+      t = now;
+    };
+
+    const pipeline = new MatcapPipeline(this.ctx, this.res, size);
+    const own: RenderTarget[] = [];
+    try {
+      let img = pipeline.render(project);
+      lap('render');
+
+      const gpuPadding = spec.padding > 0 && this.ctx.caps.floatTargets;
+      if (gpuPadding) {
+        img = this.padGPU(img, spec, own);
+        lap('padding');
+      }
+
+      const readMode = (m: number) => this.encodeAndRead(img, m, spec, project.settings.hdr);
+      let out: EncodedPixels;
+      const px = size * size;
+      if (spec.format === 'png8' || spec.format === 'jpg') {
+        const rgba = readMode(spec.format === 'jpg' ? 1 : 0);
+        lap('readback');
+        if (spec.padding > 0 && !gpuPadding) {
+          dilateRGBA8(rgba, size, size, spec.padding);
+          lap('padding');
+        }
+        if (spec.format === 'jpg') {
+          const rgb = new Uint8Array(px * 3);
+          for (let i = 0, j = 0; i < px * 4; i += 4, j += 3) {
+            rgb[j] = rgba[i];
+            rgb[j + 1] = rgba[i + 1];
+            rgb[j + 2] = rgba[i + 2];
+          }
+          out = { width: size, height: size, data: rgb, channels: 3, bitDepth: 8, timings };
+        } else {
+          out = { width: size, height: size, data: rgba, channels: 4, bitDepth: 8, timings };
+        }
+      } else {
+        const isHalf = spec.format === 'exr';
+        const hi = readMode(isHalf ? 4 : 2);
+        const lo = readMode(isHalf ? 5 : 3);
+        lap('readback');
+        const data = new Uint8Array(px * 8);
+        for (let i = 0; i < px * 4; i++) {
+          if (isHalf) {
+            data[i * 2] = lo[i]; // little-endian f16
+            data[i * 2 + 1] = hi[i];
+          } else {
+            data[i * 2] = hi[i]; // PNG is big-endian
+            data[i * 2 + 1] = lo[i];
+          }
+        }
+        out = { width: size, height: size, data, channels: 4, bitDepth: 16, timings };
+      }
+      return out;
+    } finally {
+      own.forEach((r) => r.dispose());
+      pipeline.dispose();
+    }
+  }
+
+  private padGPU(src: RenderTarget, spec: ExportSpec, own: RenderTarget[]): RenderTarget {
+    const { ctx, res } = this;
+    const w = src.width;
+    const h = src.height;
+    let a = new RenderTarget(ctx, w, h, 'rg32f', 'nearest');
+    let b = new RenderTarget(ctx, w, h, 'rg32f', 'nearest');
+    own.push(a, b);
+
+    const seed = res.custom('jfa-seed', () => JFA_SEED);
+    ctx.bindTarget(a);
+    seed.use();
+    seed.tex('u_src', src.texture);
+    seed.f('u_threshold', spec.alphaThreshold);
+    ctx.drawFullscreen();
+
+    const step = res.custom('jfa-step', () => JFA_STEP);
+    let k = 1 << Math.ceil(Math.log2(Math.max(1, spec.padding)));
+    // one extra k=1 pass (JFA+1) reduces the rare nearest-seed errors
+    const steps: number[] = [];
+    for (; k >= 1; k >>= 1) steps.push(k);
+    steps.push(1);
+    for (const s of steps) {
+      ctx.bindTarget(b);
+      step.use();
+      step.tex('u_seeds', a.texture);
+      step.i('u_step', s);
+      ctx.drawFullscreen();
+      [a, b] = [b, a];
+    }
+
+    const padded = new RenderTarget(ctx, w, h, src.format, 'nearest');
+    own.push(padded);
+    const resolve = res.custom('jfa-resolve', () => JFA_RESOLVE);
+    ctx.bindTarget(padded);
+    resolve.use();
+    resolve.tex('u_src', src.texture);
+    resolve.tex('u_seeds', a.texture);
+    resolve.f('u_padding', spec.padding);
+    resolve.f('u_threshold', spec.alphaThreshold);
+    ctx.drawFullscreen();
+
+    if (!spec.smoothPadding) return padded;
+    const smooth = new RenderTarget(ctx, w, h, src.format, 'nearest');
+    own.push(smooth);
+    const sp = res.custom('pad-smooth', () => PAD_SMOOTH);
+    ctx.bindTarget(smooth);
+    sp.use();
+    sp.tex('u_padded', padded.texture);
+    sp.tex('u_src', src.texture);
+    sp.f('u_threshold', spec.alphaThreshold);
+    ctx.drawFullscreen();
+    return smooth;
+  }
+
+  /** Runs the encode pass into RGBA8 and reads it back top-down. */
+  private encodeAndRead(src: RenderTarget, mode: number, spec: ExportSpec, hdr: boolean): Uint8Array {
+    const { ctx } = this;
+    const gl = ctx.gl;
+    const w = src.width;
+    const h = src.height;
+    const target = new RenderTarget(ctx, w, h, 'rgba8', 'nearest');
+    try {
+      const enc = this.res.custom('encode', () => ENCODE);
+      ctx.bindTarget(target);
+      enc.use();
+      enc.tex('u_src', src.texture);
+      enc.i('u_encMode', mode);
+      enc.v3('u_bg', spec.background);
+      enc.i('u_hdr', hdr ? 1 : 0);
+      ctx.drawFullscreen();
+      const buf = new Uint8Array(w * h * 4);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return flipRows(buf, w, h, 4);
+    } finally {
+      target.dispose();
+    }
+  }
+}
+
+export function flipRows(buf: Uint8Array, w: number, h: number, bpp: number): Uint8Array {
+  const row = w * bpp;
+  const out = new Uint8Array(buf.length);
+  for (let y = 0; y < h; y++) out.set(buf.subarray(y * row, (y + 1) * row), (h - 1 - y) * row);
+  return out;
+}

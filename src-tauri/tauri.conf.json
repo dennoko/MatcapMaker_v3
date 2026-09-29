@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MatcapMaker",
+  "version": "../package.json",
+  "identifier": "com.dennoko.matcapmaker",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Matcap Maker",
+        "width": 1400,
+        "height": 860,
+        "minWidth": 720,
+        "minHeight": 520,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost https://api.github.com; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "dennoko",
+    "copyright": "Copyright (c) dennoko",
+    "category": "GraphicsAndDesign",
+    "shortDescription": "Matcap texture authoring tool",
+    "longDescription": "Create matcap textures by stacking lights, rims, gradients, noise and images.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "fileAssociations": [
+      { "ext": ["mcproj"], "name": "Matcap Maker Project", "description": "Matcap Maker Project", "role": "Editor" }
+    ],
+    "windows": {
+      "webviewInstallMode": { "type": "embedBootstrapper" },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "Japanese"],
+        "displayLanguageSelector": true
+      }
+    }
+  }
+}
