@@ -1,7 +1,7 @@
 {
   "name": "matcap-maker",
   "private": true,
-  "version": "4.0.0",
+  "version": "3.0.0",
   "type": "module",
   "description": "Matcap texture authoring tool",
   "scripts": {

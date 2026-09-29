@@ -1,4 +1,4 @@
-# Matcap Maker v4
+# Matcap Maker
 
 Matcap（Material Capture）テクスチャを、ライト・リム・グラデーション・ノイズ・画像などのレイヤーを重ねて作るツールです。
 v3（Python + PySide6）を [Docs/Plan](Docs/Plan/README.md) に沿って **Tauri 2 + Svelte 5 + WebGL2** で作り直しました。

@@ -1,6 +1,6 @@
 [package]
 name = "matcap-maker"
-version = "4.0.0"
+version = "3.0.0"
 description = "Matcap Maker"
 authors = ["dennoko"]
 edition = "2021"
