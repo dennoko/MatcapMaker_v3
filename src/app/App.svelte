@@ -7,6 +7,7 @@
   import { handleKeydown } from './shortcuts';
   import MenuBar from './layout/MenuBar.svelte';
   import StatusBar from './layout/StatusBar.svelte';
+  import DevLogo from './widgets/DevLogo.svelte';
   import Toasts from './layout/Toasts.svelte';
   import LayerPanel from './panels/LayerPanel.svelte';
   import PresetStrip from './panels/PresetStrip.svelte';
@@ -107,10 +108,13 @@
 
 <div class="app" class:portrait>
   <header class="top">
-    <MenuBar />
-    <div class="title" title={app.filePath ?? ''}>
-      {title}{#if app.dirty}<span class="dot" title={tt('status.unsaved')}> •</span>{/if}
+    <div class="lead">
+      <MenuBar />
+      <div class="title" title={app.filePath ?? ''}>
+        {title}{#if app.dirty}<span class="dot" title={tt('status.unsaved')}> •</span>{/if}
+      </div>
     </div>
+    <button class="brand" title={tt('menu.help.about')} onclick={() => (app.dialog = 'about')}><DevLogo height={20} /></button>
     <div class="actions">
       <button class="btn icon ghost" title={`${tt('menu.edit.undo')} (Ctrl+Z)`} disabled={!app.canUndo} onclick={undo}>↶</button>
       <button class="btn icon ghost" title={`${tt('menu.edit.redo')} (Ctrl+Y)`} disabled={!app.canRedo} onclick={redo}>↷</button>
@@ -190,8 +194,10 @@
     flex-direction: column;
     height: 100%;
   }
+  /* three columns: the logo sits at the exact center of the window */
   .top {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 12px;
     height: 40px;
@@ -200,10 +206,30 @@
     border-bottom: 1px solid var(--border);
   }
 
+  .lead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    padding: 3px 6px;
+    border: none;
+    border-radius: var(--radius-s);
+    background: none;
+    color: var(--text);
+    opacity: 0.85;
+    cursor: pointer;
+  }
+  .brand:hover {
+    opacity: 1;
+    background: var(--panel-2);
+  }
   .title {
-    flex: 1;
-    text-align: center;
-    color: var(--text-2);
+    min-width: 0;
+    color: var(--text-3);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -213,6 +239,7 @@
   }
   .actions {
     display: flex;
+    justify-content: flex-end;
     gap: 4px;
     align-items: center;
   }
