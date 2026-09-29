@@ -7,14 +7,15 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/gen-licenses.mjs && vite build",
-    "build:web": "vite build --mode web --outDir dist-web",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run && cargo test --manifest-path src-tauri/Cargo.toml",
     "test:core": "vitest run",
     "test:golden": "playwright test",
     "licenses": "node scripts/gen-licenses.mjs",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build:single": "vite build --mode single && node scripts/check-single.mjs",
+    "test:single": "playwright test --project single"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.0",

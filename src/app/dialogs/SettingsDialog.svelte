@@ -45,7 +45,7 @@
     <span>{tt('settings.debug')}</span>
     <label class="chk"><input type="checkbox" checked={app.settings.debugOverlay} onchange={(e) => updateSettings((s) => (s.debugOverlay = (e.currentTarget as HTMLInputElement).checked))} /> {tt('settings.debugHint')}</label>
   </div>
-  {#if platform.kind === 'tauri'}
+  {#if platform.caps.revealInFolder}
     <div class="row">
       <button class="btn small" onclick={importV3}>{tt('settings.importV3')}</button>
       <button class="btn small" onclick={async () => platform.reveal((await platform.paths()).logs)}>{tt('settings.openLogs')}</button>

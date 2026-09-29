@@ -19,6 +19,17 @@ jobs:
         with: { workspaces: src-tauri }
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      - run: pnpm check
+      - name: Build and test portable Web edition
+        run: |
+          pnpm build:single
+          pnpm exec playwright install chromium
+          pnpm test:single
+      - uses: actions/upload-artifact@v4
+        with:
+          name: single-html
+          path: dist-single/MatcapMaker.html
+          if-no-files-found: error
       # builds the portable exe + NSIS installer and attaches them to a draft release
       - uses: tauri-apps/tauri-action@v0
         id: tauri
@@ -36,13 +47,16 @@ jobs:
           New-Item -ItemType Directory -Force dist-release | Out-Null
           Copy-Item src-tauri/target/release/matcap-maker.exe "dist-release/MatcapMaker_${ver}_x64_portable.exe"
           Copy-Item src-tauri/target/release/bundle/nsis/*.exe dist-release/
-          Get-FileHash dist-release/*.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content dist-release/SHA256SUMS.txt
-          gh release upload "v$ver" dist-release/*_portable.exe dist-release/SHA256SUMS.txt --clobber
+          Copy-Item dist-single/MatcapMaker.html "dist-release/MatcapMaker_${ver}_web.html"
+          Copy-Item dist-single/MatcapMaker.html dist-release/MatcapMaker_web.html
+          Get-ChildItem dist-release -File | Where-Object Extension -in '.exe', '.html' | Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content dist-release/SHA256SUMS.txt
+          gh release upload "v$ver" dist-release/*_portable.exe dist-release/*.html dist-release/SHA256SUMS.txt --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   web:
-    # same core published as a browser demo
+    needs: release
+    # Publish exactly the HTML attached to the release, never rebuild it here.
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -54,7 +68,19 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: lts/*, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build:web
+      - uses: actions/download-artifact@v4
+        with:
+          name: single-html
+          path: dist-single
+      - run: node scripts/check-single.mjs
+      - name: Cross-browser offline smoke
+        env:
+          CROSS_BROWSER: '1'
+          LIBGL_ALWAYS_SOFTWARE: 'true'
+        run: |
+          pnpm exec playwright install --with-deps firefox webkit
+          pnpm exec playwright test --project firefox --project webkit
+      - run: mkdir -p dist-pages && cp dist-single/MatcapMaker.html dist-pages/index.html
       - uses: actions/upload-pages-artifact@v3
-        with: { path: dist-web }
+        with: { path: dist-pages }
       - uses: actions/deploy-pages@v4

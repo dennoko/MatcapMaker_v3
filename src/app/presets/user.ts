@@ -9,7 +9,6 @@ import { assetFileName, deserializeProject, type LoadResult } from '$core/io/ser
 import { cloneLayer, createEmptyProject, defaultViewState } from '$core/model/project';
 import type { LayerNode, Project } from '$core/model/types';
 import { joinPath, type StoredFile } from '$platform/types';
-import { webSavePresetIndex } from '$platform/web';
 
 export interface UserPreset {
   name: string;
@@ -43,10 +42,9 @@ function safeName(name: string) {
 
 async function savePresetProject(project: Project, fileName: string) {
   const dir = (await platform.paths()).presets;
-  const path = platform.kind === 'web' ? `presets/${fileName}` : joinPath(dir, fileName);
+  const path = joinPath(dir, fileName);
   const bundle = await buildBundle(project, defaultViewState(), true);
   await platform.saveProject(path, bundle);
-  if (platform.kind === 'web') await webSavePresetIndex(fileName.replace(/\.mcproj$/, ''));
 }
 
 export async function saveLayerPreset(node: LayerNode, name: string) {

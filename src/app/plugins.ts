@@ -6,6 +6,7 @@ import { addStrings, type Locale } from '$core/i18n';
 
 /** Registers layer plugins from Documents/MatcapMaker/plugins. */
 export async function loadPlugins() {
+  if (!platform.caps.plugins) return;
   const sources = await platform.pluginsList().catch(() => []);
   if (!sources.length) return;
   const builtin = new Set(BUILTIN_LAYERS.map((d) => d.type));

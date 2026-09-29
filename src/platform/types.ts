@@ -5,7 +5,7 @@ export interface FileFilter {
 
 export interface PickedFile {
   name: string;
-  /** Absolute path (desktop only). */
+  /** Absolute path or an opaque session-scoped browser file token. */
   path?: string;
   bytes: Uint8Array;
 }
@@ -63,8 +63,24 @@ export interface DropEvent {
   y: number;
 }
 
+export interface PlatformCaps {
+  exr: boolean;
+  overwriteSave: boolean;
+  revealInFolder: boolean;
+  plugins: boolean;
+  fileAssociation: boolean;
+  persistentStorage: boolean;
+  /** Paths remain valid after restarting the application. */
+  persistentFilePaths: boolean;
+  closeWindow: boolean;
+}
+
+export type PlatformNotice = 'storageUnavailable' | 'recoveryBusy';
+
 export interface Platform {
   kind: 'tauri' | 'web';
+  caps: PlatformCaps;
+  initialize(notify: (notice: PlatformNotice) => void): Promise<void>;
   paths(): Promise<AppPaths>;
   pickOpenFile(filters: FileFilter[], title?: string): Promise<PickedFile | null>;
   /** Desktop: absolute path chosen by the user. Web: a file name for download. */

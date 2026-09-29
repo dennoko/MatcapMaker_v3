@@ -30,7 +30,7 @@
       { label: tt('menu.file.newFromPreset'), action: () => (app.dialog = 'presets') },
       { label: tt('menu.file.open'), shortcut: 'Ctrl+O', action: openDialog },
       { separator: true },
-      ...(app.settings.recentFiles.length
+      ...(platform.caps.persistentFilePaths && app.settings.recentFiles.length
         ? [
             ...app.settings.recentFiles.slice(0, 8).map((p, i) => ({ label: `${i + 1}. ${basename(p)}`, action: () => openPath(p) })),
             { label: tt('menu.file.clearRecent'), action: () => updateSettings((s) => (s.recentFiles = [])) },
@@ -42,7 +42,7 @@
       { separator: true },
       { label: tt('menu.file.quickExport'), shortcut: 'Ctrl+E', action: quickExport },
       { label: tt('menu.file.export'), shortcut: 'Ctrl+Shift+E', action: () => (app.dialog = 'export') },
-      ...(platform.kind === 'tauri'
+      ...(platform.caps.closeWindow
         ? [{ separator: true }, { label: tt('menu.file.exit'), action: () => window.close() }]
         : []),
     ],
@@ -102,7 +102,7 @@
       { label: tt('menu.help.shortcuts'), shortcut: 'F1', action: () => (app.dialog = 'shortcuts') },
       { label: tt('menu.help.tour'), action: () => (app.dialog = 'tour') },
       { label: tt('menu.help.benchmark'), action: () => (app.dialog = 'benchmark') },
-      ...(platform.kind === 'tauri'
+      ...(platform.caps.revealInFolder
         ? [{ label: tt('settings.openLogs'), action: async () => platform.reveal((await platform.paths()).logs) }]
         : []),
       { separator: true },

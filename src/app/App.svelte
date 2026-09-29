@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import './styles.css';
-  import { app, platform } from './state.svelte';
+  import { app, platform, toast } from './state.svelte';
   import { changeLocale, tt } from './i18n.svelte';
   import { confirmDiscard, handlePaste, loadSettings, openPath, redo, undo, updateSettings, updateTitle } from './actions';
   import { handleKeydown } from './shortcuts';
@@ -46,6 +46,7 @@
     window.addEventListener('resize', onResize);
 
     (async () => {
+      await platform.initialize((notice) => toast(tt(`platform.${notice}`), 'info', undefined, 12000));
       await loadSettings();
       changeLocale(app.settings.language);
       platform.onCloseRequested(async () => {

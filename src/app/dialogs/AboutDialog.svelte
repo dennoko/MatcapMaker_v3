@@ -5,7 +5,7 @@
   import { app, platform } from '../state.svelte';
   import { tt } from '../i18n.svelte';
   import { APP_VERSION } from '$core/model/project';
-  import appIcon from '../../../branding/app-icon-source.png';
+  import appIcon from '../../../src-tauri/icons/128x128.png';
 
   interface Lic {
     name: string;

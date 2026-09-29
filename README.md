@@ -19,6 +19,19 @@ v3（Python + PySide6）を [Docs/Plan](Docs/Plan/README.md) に沿って **Taur
 
 主なショートカットはアプリ内の **F1** で一覧できます。
 
+## Web 版
+
+[Web 版をダウンロード](https://github.com/dennoko/MatcapMaker_v3/releases/latest/download/MatcapMaker_web.html)して、HTML をダブルクリックするか Chrome / Edge にドラッグして開きます。[GitHub Pages](https://dennoko.github.io/MatcapMaker_v3/) でも同じ版を利用できます（リリース公開・Pages 初回設定後に有効）。HTML 1 ファイルに必要なコード・画像・ライセンスを含み、オフラインで編集できます。Firefox / Safari はベストエフォートです。WebGL2 とハードウェアアクセラレーションが必要です。
+
+- `.mcproj` はデスクトップ版と共通です。PNG 8/16bit・JPG を書き出せます。Web 初版では EXR、ユーザープラグイン、フォルダ表示、OS のファイル関連付けは使えません。
+- 対応ブラウザではファイル選択ダイアログで選んだプロジェクトに Ctrl+S で上書きします。ドラッグ＆ドロップで開いたファイルは、最初の保存時に保存先を選びます。非対応環境では毎回ダウンロードします。リロード後はファイルを開き直すか「名前を付けて保存」を使ってください。
+- 設定・ユーザープリセット・復旧データはそのブラウザの保存領域に置かれます。ブラウザ・プロファイル・URL・HTML の置き場所を変えた場合の引き継ぎは保証されません。サイトデータ削除やプライベートモードで失われるため、大切な作品は `.mcproj` として保存してください。
+- 保存領域が使えないときは通知し、そのタブ内だけでデータを保持します。複数タブでは最初のタブだけが復旧データを使用します。後から開いたタブ、またはタブ間ロックを使えない環境では自動保存を停止します。最初のタブを閉じた後は、残りのタブを再読み込みすると再取得できます。
+- HTML は自動更新されません。更新通知から最新版をダウンロードしてください。Pages では再読み込みで更新するため通知しません。自動通信は設定で有効な更新確認（GitHub API）のみです。
+- メールなどで HTML 添付が拒否される場合は zip にして渡してください。配布元と `SHA256SUMS.txt` を確認してから開いてください。
+
+開発・配布担当者向けの手順は [Web 版の運用](Docs/web-operations.md) を参照してください。
+
 ## 開発
 
 ### 必要なもの（Windows）
@@ -36,9 +49,10 @@ pnpm install
 pnpm tauri dev        # 開発（HMR）
 pnpm check            # 型チェック（svelte-check）
 pnpm test             # Vitest（コア）+ cargo test（Rust）
-pnpm test:golden      # Playwright：シェーダーのゴールデン画像と UI のスモークテスト
+pnpm build:single     # dist-single/MatcapMaker.html を生成し、1.5 MB の予算と外部依存を検査
+pnpm test:golden      # build:single 後：描画ゴールデン + 開発版/単一HTMLのUIテスト
+pnpm test:single      # build:single 後：file:// のオフラインUI・入出力・復旧テスト
 pnpm tauri build      # リリースビルド
-pnpm build:web        # ブラウザ版（dist-web/、GitHub Pages 用）
 ```
 
 成果物：
@@ -46,10 +60,11 @@ pnpm build:web        # ブラウザ版（dist-web/、GitHub Pages 用）
 ```
 src-tauri/target/release/matcap-maker.exe                              ← ポータブル版
 src-tauri/target/release/bundle/nsis/MatcapMaker_<ver>_x64-setup.exe   ← インストーラ
+dist-single/MatcapMaker.html                                         ← Web版（単一HTML）
 ```
 
 バージョンの唯一の情報源は `package.json` の `version` です（`tauri.conf.json` はこれを参照します）。
-タグ `v*` を push すると `.github/workflows/release.yml` がビルドし、下書きのリリースに exe・インストーラ・`SHA256SUMS.txt` を添付します。
+タグ `v<version>` を push すると `.github/workflows/release.yml` がビルドし、下書きのリリースに exe・インストーラ・固定名とバージョン付きの Web HTML・`SHA256SUMS.txt` を添付します。同じ HTML を Pages に配置します。`latest/download` のリンクは下書きを公開するまで更新されません。
 
 ### 構成
 

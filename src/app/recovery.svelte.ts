@@ -5,7 +5,6 @@
 import { app, onDocChange, platform, store, toast } from './state.svelte';
 import { buildBundle, openFile, reportError, updateTitle } from './actions';
 import { tt } from './i18n.svelte';
-import { webMarkRecoveryTime } from '$platform/web';
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 let writing = false;
@@ -36,7 +35,6 @@ async function write() {
     doc.recovery = { sourcePath: app.filePath, savedAt: new Date().toISOString() };
     bundle.projectJson = JSON.stringify(doc);
     await platform.saveProject(await platform.recoveryPath(), bundle);
-    if (platform.kind === 'web') await webMarkRecoveryTime();
   } catch (e) {
     platform.log('warn', `autosave failed: ${String(e)}`);
   } finally {
@@ -59,7 +57,7 @@ export async function restoreRecovery(path: string) {
     const doc = JSON.parse(bundle.projectJson);
     const source: string | null = doc.recovery?.sourcePath ?? null;
     await openFile({ path, name: 'recovery.mcproj' }, true, false);
-    app.filePath = platform.kind === 'tauri' ? source : null;
+    app.filePath = platform.caps.persistentFilePaths ? source : null;
     // it was never saved: keep it dirty so closing asks to save
     store.markUnsaved();
     updateTitle();

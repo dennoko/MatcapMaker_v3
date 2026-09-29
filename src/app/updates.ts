@@ -23,7 +23,7 @@ export function isNewer(latest: string, current: string): boolean {
 }
 
 export async function checkForUpdates() {
-  if (!app.settings.checkUpdates) return;
+  if (!app.settings.checkUpdates || (__WEB_BUILD__ && location.protocol !== 'file:')) return;
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 8000);
@@ -34,7 +34,7 @@ export async function checkForUpdates() {
     const j = Array.isArray(list) ? list.find((r) => r.tag_name && !r.draft && !r.prerelease) : undefined;
     if (!j?.tag_name) return;
     if (isNewer(j.tag_name, APP_VERSION)) {
-      app.updateAvailable = { version: j.tag_name.replace(/^v/i, ''), url: j.html_url ?? 'https://github.com/dennoko/MatcapMaker_v3/releases' };
+      app.updateAvailable = { version: j.tag_name.replace(/^v/i, ''), url: __WEB_BUILD__ ? 'https://github.com/dennoko/MatcapMaker_v3/releases/latest/download/MatcapMaker_web.html' : j.html_url ?? 'https://github.com/dennoko/MatcapMaker_v3/releases' };
       platform.log('info', `update available: ${j.tag_name}`);
     }
   } catch {

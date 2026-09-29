@@ -19,10 +19,13 @@ pnpm exec vitest run -t "name of test"               # single test by name
 pnpm test:golden        # Playwright: shader golden images + UI smoke tests (Chromium/SwiftShader, Vite on 1430)
 pnpm exec playwright test tests/golden/render.spec.ts -g spotLight   # single golden test
 pnpm tauri build        # release: portable exe + NSIS installer under src-tauri/target/release/
-pnpm build:web          # browser build into dist-web/ (GitHub Pages)
+pnpm build:single       # dist-single/MatcapMaker.html + 1,500,000-byte budget/bundle check
+pnpm test:single        # build:single first; offline file:// smoke tests
 ```
 
 CI (`.github/workflows/ci.yml`) runs `check`, `test`, `test:golden`, and `tauri build --debug --no-bundle`.
+
+`test:golden` requires `build:single` first: shared UI tests run against both dev and single HTML. UI feature checks use `platform.caps`, never `platform.kind` (About only). Keep platform-specific persistence and picker logic in `src/platform/`. Web licenses come from rendered modules and must not replace desktop notices. Release builds the HTML once and reuses it for assets and Pages; see `Docs/web-operations.md` for setup and storage caveats.
 
 - **Golden images**: `tests/golden/render.spec.ts` renders projects through `tests/golden/harness.html` and compares with `tests/golden/reference/*.png` (tolerance: >3 per channel on <0.5% of channels). A missing reference is written automatically, so to update a golden, delete its reference PNG and rerun. Actual output goes to `tests/golden/__output__/`.
 - `Docs/Review/` holds a separate review probe suite: `pnpm exec vitest run --config Docs/Review/vitest.config.ts`.
@@ -31,7 +34,7 @@ CI (`.github/workflows/ci.yml`) runs `check`, `test`, `test:golden`, and `tauri 
 
 ## Architecture
 
-Design docs are in `Docs/Plan/` (03_architecture.md and 04_rendering.md are the most useful). Path aliases: `$core`, `$render`, `$platform`, `$app` → `src/*`.
+Design docs are in `Docs/Plan/` (03_architecture.md and 04_rendering.md are the most useful); per-feature implementation plans are in `Docs/Impl/` (e.g. the single-file web build). Path aliases: `$core`, `$render`, `$platform`, `$app` → `src/*`.
 
 Layering (dependencies only go downward):
 

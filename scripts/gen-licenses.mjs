@@ -124,13 +124,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   });
 }
 
-collectNpm();
-collectCargo();
+const web = process.argv.includes('--target') && process.argv[process.argv.indexOf('--target') + 1] === 'web';
+if (web) {
+  if (!process.argv.includes('--modules-stdin')) throw new Error('Web notices require the rendered module graph on stdin');
+  const modules = JSON.parse(readFileSync(0, 'utf8'));
+  const seen = new Set();
+  for (const id of modules) {
+    if (!id.replaceAll('\\', '/').includes('/node_modules/')) continue;
+    let dir = dirname(id.split('?')[0]);
+    while (dir !== dirname(dir) && !existsSync(join(dir, 'package.json'))) dir = dirname(dir);
+    if (!existsSync(join(dir, 'package.json')) || seen.has(dir)) continue;
+    seen.add(dir);
+    const p = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+    if (!p.name || p.name.startsWith('@tauri-apps/')) throw new Error(`Unexpected web package: ${p.name}`);
+    const text = licenseText(dir);
+    if (!text) throw new Error(`Missing license text: ${p.name}`);
+    packages.push({ name: p.name, version: p.version, license: p.license, source: 'npm', textId: addText(text) });
+  }
+} else {
+  collectNpm();
+  collectCargo();
+}
 collectAssets();
 
 const uniq = new Map();
 for (const p of packages) uniq.set(`${p.source}:${p.name}@${p.version}`, p);
 const list = [...uniq.values()].sort((a, b) => a.name.localeCompare(b.name));
+if (web) {
+  process.stdout.write(JSON.stringify({ packages: list, texts: Object.fromEntries(texts) }));
+} else {
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify({ packages: list, texts: Object.fromEntries(texts) }));
 console.log(`[licenses] ${list.length} packages, ${texts.size} unique license texts → ${out}`);
+
+}

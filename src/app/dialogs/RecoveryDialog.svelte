@@ -13,8 +13,9 @@
   const time = $derived(info.modified ? new Date(info.modified * 1000).toLocaleString(app.settings.language) : '—');
 
   async function restore() {
+    const path = info.path;
     ondone();
-    await restoreRecovery(info.path);
+    await restoreRecovery(path);
   }
 
   async function discard() {

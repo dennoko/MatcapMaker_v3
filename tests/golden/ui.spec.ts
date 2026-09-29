@@ -16,7 +16,11 @@ async function boot(page: Page, errors: string[]) {
     if (m.type() === 'error') errors.push(m.text());
   });
   await page.setViewportSize({ width: 1400, height: 860 });
-  await page.goto('/');
+  if (test.info().project.name === 'single') {
+    await page.route(/^https?:/, (route) => route.abort());
+    await page.addInitScript(() => localStorage.setItem('matcap-maker:settings', JSON.stringify({ checkUpdates: false })));
+  }
+  await page.goto(test.info().project.metadata.appURL as string);
   await expect(page.locator('.menubar')).toBeVisible();
 }
 
@@ -78,7 +82,7 @@ test('first run shows the tour, then the app edits without errors', async ({ pag
 test('spot light gizmo drags the highlight as one undo step', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
-  await page.keyboard.press('Escape'); // close tour
+  await page.getByRole('button', { name: 'Skip', exact: true }).click();
   await page.locator('[data-row]').first().click(); // Spot Light
   const handle = page.locator('.gizmos .h.dir');
   await expect(handle).toBeVisible();

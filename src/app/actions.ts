@@ -160,7 +160,7 @@ export async function buildBundle(project: Project, view: ViewState, withThumb =
 
 export async function saveProject(forceDialog = false): Promise<boolean> {
   let path = app.filePath;
-  if (!path || forceDialog || platform.kind === 'web') {
+  if (!path || forceDialog || !platform.caps.overwriteSave) {
     const name = path ? basename(path) : `${app.doc.meta.name || 'matcap'}.mcproj`;
     path = await platform.pickSavePath(name, PROJECT_FILTER, tt('dialog.saveProject'));
     if (!path) return false;
@@ -170,10 +170,8 @@ export async function saveProject(forceDialog = false): Promise<boolean> {
     app.busy = tt('status.saving');
     const bundle = await buildBundle(app.doc, app.view);
     await platform.saveProject(path, bundle);
-    if (platform.kind === 'tauri') {
-      app.filePath = path;
-      pushRecent(path);
-    }
+    if (platform.caps.overwriteSave) app.filePath = path;
+    if (platform.caps.persistentFilePaths) pushRecent(path);
     store.markSaved();
     await platform.recoveryClear().catch(() => undefined);
     updateTitle();
@@ -231,8 +229,8 @@ export async function openFile(
       path = src.path ?? null;
       if (!result.project.meta.name || result.project.meta.name === 'Untitled') result.project.meta.name = stripExt(src.name);
     }
-    setDocument(result.project, result.view, platform.kind === 'tauri' ? path : null);
-    if (path && remember) pushRecent(path);
+    setDocument(result.project, result.view, platform.caps.overwriteSave ? path : null);
+    if (path && remember && platform.caps.persistentFilePaths) pushRecent(path);
     if (result.warnings.length) {
       app.warnings = result.warnings;
       app.dialog = 'warnings';
@@ -299,7 +297,7 @@ export async function exportTo(path: string, spec: ExportSpec = exportSpec()) {
     toast(
       tt('toast.exported', { name: basename(path), ms }),
       'success',
-      platform.kind === 'tauri' ? { label: tt('toast.openFolder'), run: () => platform.reveal(path) } : undefined,
+      platform.caps.revealInFolder ? { label: tt('toast.openFolder'), run: () => platform.reveal(path) } : undefined,
     );
   } catch (e) {
     reportError(tt('error.export'), e);
@@ -311,13 +309,13 @@ export async function exportTo(path: string, spec: ExportSpec = exportSpec()) {
 /** Asks for a destination (remembering the folder) and exports. */
 export async function exportWithDialog(spec: ExportSpec = exportSpec()): Promise<boolean> {
   const e = app.settings.export;
-  const dir = e.lastDir || (await platform.paths()).output;
+  const dir = platform.caps.persistentFilePaths ? e.lastDir || (await platform.paths()).output : '';
   const f = spec.format;
   const filters = [{ name: f === 'exr' ? 'OpenEXR' : f === 'jpg' ? 'JPEG' : 'PNG', extensions: [EXT[f]] }];
   let path = await platform.pickSavePath(joinPath(dir, exportFileName()), filters, tt('dialog.exportImage'));
   if (!path) return false;
   if (!path.toLowerCase().endsWith(`.${EXT[f]}`)) path += `.${EXT[f]}`;
-  if (platform.kind === 'tauri') updateSettings((s) => (s.export.lastDir = dirname(path!)));
+  if (platform.caps.persistentFilePaths) updateSettings((s) => (s.export.lastDir = dirname(path!)));
   await exportTo(path, spec);
   return true;
 }
@@ -325,7 +323,7 @@ export async function exportWithDialog(spec: ExportSpec = exportSpec()): Promise
 /** Ctrl+E: export with the last settings to the last folder (dialog the first time). */
 export async function quickExport() {
   const e = app.settings.export;
-  if (!e.lastDir || platform.kind === 'web') {
+  if (!e.lastDir || !platform.caps.persistentFilePaths) {
     app.dialog = 'export';
     return;
   }

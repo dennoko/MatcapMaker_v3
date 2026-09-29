@@ -18,7 +18,7 @@
   /** resolution the preview actually renders at (lower than the export when it would exceed the budget) */
   let previewSize = $state(0);
 
-  const formats: ExportFormat[] = platform.kind === 'tauri' ? ['png8', 'png16', 'jpg', 'exr'] : ['png8', 'png16', 'jpg'];
+  const formats: ExportFormat[] = platform.caps.exr ? ['png8', 'png16', 'jpg', 'exr'] : ['png8', 'png16', 'jpg'];
 
   function set<K extends keyof typeof e>(k: K, v: (typeof e)[K]) {
     updateSettings((s) => (s.export[k] = v));

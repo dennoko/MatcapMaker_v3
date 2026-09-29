@@ -185,6 +185,24 @@ mod tests {
     }
 
     #[test]
+    fn png16_ts_and_rust_decode_identically() {
+        fn decode(bytes: &[u8]) -> Vec<u8> {
+            let mut reader = png::Decoder::new(std::io::Cursor::new(bytes)).read_info().unwrap();
+            assert_eq!(reader.info().bit_depth, png::BitDepth::Sixteen);
+            let mut out = vec![0; reader.output_buffer_size().unwrap()];
+            let frame = reader.next_frame(&mut out).unwrap();
+            out.truncate(frame.buffer_size());
+            out
+        }
+        let pixels: Vec<u8> = (0..32).map(|i| ((i * 37 + 11) & 255) as u8).collect();
+        let mut rust = Vec::new();
+        encode_to(&spec(ImageFormat::Png16, 2, 2), &pixels, &mut rust).unwrap();
+        let ts = include_bytes!("../../../tests/fixtures/png16-ts.png");
+        assert_eq!(decode(ts), pixels);
+        assert_eq!(decode(&rust), decode(ts));
+    }
+
+    #[test]
     fn rejects_wrong_size() {
         let mut buf = Vec::new();
         assert!(encode_to(&spec(ImageFormat::Png8, 4, 4), &[0; 3], &mut buf).is_err());

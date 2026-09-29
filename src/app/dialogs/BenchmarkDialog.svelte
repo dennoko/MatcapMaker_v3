@@ -7,7 +7,7 @@
 
   let results = $state<BenchResult[]>([]);
   let running = $state(false);
-  let writeFile = $state(platform.kind === 'tauri');
+  let writeFile = $state(platform.caps.persistentFilePaths);
 
   async function run() {
     const r = app.renderer;
@@ -16,7 +16,7 @@
     results = [];
     await new Promise((res) => setTimeout(res, 30));
     try {
-      const path = writeFile && platform.kind === 'tauri' ? joinPath((await platform.paths()).output, 'benchmark_4096.png') : null;
+      const path = writeFile && platform.caps.persistentFilePaths ? joinPath((await platform.paths()).output, 'benchmark_4096.png') : null;
       results = await runBenchmark(r, platform, path);
       platform.log('info', `benchmark ${JSON.stringify(results)}`);
     } finally {
@@ -28,7 +28,7 @@
 
 <Modal title={tt('bench.title')} onclose={() => (app.dialog = null)} width={560}>
   <p class="muted">{tt('bench.intro')}</p>
-  {#if platform.kind === 'tauri'}
+  {#if platform.caps.persistentFilePaths}
     <label class="chk"><input type="checkbox" bind:checked={writeFile} /> {tt('bench.writeFile')}</label>
   {/if}
   {#if results.length}

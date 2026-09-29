@@ -399,5 +399,8 @@
   "bench.target": "target",
   "bench.writeFile": "Include writing a PNG to the output folder",
 
-  "update.available": "A new version ({version}) is available."
+  "update.available": "A new version ({version}) is available.",
+
+  "platform.storageUnavailable": "Settings, autosaves and presets will not persist in this browser. Save your project to a file.",
+  "platform.recoveryBusy": "Another tab owns recovery data, or tab locking is unavailable. Autosave is disabled in this tab."
 }

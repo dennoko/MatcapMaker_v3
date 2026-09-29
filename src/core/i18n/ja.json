@@ -399,5 +399,8 @@
   "bench.target": "目標",
   "bench.writeFile": "出力フォルダへの PNG 書き込みも含める",
 
-  "update.available": "新しいバージョン（{version}）が利用できます。"
+  "update.available": "新しいバージョン（{version}）が利用できます。",
+
+  "platform.storageUnavailable": "このブラウザでは設定・自動保存・プリセットが残りません。プロジェクトをファイルに保存してください。",
+  "platform.recoveryBusy": "別のタブが復旧データを使用中、またはタブの排他制御が使えません。このタブでは自動保存を行いません。"
 }

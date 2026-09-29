@@ -19,6 +19,8 @@ export function createTauriPlatform(): Platform {
   let cachedPaths: Awaited<ReturnType<Platform['paths']>> | null = null;
   return {
     kind: 'tauri',
+    caps: { exr: true, overwriteSave: true, revealInFolder: true, plugins: true, fileAssociation: true, persistentStorage: true, persistentFilePaths: true, closeWindow: true },
+    async initialize() {},
 
     async paths() {
       cachedPaths ??= await invoke('app_paths');
