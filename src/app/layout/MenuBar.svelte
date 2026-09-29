@@ -100,7 +100,8 @@
       { separator: true },
       { label: tt('settings.theme.dark'), checked: app.settings.theme === 'dark', action: () => updateSettings((s) => (s.theme = 'dark')) },
       { label: tt('settings.theme.light'), checked: app.settings.theme === 'light', action: () => updateSettings((s) => (s.theme = 'light')) },
-      { separator: true },
+    ],
+    language: [
       { label: '日本語', checked: app.settings.language === 'ja', action: () => (updateSettings((s) => (s.language = 'ja')), changeLocale('ja')) },
       { label: 'English', checked: app.settings.language === 'en', action: () => (updateSettings((s) => (s.language = 'en')), changeLocale('en')) },
     ],
@@ -116,7 +117,7 @@
     ],
   });
 
-  const TOP = ['file', 'edit', 'view', 'help'] as const;
+  const TOP = ['file', 'edit', 'view', 'language', 'help'] as const;
 </script>
 
 <nav class="menubar">

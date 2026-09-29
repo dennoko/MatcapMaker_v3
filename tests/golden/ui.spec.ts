@@ -229,3 +229,36 @@ test('top bar always displays the version badge and opens about dialog', async (
   await expect(page.getByRole('dialog')).toContainText('Matcap Maker');
   expect(errors).toEqual([]);
 });
+
+test('language menu is separated in top menubar and switches between Language and 言語', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.getByRole('button', { name: 'Skip' }).click();
+
+  // Initially in English UI: menubar should show "言語"
+  const langBtn = page.locator('.menubar button.top').filter({ hasText: /^(Language|言語)$/ });
+  await expect(langBtn).toBeVisible();
+
+  // If currently "言語" (English UI): click to switch to Japanese
+  if ((await langBtn.innerText()).trim() === '言語') {
+    await langBtn.click();
+    await page.getByRole('menuitem', { name: /日本語/ }).click();
+    // After switching to Japanese: menubar shows "Language"
+    await expect(langBtn).toHaveText('Language');
+    // Now switch back to English
+    await langBtn.click();
+    await page.getByRole('menuitem', { name: /English/ }).click();
+    await expect(langBtn).toHaveText('言語');
+  } else {
+    // If currently "Language" (Japanese UI): click to switch to English
+    await langBtn.click();
+    await page.getByRole('menuitem', { name: /English/ }).click();
+    await expect(langBtn).toHaveText('言語');
+    // Switch back to Japanese
+    await langBtn.click();
+    await page.getByRole('menuitem', { name: /日本語/ }).click();
+    await expect(langBtn).toHaveText('Language');
+  }
+
+  expect(errors).toEqual([]);
+});
