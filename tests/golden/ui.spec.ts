@@ -262,3 +262,31 @@ test('language menu is separated in top menubar and switches between Language an
 
   expect(errors).toEqual([]);
 });
+
+test('switching a project preset keeps the preview mode, normal map and mesh', async ({ page }) => {
+  const errors: string[] = [];
+  // use the <input type=file> fallback so Playwright can answer the picker
+  await page.addInitScript(() => Object.defineProperty(window, 'showOpenFilePicker', { value: undefined }));
+  await boot(page, errors);
+  await page.getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.getByRole('tab', { name: 'Preview', exact: true }).click();
+
+  let chooser = page.waitForEvent('filechooser');
+  await page.locator('[data-drop-normal]').getByRole('button', { name: 'Choose…' }).click();
+  await (await chooser).setFiles({ name: 'normal.png', mimeType: 'image/png', buffer: Buffer.from(RED_PNG, 'base64') });
+  await expect(page.locator('[data-drop-normal]')).toContainText('normal.png');
+
+  const obj = 'v 0 0 0\nv 1 0 0\nv 0 1 0\nvn 0 0 1\nf 1//1 2//1 3//1\n';
+  chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Load mesh (OBJ / GLB / FBX)…' }).click();
+  await (await chooser).setFiles({ name: 'tri.obj', mimeType: 'text/plain', buffer: Buffer.from(obj) });
+  const shape = page.locator('select').filter({ has: page.locator('option[value="mesh"]') });
+  await expect(shape).toHaveValue('mesh');
+  await expect(page.getByRole('button', { name: 'Use default mesh', exact: true })).toBeVisible();
+
+  await page.locator('.strip').getByRole('button', { name: 'Metal', exact: true }).click();
+  await expect(shape).toHaveValue('mesh');
+  await expect(page.locator('[data-drop-normal]')).toContainText('normal.png');
+  await expect(page.getByRole('button', { name: 'Use default mesh', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});

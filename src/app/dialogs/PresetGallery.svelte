@@ -3,7 +3,7 @@
   import Modal from './Modal.svelte';
   import { app } from '../state.svelte';
   import { tt } from '../i18n.svelte';
-  import { newProject } from '../actions';
+  import { applyProjectPreset } from '../actions';
   import { PROJECT_PRESETS } from '../presets/builtin';
   import { listUserPresets, loadPreset, saveProjectPreset, type UserPreset } from '../presets/user';
   import { createEmptyProject } from '$core/model/project';
@@ -44,13 +44,13 @@
 
   async function pickBuiltin(build: () => Project) {
     app.dialog = null;
-    await newProject(build());
+    await applyProjectPreset(build());
   }
 
   async function pickUser(u: UserPreset) {
     app.dialog = null;
     const r = await loadPreset(u.path);
-    await newProject(r.project, r.view);
+    await applyProjectPreset(r.project);
   }
 
   async function saveCurrent() {

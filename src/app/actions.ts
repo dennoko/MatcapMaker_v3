@@ -104,7 +104,7 @@ export async function confirmDiscard(): Promise<boolean> {
 // project files
 // ---------------------------------------------------------------------------
 
-function setDocument(project: Project, view: ViewState, path: string | null) {
+function setDocument(project: Project, view: ViewState, path: string | null, keepMesh = false) {
   // keep only assets the new document references
   assets.retain(referencedAssets(project, view));
   store.load(project);
@@ -115,7 +115,9 @@ function setDocument(project: Project, view: ViewState, path: string | null) {
   const first = project.layers[0];
   select(first ? [first.id] : []);
   store.markSaved();
-  if (view.mesh) loadMeshAsset(view.mesh);
+  if (keepMesh) {
+    /* the renderer already shows view.mesh */
+  } else if (view.mesh) loadMeshAsset(view.mesh);
   else app.renderer?.setMesh(null);
   updateTitle();
 }
@@ -125,6 +127,24 @@ export async function newProject(template?: Project, view?: ViewState) {
   const p = template ? structuredClone(template) : createDefaultProject(tt('project.untitled'));
   if (template) p.meta = { ...p.meta, name: tt('project.untitled'), modifiedAt: new Date().toISOString() };
   setDocument(p, view ? structuredClone(view) : defaultViewState(), null);
+}
+
+/**
+ * Starts a new project from a preset but keeps the current preview: mode, split,
+ * the loaded normal map and mesh (the preset's own view is ignored).
+ */
+export async function applyProjectPreset(template: Project) {
+  if (!(await confirmDiscard())) return;
+  const view: ViewState = JSON.parse(JSON.stringify(app.view));
+  const p = structuredClone(template);
+  p.meta = { ...p.meta, name: tt('project.untitled'), modifiedAt: new Date().toISOString() };
+  // carry the metas of the preview assets so saves and autosaves keep them
+  for (const id of [view.normalMap.asset, view.mesh]) {
+    const meta = id ? (app.doc.assets[id] ?? assets.get(id)?.meta) : undefined;
+    if (id && meta) p.assets = { ...p.assets, [id]: { ...meta } };
+  }
+  // the renderer already shows the current mesh
+  setDocument(p, view, null, true);
 }
 
 export async function buildBundle(project: Project, view: ViewState, withThumb = true): Promise<ProjectBundle> {

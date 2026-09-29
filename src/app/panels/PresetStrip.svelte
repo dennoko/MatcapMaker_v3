@@ -1,7 +1,7 @@
 <script lang="ts">
   import { app } from '../state.svelte';
   import { tt } from '../i18n.svelte';
-  import { newProject } from '../actions';
+  import { applyProjectPreset } from '../actions';
   import { PROJECT_PRESETS } from '../presets/builtin';
 </script>
 
@@ -9,7 +9,7 @@
   <div class="section-title">{tt('layers.presets')}</div>
   <div class="chips">
     {#each PROJECT_PRESETS.slice(1) as p}
-      <button class="btn small" onclick={() => newProject(p.build())}>{tt(`preset.project.${p.id}`, undefined, p.name)}</button>
+      <button class="btn small" onclick={() => applyProjectPreset(p.build())}>{tt(`preset.project.${p.id}`, undefined, p.name)}</button>
     {/each}
     <button class="btn small ghost" onclick={() => (app.dialog = 'presets')}>{tt('layers.morePresets')}</button>
   </div>
