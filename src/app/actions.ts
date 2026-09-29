@@ -485,6 +485,19 @@ export async function setMeshFrom(bytes: Uint8Array, name: string) {
   app.renderer?.setMesh(mesh);
 }
 
+/** paste event (Ctrl+V): image files on the clipboard become Image layers. */
+export async function handlePaste(e: ClipboardEvent) {
+  const t = e.target as HTMLElement | null;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  const files = [...(e.clipboardData?.files ?? [])].filter((f) => f.type.startsWith('image/'));
+  if (!files.length) {
+    toast(tt('toast.noClipboardImage'));
+    return;
+  }
+  e.preventDefault();
+  for (const f of files) await addImageLayer(new Uint8Array(await f.arrayBuffer()), f.name || 'clipboard.png');
+}
+
 export async function pasteFromClipboard() {
   try {
     const items = await navigator.clipboard.read();

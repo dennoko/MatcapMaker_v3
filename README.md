@@ -68,7 +68,7 @@ Inspector の UI・保存・既定値・uniform が自動で導かれます。
 ## プラグイン
 
 `Documents\MatcapMaker\plugins\<名前>\` に `layer.json` と `layer.glsl`（フィルタは `pass0.glsl`…）を置くと、起動時にレイヤーとして読み込まれます。
-JavaScript は実行しないため安全に追加できます。書式は [docs/plugins.md](docs/plugins.md)、サンプルは [examples/plugins](examples/plugins) を参照してください。
+JavaScript は実行しないため安全に追加できます。書式は [Docs/plugins.md](Docs/plugins.md)、サンプルは [examples/plugins](examples/plugins) を参照してください。
 
 ## 保存場所
 

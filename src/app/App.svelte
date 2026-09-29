@@ -3,7 +3,7 @@
   import './styles.css';
   import { app, platform } from './state.svelte';
   import { changeLocale, tt } from './i18n.svelte';
-  import { confirmDiscard, loadSettings, openPath, redo, undo, updateSettings, updateTitle } from './actions';
+  import { confirmDiscard, handlePaste, loadSettings, openPath, redo, undo, updateSettings, updateTitle } from './actions';
   import { handleKeydown } from './shortcuts';
   import MenuBar from './layout/MenuBar.svelte';
   import StatusBar from './layout/StatusBar.svelte';
@@ -103,7 +103,7 @@
   const title = $derived(app.filePath ? basename(app.filePath) : `${app.doc.meta.name}.mcproj`);
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} onpaste={handlePaste} />
 
 <div class="app" class:portrait>
   <header class="top">

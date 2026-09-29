@@ -6,7 +6,6 @@ import {
   moveSelected,
   newProject,
   openDialog,
-  pasteFromClipboard,
   quickExport,
   redo,
   saveProject,
@@ -86,7 +85,8 @@ export function handleKeydown(e: KeyboardEvent) {
     if (k === 'e') return run(() => (e.shiftKey ? (app.dialog = 'export') : quickExport()));
     if (k === 'd') return run(duplicateSelected);
     if (k === 'g') return run(e.shiftKey ? ungroupSelected : groupSelected);
-    if (k === 'v') return run(pasteFromClipboard);
+    // Ctrl+V is handled by the paste event (see App.svelte): no clipboard permission needed
+    if (k === 'v') return;
     if (k === ',') return run(() => (app.dialog = 'settings'));
     if (k === 'ArrowUp') return run(() => moveSelected(-1));
     if (k === 'ArrowDown') return run(() => moveSelected(1));
