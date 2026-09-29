@@ -18,7 +18,8 @@
     "licenses:files": "node scripts/gen-license-files.mjs",
     "tauri": "tauri",
     "build:single": "vite build --mode single && node scripts/check-single.mjs",
-    "test:single": "playwright test --project single"
+    "test:single": "playwright test --project single",
+    "pack:release": "powershell -ExecutionPolicy Bypass -File scripts/pack-release.ps1"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.0",
