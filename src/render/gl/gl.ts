@@ -60,6 +60,10 @@ export class GLContext {
     gl.bindFramebuffer(gl.FRAMEBUFFER, t ? t.fbo : null);
     gl.viewport(0, 0, t ? t.width : w!, t ? t.height : h!);
   }
+
+  dispose() {
+    this.gl.deleteVertexArray(this.emptyVao);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -100,18 +104,26 @@ export class Program {
     vsSource = FULLSCREEN_VS,
   ) {
     const gl = ctx.gl;
-    const vs = compile(gl, gl.VERTEX_SHADER, vsSource);
-    const fs = compile(gl, gl.FRAGMENT_SHADER, fsSource);
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    gl.deleteShader(vs);
-    gl.deleteShader(fs);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      const log = gl.getProgramInfoLog(prog) ?? '';
-      gl.deleteProgram(prog);
-      throw new ShaderError('Program link failed', log, fsSource);
+    // every handle created so far is released on each failure path
+    let vs: WebGLShader | null = null;
+    let fs: WebGLShader | null = null;
+    let prog: WebGLProgram | null = null;
+    try {
+      vs = compile(gl, gl.VERTEX_SHADER, vsSource);
+      fs = compile(gl, gl.FRAGMENT_SHADER, fsSource);
+      prog = gl.createProgram()!;
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        throw new ShaderError('Program link failed', gl.getProgramInfoLog(prog) ?? '', fsSource);
+      }
+    } catch (e) {
+      if (prog) gl.deleteProgram(prog);
+      throw e;
+    } finally {
+      if (vs) gl.deleteShader(vs);
+      if (fs) gl.deleteShader(fs);
     }
     this.program = prog;
     const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS) as number;
@@ -224,6 +236,12 @@ export class RenderTarget {
     gl.texStorage2D(gl.TEXTURE_2D, 1, internal, width, height);
     void fmt;
     void type;
+    // surface allocation failure here (with cleanup) instead of rendering into
+    // an incomplete texture later
+    if (gl.getError() === gl.OUT_OF_MEMORY) {
+      gl.deleteTexture(this.texture);
+      throw new Error(`GPU out of memory (${format} ${width}x${height})`);
+    }
     const canLinear = format !== 'rg32f' && format !== 'rgba32f' ? true : ctx.caps.floatLinear;
     const f = filter === 'linear' && canLinear ? gl.LINEAR : gl.NEAREST;
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, f);
@@ -293,6 +311,11 @@ export class TargetPool {
   release(t: RenderTarget) {
     this.free.push(t);
     while (this.free.length > this.maxFree) this.free.shift()!.dispose();
+  }
+
+  /** GPU memory held by idle targets. */
+  get bytes(): number {
+    return this.free.reduce((b, t) => b + t.bytes, 0);
   }
 
   dispose() {

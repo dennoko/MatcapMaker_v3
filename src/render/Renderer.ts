@@ -65,26 +65,35 @@ export class Renderer {
   private mesh!: MeshPreview;
   private lastFinal: RenderTarget | null = null;
   private lost = false;
+  private disposed = false;
   onShaderError?: (type: string, msg: string) => void;
   onRestored?: () => void;
+
+  private onLost = (e: Event) => {
+    e.preventDefault();
+    this.lost = true;
+  };
+  private onRestore = () => {
+    if (this.disposed) return;
+    this.init();
+    this.lost = false;
+    this.onRestored?.();
+  };
 
   constructor(
     readonly canvas: HTMLCanvasElement,
     readonly assets: AssetStore,
   ) {
     this.init();
-    canvas.addEventListener('webglcontextlost', (e) => {
-      e.preventDefault();
-      this.lost = true;
-    });
-    canvas.addEventListener('webglcontextrestored', () => {
-      this.init();
-      this.lost = false;
-      this.onRestored?.();
-    });
+    canvas.addEventListener('webglcontextlost', this.onLost);
+    canvas.addEventListener('webglcontextrestored', this.onRestore);
   }
 
   private init() {
+    // after a context loss the old objects are already gone; only stop
+    // the old cache from following the asset store
+    this.res?.detach();
+    this.lastFinal = null;
     this.ctx = new GLContext(this.canvas);
     this.res = new ResourceCache(this.ctx, this.assets);
     this.res.onError = (t, m) => this.onShaderError?.(t, m);
@@ -107,7 +116,7 @@ export class Renderer {
   }
 
   get isLost() {
-    return this.lost;
+    return this.lost || this.disposed;
   }
 
   get caps() {
@@ -116,7 +125,7 @@ export class Renderer {
 
   /** Renders the matcap (differentially) and presents it. */
   frame(req: FrameRequest): FrameInfo | null {
-    if (this.lost) return null;
+    if (this.isLost) return null;
     const pipe = req.interactive ? this.lo : this.hi;
     const opts: RenderOptions = { solo: req.solo, blendOverride: req.blendOverride };
     const final = pipe.render(req.project, opts);
@@ -182,7 +191,7 @@ export class Renderer {
   /** Reads the matcap color at uv (0..1, y up) from the last frame. */
   pick(u: number, v: number): [number, number, number, number] | null {
     const rt = this.lastFinal;
-    if (!rt || this.lost) return null;
+    if (!rt || this.isLost) return null;
     const gl = this.ctx.gl;
     const x = Math.min(rt.width - 1, Math.max(0, Math.floor(u * rt.width)));
     const y = Math.min(rt.height - 1, Math.max(0, Math.floor(v * rt.height)));
@@ -201,10 +210,13 @@ export class Renderer {
     return out;
   }
 
-  /** Small RGBA8 thumbnail (top-down) of a generator layer's own output. */
-  thumbnail(node: LayerNode, size = 64): Uint8ClampedArray | null {
-    if (this.lost) return null;
-    const src = this.lo.layerOutput(node);
+  /**
+   * Small RGBA8 thumbnail (top-down) of a generator layer's own output.
+   * `alive` = ids of the document's layers, so results of deleted layers are released.
+   */
+  thumbnail(node: LayerNode, size = 64, alive?: ReadonlySet<string>): Uint8ClampedArray | null {
+    if (this.isLost) return null;
+    const src = this.lo.layerOutput(node, alive);
     if (!src) return null;
     const ratio = src.width / size;
     const rt = new RenderTarget(this.ctx, size, size, 'rgba8', 'nearest');
@@ -229,29 +241,47 @@ export class Renderer {
   }
 
   export(project: Project, spec: ExportSpec): EncodedPixels {
-    if (this.lost) throw new Error('GPU context lost');
+    if (this.isLost) throw new Error('GPU context lost');
     return new Exporter(this.ctx, this.res).run(project, spec);
   }
 
   /** Mesh for the mesh preview (null = built-in torus knot). */
   setMesh(mesh: MeshData | null) {
     this.meshData = mesh;
-    this.mesh.load(mesh);
+    if (!this.disposed) this.mesh.load(mesh);
   }
   private meshData: MeshData | null | undefined;
 
+  /** Estimated GPU memory: pipelines, uploaded images, noise and the mesh preview. */
   get memoryBytes() {
-    return this.hi.memoryBytes + this.lo.memoryBytes + (this.before?.memoryBytes ?? 0);
+    return (
+      this.hi.memoryBytes +
+      this.lo.memoryBytes +
+      (this.before?.memoryBytes ?? 0) +
+      this.res.memoryBytes +
+      this.mesh.memoryBytes +
+      Math.round((512 * 512 * 4 * 4) / 3) // default normal map with mips
+    );
   }
 
   dropAsset(id: string) {
     this.res.dropAsset(id);
   }
 
+  /** Releases every GPU object and listener; the renderer is unusable afterwards. */
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.canvas.removeEventListener('webglcontextlost', this.onLost);
+    this.canvas.removeEventListener('webglcontextrestored', this.onRestore);
+    this.lastFinal = null;
     this.hi.dispose();
     this.lo.dispose();
     this.before?.dispose();
+    this.before = null;
+    this.mesh.dispose();
+    this.ctx.gl.deleteTexture(this.defaultNormal);
     this.res.dispose();
+    this.ctx.dispose();
   }
 }

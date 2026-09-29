@@ -181,6 +181,33 @@ test.describe('pipeline', () => {
     expect(again.stats.passes).toBe(0);
   });
 
+  test('one-shot export render matches the cached render (groups, masks, filters)', async ({ page }) => {
+    await open(page);
+    const json = project(
+      { id: 'm', type: 'spotLight', params: { range: 0.4 }, mask: { enabled: true, source: 'layer', layerId: 'e', invert: true, amount: 0.8 } },
+      { id: 'f', type: 'blurSharpen', params: { radius: 0.3 } },
+      {
+        id: 'g',
+        type: 'group',
+        blendMode: 'screen',
+        opacity: 0.7,
+        children: [
+          { id: 'g2', type: 'group', children: [{ id: 'c', type: 'colorAdjust', params: {} }, { id: 'n', type: 'noise', params: { intensity: 0.4 } }] },
+          { id: 'r', type: 'fresnel', params: { power: 3 }, mask: { enabled: true, source: 'fresnel', invert: false, amount: 1 } },
+        ],
+      },
+      { id: 'e', type: 'solidColor', params: { color: [0.3, 0.2, 0.1] } },
+    );
+    const f = await page.evaluate((j) => (window as any).mm.freshRender(j), json);
+    const o = await page.evaluate((j) => (window as any).mm.onceRender(j), json);
+    let maxErr = 0;
+    for (let i = 0; i < f.length; i++) maxErr = Math.max(maxErr, Math.abs(o[i] - f[i]));
+    expect(maxErr).toBeLessThan(1e-3);
+    // empty stack: transparent
+    const empty = await page.evaluate((j) => (window as any).mm.onceRender(j), project());
+    expect(Math.max(...empty.map(Math.abs))).toBe(0);
+  });
+
   test('matcap space: disc mask, solid color and orientation', async ({ page }) => {
     await open(page);
     const S = 128;

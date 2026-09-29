@@ -24,7 +24,7 @@ import {
   type LoadResult,
 } from '$core/io/serialize';
 import { importLegacyV3 } from '$core/io/legacyV3';
-import { mimeFromName } from '$core/io/assetStore';
+import { ImageTooLargeError, MAX_IMAGE_PIXELS, mimeFromName } from '$core/io/assetStore';
 import { encodePng } from '$platform/pngEncode';
 import { basename, dirname, joinPath, stripExt, type ProjectBundle } from '$platform/types';
 import type { ExportSpec } from '$render/export/Exporter';
@@ -428,7 +428,12 @@ export function redo() {
 // ---------------------------------------------------------------------------
 
 export async function importImageBytes(bytes: Uint8Array, name: string) {
-  const e = await assets.add(bytes, name, mimeFromName(name));
+  const e = await assets.add(bytes, name, mimeFromName(name)).catch((err) => {
+    if (!(err instanceof ImageTooLargeError)) throw err;
+    throw new Error(
+      tt('error.imageTooLarge', { width: err.width, height: err.height, limit: Math.round(MAX_IMAGE_PIXELS / 1e6) }),
+    );
+  });
   if (!e.bitmap) throw new Error(tt('error.notImage', { name }));
   store.silent((d) => {
     d.assets[e.id] = { ...e.meta };

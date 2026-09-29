@@ -241,6 +241,7 @@
   "export.templateHint": "{project} {size} {padding} {date}",
   "export.paddingPreview": "輪郭のプレビュー",
   "export.paddingPreviewHint": "書き出し解像度での円の輪郭付近 {size}×{size} px を拡大表示",
+  "export.paddingPreviewScaled": "GPU メモリを抑えるため、プレビューは {size} px で近似しています",
   "export.quickHint": "Ctrl+E でこの設定のまま再エクスポート",
   "export.run": "エクスポート…",
 
@@ -336,6 +337,7 @@
   "error.export": "エクスポートに失敗しました",
   "error.image": "画像を読み込めませんでした",
   "error.notImage": "{name} は対応していない画像です",
+  "error.imageTooLarge": "画像が大きすぎます（{width}×{height}）。{limit} メガピクセルまで読み込めます",
   "error.mesh": "メッシュを読み込めませんでした",
   "error.render": "描画に失敗しました",
   "error.shader": "シェーダーのコンパイルエラーのため、このレイヤーは無効になっています。",

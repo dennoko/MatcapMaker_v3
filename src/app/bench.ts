@@ -110,7 +110,7 @@ export async function runBenchmark(r: Renderer, platform: Platform, exportPath: 
   }
   const mem = (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory;
   if (mem) out.push({ name: 'JS heap', value: mem.usedJSHeapSize / 1048576, unit: 'MB' });
-  out.push({ name: 'GPU cache (preview pipelines)', value: r.memoryBytes / 1048576, unit: 'MB' });
+  out.push({ name: 'GPU memory (estimated)', value: r.memoryBytes / 1048576, unit: 'MB' });
   out.push({ name: 'startup → first frame', value: (window as unknown as { __mmFirstFrame?: number }).__mmFirstFrame ?? 0, unit: 'ms', target: 1000 });
   return out;
 }

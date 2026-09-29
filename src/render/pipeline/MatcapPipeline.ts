@@ -47,6 +47,9 @@ interface StackResult {
  * When a layer changes only the slots from that layer up to the front are
  * recomputed; reordering / opacity / blend changes re-composite without
  * re-evaluating generators. Unused slots return to the pool after a frame.
+ *
+ * Exports use renderOnce() instead, which caches nothing and keeps only the
+ * few targets the current step needs.
  */
 export class MatcapPipeline {
   private slots = new Map<string, Slot>();
@@ -57,6 +60,8 @@ export class MatcapPipeline {
   private project!: Project;
   private opts: RenderOptions = {};
   private frameNo = 0;
+  /** result of the last renderOnce() (owned until the next call / dispose) */
+  private once: RenderTarget | null = null;
 
   constructor(
     private ctx: GLContext,
@@ -65,23 +70,31 @@ export class MatcapPipeline {
   ) {
     this.format = ctx.accumFormat;
     this.pool = new TargetPool(ctx, 6);
-    this.empty = new RenderTarget(ctx, size, size, this.format);
+    // every shader samples the backdrop with texture(), so a transparent
+    // 1x1 target stands in for an empty backdrop of any size
+    this.empty = new RenderTarget(ctx, 1, 1, this.format);
     this.empty.clear();
   }
 
-  /** Returns the final composite (owned by the pipeline; valid until next render). */
-  render(project: Project, opts: RenderOptions = {}): RenderTarget {
-    const t0 = performance.now();
+  private begin(project: Project, opts: RenderOptions) {
     this.project = project;
     this.opts = opts;
     this.stats = { passes: 0, reused: 0, ms: 0 };
     this.frameNo++;
-    for (const s of this.slots.values()) s.used = false;
-
     const gl = this.ctx.gl;
     gl.disable(gl.BLEND);
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.CULL_FACE);
+  }
+
+  /**
+   * Returns the final composite (owned by the pipeline; valid until next render).
+   * For an empty stack this is a 1x1 transparent target.
+   */
+  render(project: Project, opts: RenderOptions = {}): RenderTarget {
+    const t0 = performance.now();
+    this.begin(project, opts);
+    for (const s of this.slots.values()) s.used = false;
 
     const result = this.renderStack(project.layers, 'root');
 
@@ -100,16 +113,80 @@ export class MatcapPipeline {
     return result.rt;
   }
 
-  /** Output of a single generator layer (for thumbnails); null for filters. */
-  layerOutput(node: LayerNode): RenderTarget | null {
+  /**
+   * One-shot render without caching (export). Each step holds only the
+   * composite below it, the layer's own input and the step's output; all other
+   * targets go back to the pool at once, so the peak is a handful of targets
+   * however many layers there are (plus one per nested group level).
+   * The result is owned by the pipeline until the next call or dispose().
+   */
+  renderOnce(project: Project, opts: RenderOptions = {}): RenderTarget {
+    const t0 = performance.now();
+    this.begin(project, opts);
+    this.dropOnce();
+    const held = new Set<RenderTarget>();
+    try {
+      const out = this.stackOnce(project.layers, held);
+      held.delete(out);
+      held.forEach((t) => t.dispose());
+      this.pool.dispose();
+      if (out !== this.empty) this.once = out;
+      this.stats.ms = performance.now() - t0;
+      return out;
+    } catch (e) {
+      held.forEach((t) => t.dispose());
+      this.pool.dispose();
+      throw e;
+    }
+  }
+
+  /** Full-size targets renderOnce() holds at its peak (for memory estimates). */
+  static onceTargets(layers: LayerNode[]): number {
+    // composite below + input + output + a filter pass or a layer mask,
+    // and one more composite per nested group level
+    let deepest = 0;
+    const walk = (nodes: LayerNode[], depth: number) => {
+      for (const n of nodes) {
+        if (!n.enabled) continue;
+        deepest = Math.max(deepest, depth);
+        if (isGroup(n) && n.children) walk(n.children, depth + 1);
+      }
+    };
+    walk(layers, 0);
+    return 4 + deepest;
+  }
+
+  private dropOnce() {
+    this.once?.dispose();
+    this.once = null;
+  }
+
+  /**
+   * Output of a single generator layer (for thumbnails); null for filters.
+   * With `alive` (ids of the current document's layers), cached results of
+   * layers that no longer exist are released; the memory budget always applies.
+   */
+  layerOutput(node: LayerNode, alive?: ReadonlySet<string>): RenderTarget | null {
     const def = registry.get(node.type);
     if (!def || def.kind !== 'generator') return null;
-    return this.generate(node, def)?.rt ?? null;
+    const out = this.generate(node, def);
+    if (!out) return null;
+    if (alive) {
+      for (const [id, s] of this.slots) {
+        // slot ids end with the layer id (`layer:<id>`, `acc:<scope>:<id>`)
+        if (!alive.has(id.slice(id.lastIndexOf(':') + 1))) {
+          this.pool.release(s.rt);
+          this.slots.delete(id);
+        }
+      }
+    }
+    this.evict(`layer:${node.id}`);
+    return out.rt;
   }
 
   /** Current cache key of the whole stack (changes whenever the output changes). */
   get memoryBytes(): number {
-    let b = this.empty.bytes;
+    let b = this.empty.bytes + (this.once?.bytes ?? 0) + this.pool.bytes;
     for (const s of this.slots.values()) b += s.rt.bytes;
     return b;
   }
@@ -121,6 +198,7 @@ export class MatcapPipeline {
   dispose() {
     for (const s of this.slots.values()) s.rt.dispose();
     this.slots.clear();
+    this.dropOnce();
     this.pool.dispose();
     this.empty.dispose();
   }
@@ -159,10 +237,12 @@ export class MatcapPipeline {
    * recently (they are simply recomputed when needed). The accumulation
    * chain is kept because it is what makes edits near the front cheap.
    */
-  private evict() {
+  private evict(keep?: string) {
     let bytes = this.memoryBytes;
     if (bytes <= CACHE_BUDGET_BYTES) return;
-    const layerSlots = [...this.slots.entries()].filter(([id]) => id.startsWith('layer:')).sort((a, b) => a[1].stamp - b[1].stamp);
+    const layerSlots = [...this.slots.entries()]
+      .filter(([id]) => id.startsWith('layer:') && id !== keep)
+      .sort((a, b) => a[1].stamp - b[1].stamp);
     for (const [id, s] of layerSlots) {
       if (bytes <= CACHE_BUDGET_BYTES) break;
       bytes -= s.rt.bytes;
@@ -227,6 +307,67 @@ export class MatcapPipeline {
     return acc;
   }
 
+  private stackOnce(nodes: LayerNode[], held: Set<RenderTarget>): RenderTarget {
+    const take = () => {
+      const t = this.pool.acquire(this.size, this.size, this.format);
+      held.add(t);
+      return t;
+    };
+    const drop = (t: RenderTarget | null | undefined) => {
+      if (t && held.delete(t)) this.pool.release(t);
+    };
+    let acc = this.empty;
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const node = nodes[i];
+      if (!this.isVisible(node)) continue;
+      const group = isGroup(node);
+      const def = group ? undefined : registry.get(node.type);
+      if (!group && !def) continue;
+      const blendMode =
+        this.opts.blendOverride?.layerId === node.id ? this.opts.blendOverride.mode : node.blendMode;
+      const isFilter = !group && def!.kind !== 'generator';
+
+      let src: RenderTarget | null = null;
+      if (group) {
+        if (!node.children?.length) continue;
+        src = this.stackOnce(node.children, held);
+      } else if (!isFilter) {
+        const prog = this.res.generator(def!);
+        if (!prog) continue;
+        src = take();
+        this.draw(prog, src, node, def!);
+      }
+      const mask = this.maskInfo(node, take);
+      const out = take();
+      if (isFilter) {
+        const r = this.runFilter(node, def!, acc);
+        if (r) {
+          r.temps.forEach((t) => held.add(t));
+          this.blend(r.out, acc, out, blendMode, node.opacity, true, mask);
+          r.temps.forEach(drop);
+        } else {
+          // shader failed: pass the backdrop through unchanged
+          this.copy(acc, out);
+        }
+      } else {
+        this.blend(src!, acc, out, blendMode, node.opacity, false, mask);
+      }
+      drop(src);
+      drop(mask.temp);
+      drop(acc);
+      acc = out;
+    }
+    return acc;
+  }
+
+  private draw(prog: Program, target: RenderTarget, node: LayerNode, def: LayerDef) {
+    this.ctx.bindTarget(target);
+    prog.use();
+    this.applyParams(prog, node, def);
+    this.ctx.drawFullscreen();
+    this.stats.passes++;
+  }
+
   private paramKey(node: LayerNode, def: LayerDef): string {
     let assets = '';
     for (const [k, spec] of Object.entries(def.params)) {
@@ -241,13 +382,7 @@ export class MatcapPipeline {
     if (!prog) return null;
     const key = this.paramKey(node, def);
     const { slot, fresh } = this.slot(`layer:${node.id}`, key);
-    if (!fresh) {
-      this.ctx.bindTarget(slot.rt);
-      prog.use();
-      this.applyParams(prog, node, def);
-      this.ctx.drawFullscreen();
-      this.stats.passes++;
-    }
+    if (!fresh) this.draw(prog, slot.rt, node, def);
     return { rt: slot.rt, key };
   }
 
@@ -278,31 +413,47 @@ export class MatcapPipeline {
     def: LayerDef,
     input: RenderTarget,
   ): { out: RenderTarget; temps: RenderTarget[] } | null {
-    const temps: RenderTarget[] = [];
+    // only the previous pass stays alive: it is released once the next pass
+    // has read it, and on any failure
+    let prev: RenderTarget | null = null;
     let cur = input;
-    for (let i = 0; i < def.passes!.length; i++) {
-      const prog = this.res.pass(def, i);
-      if (!prog) {
-        temps.forEach((t) => this.pool.release(t));
-        return null;
+    try {
+      for (let i = 0; i < def.passes!.length; i++) {
+        const prog = this.res.pass(def, i);
+        if (!prog) {
+          if (prev) this.pool.release(prev);
+          return null;
+        }
+        const out = this.pool.acquire(this.size, this.size, this.format);
+        this.ctx.bindTarget(out);
+        prog.use();
+        prog.tex('u_input', cur.texture);
+        prog.tex('u_original', input.texture);
+        prog.i('u_pass', i);
+        prog.v2('u_texel', 1 / this.size, 1 / this.size);
+        this.applyParams(prog, node, def);
+        this.ctx.drawFullscreen();
+        this.stats.passes++;
+        if (prev) this.pool.release(prev);
+        prev = out;
+        cur = out;
       }
-      const out = this.pool.acquire(this.size, this.size, this.format);
-      temps.push(out);
-      this.ctx.bindTarget(out);
-      prog.use();
-      prog.tex('u_input', cur.texture);
-      prog.tex('u_original', input.texture);
-      prog.i('u_pass', i);
-      prog.v2('u_texel', 1 / this.size, 1 / this.size);
-      this.applyParams(prog, node, def);
-      this.ctx.drawFullscreen();
-      this.stats.passes++;
-      cur = out;
+    } catch (e) {
+      if (prev) this.pool.release(prev);
+      throw e;
     }
-    return { out: cur, temps };
+    return { out: cur, temps: prev ? [prev] : [] };
   }
 
-  private maskInfo(node: LayerNode): { mode: number; invert: boolean; amount: number; tex: WebGLTexture | null; key: string } {
+  /**
+   * Mask inputs of a layer. With `take` (one-shot render) a layer-sourced mask
+   * is drawn into a temporary target returned as `temp` for the caller to
+   * release; otherwise it comes from the generator cache.
+   */
+  private maskInfo(
+    node: LayerNode,
+    take?: () => RenderTarget,
+  ): { mode: number; invert: boolean; amount: number; tex: WebGLTexture | null; key: string; temp?: RenderTarget } {
     const m = node.mask;
     const none = { mode: 0, invert: false, amount: 1, tex: null, key: 'nomask' };
     if (!m || !m.enabled) return none;
@@ -330,6 +481,13 @@ export class MatcapPipeline {
         const loc = findLayer(this.project.layers, m.layerId);
         const def = loc && registry.get(loc.node.type);
         if (!loc || !def || def.kind !== 'generator') return none;
+        if (take) {
+          const prog = this.res.generator(def);
+          if (!prog) return none;
+          const temp = take();
+          this.draw(prog, temp, loc.node, def);
+          return { mode: 4, invert: m.invert, amount: m.amount, tex: temp.texture, key: '', temp };
+        }
         const out = this.generate(loc.node, def);
         if (!out) return none;
         mode = 4;

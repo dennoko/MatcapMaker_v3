@@ -45,6 +45,13 @@ function b64(bytes: Uint8Array) {
     p.dispose();
     return px;
   },
+  /** One-shot (export) path: no cache, targets released step by step. */
+  onceRender(json: string) {
+    const p = new MatcapPipeline(renderer.ctx, renderer.res, 64);
+    const px = Array.from(readRt(p.renderOnce(deserializeProject(json).project)));
+    p.dispose();
+    return px;
+  },
   registerPlugin(json: string, glsl: string[]) {
     const { def } = loadPlugin(json, glsl, new Set(BUILTIN_LAYERS.map((d) => d.type)));
     registry.register(def);

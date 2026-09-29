@@ -1,4 +1,4 @@
-import { RenderTarget, type GLContext } from '../gl/gl';
+import { RenderTarget, type GLContext, type TargetFormat } from '../gl/gl';
 import { MatcapPipeline } from '../pipeline/MatcapPipeline';
 import type { ResourceCache } from '../pipeline/resources';
 import { withCommon } from '../pipeline/shaderBuilder';
@@ -123,6 +123,24 @@ void main() {
   o_color = vec4(b) / 255.0;
 }`);
 
+/**
+ * Upper bound for the GPU memory one export may request. Exports whose
+ * estimate exceeds it fail up front instead of running the driver out of memory.
+ */
+export const EXPORT_MEMORY_LIMIT = 3 * 1024 * 1024 * 1024;
+
+const BYTES_PER_PIXEL: Record<TargetFormat, number> = { rgba16f: 8, rgba8: 4, rg32f: 8, rgba32f: 16 };
+
+/** Peak GPU memory (bytes) an export of `project` at `spec` requests. */
+export function estimateExportBytes(project: Project, spec: Pick<ExportSpec, 'size' | 'padding'>, format: TargetFormat, floatTargets = true): number {
+  const px = spec.size * spec.size;
+  const img = px * BYTES_PER_PIXEL[format];
+  const render = MatcapPipeline.onceTargets(project.layers) * img;
+  // padding: image + two RG32F seed buffers + padded result, then the RGBA8 encode target
+  const pad = spec.padding > 0 && floatTargets ? img * 2 + px * 16 : img;
+  return Math.max(render, pad + px * 4);
+}
+
 export class Exporter {
   constructor(
     private ctx: GLContext,
@@ -140,10 +158,22 @@ export class Exporter {
       t = now;
     };
 
+    const need = estimateExportBytes(project, { size, padding: spec.padding }, this.ctx.accumFormat, this.ctx.caps.floatTargets);
+    if (need > EXPORT_MEMORY_LIMIT) {
+      throw new Error(`Export needs about ${Math.ceil(need / 1048576)} MiB of GPU memory (limit ${EXPORT_MEMORY_LIMIT / 1048576} MiB)`);
+    }
+
     const pipeline = new MatcapPipeline(this.ctx, this.res, size);
     const own: RenderTarget[] = [];
     try {
-      let img = pipeline.render(project);
+      let img = pipeline.renderOnce(project);
+      if (img.width !== size) {
+        // empty stack: the pipeline returns a 1x1 transparent target
+        const full = new RenderTarget(this.ctx, size, size, img.format, 'nearest');
+        own.push(full);
+        full.clear();
+        img = full;
+      }
       lap('render');
 
       const gpuPadding = spec.padding > 0 && this.ctx.caps.floatTargets;
@@ -203,9 +233,12 @@ export class Exporter {
     const { ctx, res } = this;
     const w = src.width;
     const h = src.height;
+    // each target joins `own` as soon as it exists, so a failure while
+    // allocating the next one still releases it
     let a = new RenderTarget(ctx, w, h, 'rg32f', 'nearest');
+    own.push(a);
     let b = new RenderTarget(ctx, w, h, 'rg32f', 'nearest');
-    own.push(a, b);
+    own.push(b);
 
     const seed = res.custom('jfa-seed', () => JFA_SEED);
     ctx.bindTarget(a);
@@ -239,6 +272,12 @@ export class Exporter {
     resolve.f('u_padding', spec.padding);
     resolve.f('u_threshold', spec.alphaThreshold);
     ctx.drawFullscreen();
+
+    // the seed buffers are done: free them before the next allocation
+    for (const t of [a, b]) {
+      own.splice(own.indexOf(t), 1);
+      t.dispose();
+    }
 
     if (!spec.smoothPadding) return padded;
     const smooth = new RenderTarget(ctx, w, h, src.format, 'nearest');

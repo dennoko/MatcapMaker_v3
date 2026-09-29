@@ -81,23 +81,78 @@ pub fn write_bundle(meta: &SaveMeta, blobs: &[u8]) -> Result<(), String> {
     })
 }
 
+/// Size limits for opening an archive. A small (or crafted) zip can declare
+/// or inflate to far more data than fits in memory, so both the declared and
+/// the actually decompressed sizes are checked.
+pub struct BundleLimits {
+    pub entries: usize,
+    pub project_json: u64,
+    pub entry: u64,
+    pub total: u64,
+}
+
+pub const BUNDLE_LIMITS: BundleLimits = BundleLimits {
+    entries: 4096,
+    project_json: 32 << 20,
+    entry: 512 << 20,
+    total: 1 << 30,
+};
+
+/// Appends at most `limit` bytes of `entry` to `out`; more is an error.
+fn read_limited(entry: &mut impl Read, limit: u64, out: &mut Vec<u8>, name: &str) -> Result<(), String> {
+    let start = out.len();
+    entry
+        .take(limit + 1)
+        .read_to_end(out)
+        .map_err(|e| e.to_string())?;
+    if (out.len() - start) as u64 > limit {
+        out.truncate(start);
+        return Err(format!("{name} is too large (limit {} MiB)", limit >> 20));
+    }
+    Ok(())
+}
+
 pub fn read_bundle(path: &Path) -> Result<Vec<u8>, String> {
+    read_bundle_with(path, &BUNDLE_LIMITS)
+}
+
+pub fn read_bundle_with(path: &Path, limits: &BundleLimits) -> Result<Vec<u8>, String> {
     let file = std::fs::File::open(path).map_err(|e| e.to_string())?;
     let mut zip = zip::ZipArchive::new(std::io::BufReader::new(file)).map_err(|e| e.to_string())?;
+    if zip.len() > limits.entries {
+        return Err(format!("too many entries in archive ({})", zip.len()));
+    }
     let mut project = String::new();
     let mut assets = Vec::new();
     let mut blob = Vec::new();
+    let mut total = 0u64;
     for i in 0..zip.len() {
         let mut entry = zip.by_index(i).map_err(|e| e.to_string())?;
         if entry.is_dir() {
             continue;
         }
         let name = entry.name().replace('\\', "/");
-        if name == "project.json" {
-            entry.read_to_string(&mut project).map_err(|e| e.to_string())?;
+        let limit = if name == "project.json" {
+            limits.project_json
         } else if name.starts_with("assets/") && is_safe_entry(&name) {
+            limits.entry
+        } else {
+            continue;
+        }
+        .min(limits.total - total);
+        // fail fast on the declared size; read_limited enforces the real one
+        if entry.size() > limit {
+            return Err(format!("{name} is too large (limit {} MiB)", limit >> 20));
+        }
+        if name == "project.json" {
+            let mut bytes = Vec::new();
+            read_limited(&mut entry, limit, &mut bytes, &name)?;
+            total += bytes.len() as u64;
+            project = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        } else {
             let offset = blob.len();
-            entry.read_to_end(&mut blob).map_err(|e| e.to_string())?;
+            read_limited(&mut entry, limit, &mut blob, &name)?;
+            total += (blob.len() - offset) as u64;
             assets.push(BlobRef {
                 file: name,
                 offset,
@@ -316,6 +371,43 @@ mod tests {
         assert_eq!(v["project"], "{\"schemaVersion\":1}");
         assert_eq!(v["assets"][0]["file"], "assets/abc.png");
         assert_eq!(&rest[..7], b"PNGDATA");
+    }
+
+    fn zip_with(path: &Path, entries: &[(&str, Vec<u8>)]) {
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(path).unwrap());
+        let opts = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        for (name, data) in entries {
+            zip.start_file(*name, opts).unwrap();
+            zip.write_all(data).unwrap();
+        }
+        zip.finish().unwrap();
+    }
+
+    #[test]
+    fn enforces_size_limits() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("big.mcproj");
+        // 64 KiB of zeros deflates to a few hundred bytes
+        zip_with(
+            &path,
+            &[("project.json", b"{}".to_vec()), ("assets/a.png", vec![0u8; 64 << 10])],
+        );
+        let small = BundleLimits {
+            entries: 10,
+            project_json: 1 << 20,
+            entry: 32 << 10,
+            total: 1 << 20,
+        };
+        assert!(read_bundle_with(&path, &small).unwrap_err().contains("too large"));
+        let total = BundleLimits {
+            entry: 1 << 20,
+            total: 48 << 10,
+            ..small
+        };
+        assert!(read_bundle_with(&path, &total).is_err());
+        let few = BundleLimits { entries: 1, ..small };
+        assert!(read_bundle_with(&path, &few).unwrap_err().contains("too many"));
+        assert!(read_bundle(&path).is_ok());
     }
 
     #[test]

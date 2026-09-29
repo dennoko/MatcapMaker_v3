@@ -7,12 +7,16 @@
   import ScrubNumber from '../widgets/ScrubNumber.svelte';
   import ColorField from '../widgets/ColorField.svelte';
   import EnumField from '../widgets/EnumField.svelte';
-  import type { ExportFormat } from '$render/export/Exporter';
+  import { estimateExportBytes, type ExportFormat } from '$render/export/Exporter';
 
   const e = $derived(app.settings.export);
   let preview = $state<HTMLCanvasElement>();
   let previewTimer: ReturnType<typeof setTimeout> | undefined;
   const CROP = 48;
+  /** GPU memory the (frequently refreshed) preview may use */
+  const PREVIEW_BUDGET = 256 * 1024 * 1024;
+  /** resolution the preview actually renders at (lower than the export when it would exceed the budget) */
+  let previewSize = $state(0);
 
   const formats: ExportFormat[] = platform.kind === 'tauri' ? ['png8', 'png16', 'jpg', 'exr'] : ['png8', 'png16', 'jpg'];
 
@@ -27,12 +31,25 @@
     const c = preview;
     if (!r || !c) return;
     const spec = exportSpec();
-    const size = spec.size;
+    // same image at a lower resolution (padding scaled to match) when the
+    // full-size render would need more GPU memory than a preview should use
+    let size = Math.min(spec.size, r.caps.maxTextureSize);
+    const fits = (s: number) =>
+      estimateExportBytes(app.doc, { size: s, padding: spec.padding }, r.ctx.accumFormat, r.caps.floatTargets) <= PREVIEW_BUDGET;
+    while (size > 256 && !fits(size)) size = Math.round(size / 2);
+    const padding = spec.padding > 0 ? Math.max(1, Math.round((spec.padding * size) / spec.size)) : 0;
+    previewSize = size < spec.size ? size : 0;
     const cw = Math.min(CROP, size);
     const a = (size / 2) * (1 - Math.SQRT1_2);
     const x = Math.max(0, Math.min(size - cw, Math.round(a - cw / 2)));
     try {
-      const px = r.export(app.doc, { ...spec, format: spec.format === 'jpg' ? 'jpg' : 'png8', crop: { x, y: x, w: cw, h: cw } });
+      const px = r.export(app.doc, {
+        ...spec,
+        size,
+        padding,
+        format: spec.format === 'jpg' ? 'jpg' : 'png8',
+        crop: { x, y: x, w: cw, h: cw },
+      });
       const ctx = c.getContext('2d')!;
       const img = ctx.createImageData(cw, cw);
       for (let i = 0, j = 0; i < cw * cw; i++) {
@@ -111,6 +128,9 @@
       <div class="label">{tt('export.paddingPreview')}</div>
       <div class="pvbox checker"><canvas bind:this={preview}></canvas></div>
       <div class="muted small">{tt('export.paddingPreviewHint', { size: CROP })}</div>
+      {#if previewSize}
+        <div class="muted small">{tt('export.paddingPreviewScaled', { size: previewSize })}</div>
+      {/if}
     </div>
   </div>
 

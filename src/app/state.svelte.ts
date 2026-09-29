@@ -6,7 +6,7 @@ import { DocumentStore, type ChangeEvent } from '$core/commands/store';
 import { AssetStore } from '$core/io/assetStore';
 import { createDefaultProject, defaultViewState, findLayer, flattenLayers } from '$core/model/project';
 import type { LayerNode, Project, ViewState } from '$core/model/types';
-import type { LoadWarning } from '$core/io/serialize';
+import { referencedAssets, type LoadWarning } from '$core/io/serialize';
 import { detectLocale } from '$core/i18n';
 import { createPlatform } from '$platform/index';
 import type { Renderer, FrameInfo } from '$render/Renderer';
@@ -132,7 +132,28 @@ store.onHistory(() => {
   app.dirty = store.isDirty;
   app.historyVersion++;
   if (typeof window !== 'undefined') (window as unknown as { __mmDirty?: boolean }).__mmDirty = store.isDirty;
+  collectAssetsSoon();
 });
+
+/** Assets younger than this are kept: an import is referenced right after it is added. */
+const ASSET_GRACE_MS = 10_000;
+let assetGcTimer: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Frees image/mesh data nothing can reach any more: not the document, not the
+ * view and not any undo/redo step (removed layers stay restorable). The GPU
+ * copies follow through AssetStore.onRemove.
+ */
+export function collectAssets() {
+  const keep = referencedAssets(app.doc, app.view);
+  for (const s of store.historyStrings()) keep.add(s);
+  assets.retain(keep, ASSET_GRACE_MS);
+}
+
+function collectAssetsSoon() {
+  clearTimeout(assetGcTimer);
+  assetGcTimer = setTimeout(collectAssets, 2000);
+}
 
 export function select(ids: string[]) {
   app.selection = ids;

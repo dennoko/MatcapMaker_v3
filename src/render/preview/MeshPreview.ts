@@ -39,8 +39,36 @@ export class MeshPreview {
   private color: WebGLRenderbuffer | null = null;
   private depth: WebGLRenderbuffer | null = null;
   private fbSize = [0, 0];
+  private samples = 0;
+  private bufferBytes = 0;
 
   constructor(private ctx: GLContext) {}
+
+  /** GPU memory of the vertex data and the multisampled color/depth buffers. */
+  get memoryBytes() {
+    return this.bufferBytes + (this.fbo ? this.fbSize[0] * this.fbSize[1] * 8 * Math.max(1, this.samples) : 0);
+  }
+
+  dispose() {
+    const gl = this.ctx.gl;
+    this.buffers.forEach((b) => gl.deleteBuffer(b));
+    this.buffers = [];
+    this.bufferBytes = 0;
+    if (this.vao) gl.deleteVertexArray(this.vao);
+    this.vao = null;
+    this.deleteFbo();
+    this.prog?.dispose();
+    this.prog = null;
+  }
+
+  private deleteFbo() {
+    const gl = this.ctx.gl;
+    if (this.fbo) gl.deleteFramebuffer(this.fbo);
+    if (this.color) gl.deleteRenderbuffer(this.color);
+    if (this.depth) gl.deleteRenderbuffer(this.depth);
+    this.fbo = this.color = this.depth = null;
+    this.fbSize = [0, 0];
+  }
 
   load(mesh: MeshData | null) {
     this.upload(mesh ?? torusKnot());
@@ -67,16 +95,16 @@ export class MeshPreview {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.indices, gl.STATIC_DRAW);
     gl.bindVertexArray(null);
     this.buffers = [pos, nrm, idx];
+    this.bufferBytes = m.positions.byteLength + m.normals.byteLength + m.indices.byteLength;
     this.count = m.indices.length;
   }
 
   private ensureFbo(w: number, h: number) {
     const gl = this.ctx.gl;
     if (this.fbo && this.fbSize[0] === w && this.fbSize[1] === h) return;
-    if (this.fbo) gl.deleteFramebuffer(this.fbo);
-    if (this.color) gl.deleteRenderbuffer(this.color);
-    if (this.depth) gl.deleteRenderbuffer(this.depth);
+    this.deleteFbo();
     const samples = Math.min(4, gl.getParameter(gl.MAX_SAMPLES) as number);
+    this.samples = samples;
     this.color = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, this.color);
     gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, w, h);

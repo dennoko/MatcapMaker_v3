@@ -241,6 +241,7 @@
   "export.templateHint": "{project} {size} {padding} {date}",
   "export.paddingPreview": "Edge preview",
   "export.paddingPreviewHint": "{size}×{size} px crop of the disc edge at the export resolution",
+  "export.paddingPreviewScaled": "Preview approximated at {size} px to limit GPU memory",
   "export.quickHint": "Ctrl+E exports again with these settings",
   "export.run": "Export…",
 
@@ -336,6 +337,7 @@
   "error.export": "Export failed",
   "error.image": "Could not load the image",
   "error.notImage": "{name} is not a supported image",
+  "error.imageTooLarge": "The image is too large ({width}×{height}). Up to {limit} megapixels are supported",
   "error.mesh": "Could not load the mesh",
   "error.render": "Rendering failed",
   "error.shader": "Shader compile error — this layer is disabled.",

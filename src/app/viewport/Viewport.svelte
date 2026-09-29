@@ -5,7 +5,7 @@
   import { app, assets, onDocChange, store } from '../state.svelte';
   import { tt } from '../i18n.svelte';
   import { reportError } from '../actions';
-  import { scheduleThumbnails } from './thumbnails';
+  import { cancelThumbnails, scheduleThumbnails } from './thumbnails';
   import Gizmos from './gizmos/Gizmos.svelte';
   import type { PreviewShape, SplitMode } from '$core/model/types';
 
@@ -103,7 +103,10 @@
       off();
       offAssets();
       cancelAnimationFrame(raf);
+      clearTimeout(settle);
+      cancelThumbnails();
       app.renderer = null;
+      renderer?.dispose();
     };
   });
 

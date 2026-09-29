@@ -99,6 +99,13 @@ const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 
 const num = (v: unknown, d: number, lo = -Infinity, hi = Infinity) =>
   typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d;
 
+/**
+ * A version number from a file: a positive safe integer, else `fallback`.
+ * Keeps migration loops (`while (v < current) v++`) finite and short.
+ */
+export const versionNum = (v: unknown, fallback: number) =>
+  typeof v === 'number' && Number.isSafeInteger(v) && v >= 1 ? v : fallback;
+
 export function coerceBlendMode(v: unknown, fallback: BlendMode): BlendMode {
   return typeof v === 'string' && (BLEND_MODES as readonly string[]).includes(v) ? (v as BlendMode) : fallback;
 }
@@ -147,7 +154,7 @@ export function coerceNode(raw: unknown, warnings: LoadWarning[], seen = new Set
     return null;
   }
   let params: Record<string, unknown> = isObj(raw.params) ? { ...raw.params } : {};
-  let tv = num(raw.typeVersion, def.version);
+  let tv = versionNum(raw.typeVersion, def.version);
   if (tv > def.version) warnings.push({ key: 'warn.newerLayer', args: { type } });
   while (tv < def.version) {
     const m = def.migrations?.[tv];
@@ -207,7 +214,7 @@ export function isLegacyV3(doc: unknown): boolean {
 export function deserializeProject(json: string): LoadResult {
   let doc = JSON.parse(json) as Record<string, unknown>;
   const warnings: LoadWarning[] = [];
-  let ver = num(doc.schemaVersion, 1);
+  let ver = versionNum(doc.schemaVersion, 1);
   if (ver > CURRENT_SCHEMA_VERSION) warnings.push({ key: 'warn.newerProject' });
   while (ver < CURRENT_SCHEMA_VERSION) {
     const m = MIGRATIONS[ver];

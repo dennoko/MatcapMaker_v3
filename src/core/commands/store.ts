@@ -205,6 +205,27 @@ export class DocumentStore {
     while (this.undoStack.length - 1 < index && this.canRedo) this.redo();
   }
 
+  /**
+   * Every string value held by the undo/redo history and an open transaction
+   * (e.g. asset ids that undoing a removal would bring back).
+   */
+  historyStrings(): Set<string> {
+    const out = new Set<string>();
+    const walk = (v: unknown) => {
+      if (typeof v === 'string') out.add(v);
+      else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === 'object') Object.values(v).forEach(walk);
+    };
+    const scan = (e: { patches: Patch[]; inverse: Patch[] }) => {
+      for (const p of e.patches) walk(p.value);
+      for (const p of e.inverse) walk(p.value);
+    };
+    this.undoStack.forEach(scan);
+    this.redoStack.forEach(scan);
+    if (this.tx) scan(this.tx);
+    return out;
+  }
+
   /** Undo entries (oldest first) followed by redo entries (next first). */
   entries(): { past: HistoryEntry[]; future: HistoryEntry[] } {
     return { past: [...this.undoStack], future: [...this.redoStack].reverse() };

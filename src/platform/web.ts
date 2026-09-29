@@ -1,5 +1,6 @@
-import { unzipSync, zipSync, strFromU8, strToU8 } from 'fflate';
+import { zipSync, strFromU8, strToU8 } from 'fflate';
 import { encodePng } from './pngEncode';
+import { unzipBundle } from './unzip';
 import type { Platform, PickedFile } from './types';
 
 // Browser implementation (GitHub Pages demo / trial). Files are picked with
@@ -103,7 +104,7 @@ export function createWebPlatform(): Platform {
     async loadProject(src) {
       const data = src.bytes ?? (src.path ? await this.readFile(src.path) : null);
       if (!data) throw new Error('no data');
-      const files = unzipSync(data);
+      const files = await unzipBundle(data);
       const projectJson = files['project.json'];
       if (!projectJson) throw new Error('project.json not found in archive');
       return {

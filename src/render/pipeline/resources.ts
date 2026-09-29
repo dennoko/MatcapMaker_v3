@@ -35,11 +35,15 @@ export class ResourceCache {
   readonly errors = new Map<string, string>();
   private failed = new Map<string, LayerDef>();
   onError?: (type: string, message: string) => void;
+  private offRemove: () => void;
 
   constructor(
     readonly ctx: GLContext,
     readonly assetStore: AssetStore,
-  ) {}
+  ) {
+    // CPU and GPU copies share one lifetime: dropping the asset frees its texture
+    this.offRemove = assetStore.onRemove((id) => this.dropAsset(id));
+  }
 
   private getProgram(key: string, def: LayerDef | null, build: () => string): Program | null {
     const hit = this.programs.get(key);
@@ -115,7 +119,10 @@ export class ResourceCache {
   assetTexture(id: string | null | undefined): AssetTexture | null {
     if (!id) return null;
     const entry = this.assetStore.get(id);
-    if (!entry?.bitmap) return null;
+    if (!entry?.bitmap) {
+      this.dropAsset(id);
+      return null;
+    }
     const hit = this.assets.get(id);
     if (hit && hit.version === entry.version) return hit;
     if (hit) this.ctx.gl.deleteTexture(hit.tex);
@@ -130,13 +137,38 @@ export class ResourceCache {
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, entry.bitmap!);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, this.fitTextureSize(entry.bitmap!));
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     return { tex, width: entry.meta.width, height: entry.meta.height, version: entry.version };
+  }
+
+  /** Scales images larger than MAX_TEXTURE_SIZE down (keeping the aspect) so the upload succeeds. */
+  private fitTextureSize(bmp: ImageBitmap): TexImageSource {
+    const max = this.ctx.caps.maxTextureSize;
+    if (bmp.width <= max && bmp.height <= max) return bmp;
+    const k = max / Math.max(bmp.width, bmp.height);
+    const c = new OffscreenCanvas(Math.max(1, Math.floor(bmp.width * k)), Math.max(1, Math.floor(bmp.height * k)));
+    c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height);
+    return c;
+  }
+
+  /** Estimated GPU memory of uploaded images and noise textures (with mips). */
+  get memoryBytes(): number {
+    let b = 0;
+    for (const t of this.assets.values()) {
+      const max = this.ctx.caps.maxTextureSize;
+      const k = Math.min(1, max / Math.max(t.width, t.height, 1));
+      b += Math.floor(t.width * k) * Math.floor(t.height * k) * 4;
+    }
+    for (const key of this.noise.keys()) {
+      const size = Number(key.split(':')[1]);
+      b += size * size;
+    }
+    return Math.round((b * 4) / 3);
   }
 
   /** Assets version fingerprint (part of cache keys). */
@@ -152,7 +184,13 @@ export class ResourceCache {
     }
   }
 
+  /** Stops following the asset store (the context is gone; nothing to delete). */
+  detach() {
+    this.offRemove();
+  }
+
   dispose() {
+    this.offRemove();
     const gl = this.ctx.gl;
     this.programs.forEach((p) => p.prog.dispose());
     this.programs.clear();

@@ -21,23 +21,35 @@ const NEUTRAL_BG: Partial<Record<string, string>> = {
   softLight: '#808080',
   hardLight: '#808080',
 };
-let pending = false;
+let pending: (() => void) | null = null;
 const SIZE = 64;
 
 function contentKey(n: { type: string; params: unknown; blendMode: string }, assetsVersion: string) {
   return `${n.type}|${n.blendMode}|${JSON.stringify(n.params)}|${assetsVersion}`;
 }
 
-const idle: (cb: () => void) => void =
-  typeof requestIdleCallback !== 'undefined' ? (cb) => requestIdleCallback(cb, { timeout: 500 }) : (cb) => setTimeout(cb, 60);
+/** Runs cb in idle time; returns a canceller. */
+function idle(cb: () => void): () => void {
+  if (typeof requestIdleCallback !== 'undefined') {
+    const h = requestIdleCallback(cb, { timeout: 500 });
+    return () => cancelIdleCallback(h);
+  }
+  const h = setTimeout(cb, 60);
+  return () => clearTimeout(h);
+}
 
 export function scheduleThumbnails(r: Renderer) {
   if (pending) return;
-  pending = true;
-  idle(() => {
-    pending = false;
+  pending = idle(() => {
+    pending = null;
     update(r);
   });
+}
+
+/** Drops a scheduled update (the renderer is going away). */
+export function cancelThumbnails() {
+  pending?.();
+  pending = null;
 }
 
 function update(r: Renderer) {
@@ -64,7 +76,7 @@ function update(r: Renderer) {
       scheduleThumbnails(r);
       break;
     }
-    const px = r.thumbnail(n, SIZE);
+    const px = r.thumbnail(n, SIZE, alive);
     if (!px) continue;
     // show the layer over the backdrop its blend mode is neutral against, so
     // e.g. an additive light reads as a light instead of a faint alpha mask
