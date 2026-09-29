@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matcap Maker - 機能・操作リファレンスマニュアル</title>
+  <style>
+    /* -------------------------------------------------------------
+       Design System: Apple Human Interface Guidelines + Google Material 3
+       Theme: Ultra-clean Dark Theme
+    ------------------------------------------------------------- */
+    :root {
+      --bg-base: #0c0e12;
+      --bg-surface-1: #13171f;
+      --bg-surface-2: #1b202a;
+      --bg-surface-3: #232a37;
+      --bg-surface-hover: #2c3444;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-medium: rgba(255, 255, 255, 0.15);
+      --border-focus: #38bdf8;
+      
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-tertiary: #6b7280;
+      
+      --accent-cyan: #38bdf8;
+      --accent-blue: #3b82f6;
+      --accent-amber: #f59e0b;
+      --accent-purple: #a855f7;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+      
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+      
+      --header-height: 56px;
+      --sidebar-width: 290px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 15px;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* -------------------------------------------------------------
+       Sidebar Navigation (Material Navigation Drawer / Apple HIG Split)
+    ------------------------------------------------------------- */
+    #sidebar {
+      width: var(--sidebar-width);
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      background: var(--bg-surface-1);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-family: var(--font-mono);
+    }
+
+    .search-box {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 7px 28px 7px 10px;
+      font-size: 0.83rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 7px;
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: 13px;
+      display: none;
+      line-height: 1;
+      padding: 3px;
+      border-radius: 50%;
+    }
+
+    .search-clear-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .search-counter-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      background: var(--bg-surface-2);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .search-counter-bar .nav-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .search-counter-bar button {
+      background: var(--bg-surface-3);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .search-counter-bar button:hover:not(:disabled) {
+      background: var(--bg-surface-hover);
+      border-color: var(--accent-cyan);
+    }
+
+    .search-counter-bar button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .search-match-badge {
+      margin-left: auto;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-family: var(--font-mono);
+    }
+
+    mark.search-match {
+      background: rgba(245, 158, 11, 0.35);
+      color: inherit;
+      border-radius: 2px;
+      padding: 1px 2px;
+      border-bottom: 2px solid var(--accent-amber);
+    }
+
+    mark.search-match.current {
+      background: rgba(56, 189, 248, 0.6);
+      border-bottom: 2px solid var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.85);
+      font-weight: 600;
+    }
+
+    .nav-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 8px;
+    }
+
+    .nav-group-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      letter-spacing: 0.06em;
+      padding: 10px 12px 4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 7px 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.88rem;
+      border-radius: var(--radius-sm);
+      transition: background 0.12s ease, color 0.12s ease;
+      margin-bottom: 2px;
+    }
+
+    .nav-link:hover {
+      background: var(--bg-surface-2);
+      color: var(--text-primary);
+    }
+
+    .nav-link.active {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .nav-link .icon {
+      margin-right: 8px;
+      opacity: 0.75;
+      font-size: 0.95rem;
+    }
+
+    /* -------------------------------------------------------------
+       Main Content Layout
+    ------------------------------------------------------------- */
+    #main {
+      flex: 1;
+      min-width: 0;
+      padding: 0 48px 80px;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      height: var(--header-height);
+      position: sticky;
+      top: 0;
+      background: rgba(12, 14, 18, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 -48px 36px;
+      padding: 0 48px;
+      z-index: 90;
+    }
+
+    .top-breadcrumb {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .top-breadcrumb span {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chip-btn {
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .chip-btn:hover {
+      background: var(--bg-surface-3);
+      color: var(--text-primary);
+      border-color: var(--border-medium);
+    }
+
+    /* Document Typography */
+    h1.doc-title {
+      font-size: 2.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .doc-lead {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    section {
+      margin-bottom: 56px;
+      scroll-margin-top: 80px;
+    }
+
+    h2.section-heading {
+      font-size: 1.45rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    h2.section-heading .badge {
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface-2);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+    }
+
+    h3.sub-heading {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 28px 0 12px;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 6px;
+      font-size: 0.93rem;
+    }
+
+    strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* -------------------------------------------------------------
+       Cards & Surfaces (Material 3 Cards with Apple subtle radii)
+    ------------------------------------------------------------- */
+    .card {
+      background: var(--bg-surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-medium);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* -------------------------------------------------------------
+       Tables
+    ------------------------------------------------------------- */
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 24px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: var(--bg-surface-2);
+      color: var(--text-primary);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* -------------------------------------------------------------
+       Keyboard Keycaps (<kbd>)
+    ------------------------------------------------------------- */
+    kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--bg-surface-3);
+      border: 1px solid var(--border-medium);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.4);
+      margin: 0 2px;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: var(--bg-surface-2);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-subtle);
+    }
+
+    pre code {
+      display: block;
+      padding: 14px;
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      color: #e2e8f0;
+      line-height: 1.5;
+      font-size: 0.83rem;
+    }
+
+    /* -------------------------------------------------------------
+       Interactive WebGL2 Matcap Simulation Stage
+    ------------------------------------------------------------- */
+    .interactive-stage {
+      background: var(--bg-surface-1);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin: 24px 0 32px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .stage-header {
+      background: var(--bg-surface-2);
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stage-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .stage-body {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      min-height: 380px;
+    }
+
+    @media (max-width: 860px) {
+      .stage-body { grid-template-columns: 1fr; }
+    }
+
+    .canvas-wrap {
+      position: relative;
+      background: #090b0e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--border-subtle);
+      user-select: none;
+      padding: 20px;
+    }
+
+    #webgl-canvas {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      cursor: crosshair;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      touch-action: none;
+    }
+
+    .canvas-overlay-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      pointer-events: none;
+    }
+
+    .stage-controls {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--bg-surface-1);
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .control-label span.val {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+    }
+
+    .range-input {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bg-surface-3);
+      outline: none;
+    }
+
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--text-primary);
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      transition: transform 0.1s ease;
+    }
+
+    .range-input::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .segmented-control {
+      display: flex;
+      background: var(--bg-surface-2);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      gap: 2px;
+    }
+
+    .segment-btn {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .segment-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .segment-btn.active {
+      background: var(--bg-surface-3);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* -------------------------------------------------------------
+       Split Before / After Slider
+    ------------------------------------------------------------- */
+    .split-slider-container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      height: 320px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin: 18px auto 26px;
+      border: 1px solid var(--border-medium);
+      user-select: none;
+    }
+
+    .split-pane {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .split-pane.before {
+      background-color: #141820;
+    }
+
+    .split-pane.after {
+      background-color: #1e2430;
+      clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+    }
+
+    .split-divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: var(--accent-cyan);
+      cursor: ew-resize;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+
+    .split-divider-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--text-primary);
+      color: #0c0e12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+    }
+
+    .split-label {
+      position: absolute;
+      bottom: 12px;
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 4px;
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+    .split-label.left { left: 12px; }
+    .split-label.right { right: 12px; }
+
+    /* -------------------------------------------------------------
+       Animated Gizmo Demonstration (SVG + CSS Animation)
+    ------------------------------------------------------------- */
+    .gizmo-diagram-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface-2);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin: 16px 0;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .gizmo-svg {
+      max-width: 380px;
+      width: 100%;
+      height: auto;
+    }
+
+    /* -------------------------------------------------------------
+       UI Architecture Mockup (CSS Layout Diagram)
+    ------------------------------------------------------------- */
+    .ui-mockup {
+      display: grid;
+      grid-template-columns: 200px 1fr 220px;
+      grid-template-rows: 32px 240px 24px;
+      gap: 6px;
+      background: #090b0e;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      font-size: 0.75rem;
+      margin: 20px 0;
+      user-select: none;
+    }
+
+    .ui-block {
+      background: var(--bg-surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-weight: 500;
+      padding: 6px;
+      text-align: center;
+      position: relative;
+    }
+
+    .ui-block.top-bar-mock {
+      grid-column: 1 / 4;
+      background: var(--bg-surface-2);
+      color: var(--text-primary);
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .ui-block.viewport-mock {
+      background: radial-gradient(circle at 50% 50%, #1f2735 0%, #0d1017 100%);
+      color: var(--accent-cyan);
+      font-weight: 600;
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+
+    .ui-block.status-bar-mock {
+      grid-column: 1 / 4;
+      font-size: 0.7rem;
+      background: var(--bg-surface-2);
+      color: var(--text-tertiary);
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    /* Diagram Image Wrappers */
+    .diagram-img-wrap {
+      background: var(--bg-surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin: 18px 0;
+      text-align: center;
+    }
+
+    .diagram-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .diagram-caption {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      #sidebar { width: 100%; height: auto; position: static; }
+      #main { padding: 0 20px 40px; }
+      .top-bar { margin: 0 -20px 24px; padding: 0 20px; }
+      .ui-mockup { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .ui-block.top-bar-mock, .ui-block.status-bar-mock { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       SIDEBAR NAVIGATION
+  ========================================================== -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <a href="#" class="app-brand">
+        <img src="../branding/app-icon-source.png" alt="Matcap Maker" class="brand-icon">
+        <span class="brand-title">Matcap Maker</span>
+      </a>
+      <span class="brand-badge">v3.0.0</span>
+    </div>
+
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <input type="text" id="nav-filter" class="search-input" placeholder="マニュアル全文を検索… (Enterで次へ)" autocomplete="off">
+        <button id="search-clear-btn" class="search-clear-btn" title="検索クリア (Esc)">✕</button>
+      </div>
+      <div class="search-counter-bar" id="search-counter-bar">
+        <span id="search-count-label">0 件</span>
+        <div class="nav-btns">
+          <button id="search-prev-btn" title="前の一致へ (Shift+Enter)">▲ 前へ</button>
+          <button id="search-next-btn" title="次の一致へ (Enter)">▼ 次へ</button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav-scroll" id="nav-list">
+      <div class="nav-group-title">導入・概要</div>
+      <a href="#sec-overview" class="nav-link active">クイックスタート</a>
+      <a href="#sec-layout" class="nav-link">画面構成と基本フロー</a>
+
+      <div class="nav-group-title">コア機能・操作仕様</div>
+      <a href="#sec-layers" class="nav-link">レイヤーシステム仕様</a>
+      <a href="#sec-layer-types" class="nav-link">組み込みレイヤー全12種</a>
+      <a href="#sec-viewport-gizmos" class="nav-link">ビューポートと直接操作ギズモ</a>
+      <a href="#sec-inspector" class="nav-link">インスペクターとパラメータ操作</a>
+      <a href="#sec-color-hdr" class="nav-link">合成色空間とHDRパイプライン</a>
+      <a href="#sec-export" class="nav-link">エクスポートとエッジパディング</a>
+
+      <div class="nav-group-title">拡張・リファレンス</div>
+      <a href="#sec-plugins" class="nav-link">プリセットとプラグイン拡張</a>
+      <a href="#sec-shortcuts" class="nav-link">ショートカットキー一覧</a>
+      <a href="#sec-troubleshooting" class="nav-link">エラーハンドリング・トラブル対応</a>
+    </nav>
+  </aside>
+
+  <!-- =========================================================
+       MAIN CONTENT
+  ========================================================== -->
+  <main id="main">
+    <header class="top-bar">
+      <div class="top-breadcrumb">ドキュメント / <span>機能・操作リファレンスマニュアル</span></div>
+      <div class="top-actions">
+        <span class="chip-btn">Version 3.0.0</span>
+      </div>
+    </header>
+
+    <h1 class="doc-title">Matcap Maker 機能・操作リファレンスマニュアル</h1>
+    <p class="doc-lead">
+      本ドキュメントは、3Dモデリングおよびゲームエンジン向けマテリアルキャプチャ（Matcap）テクスチャ作成ツール「Matcap Maker」の機能仕様、UI操作系、レンダリングパイプライン、ならびに出力処理の技術仕様を体系的に解説した公式リファレンスです。
+    </p>
+
+    <!-- =========================================================
+         SECTION 1: クイックスタート
+    ========================================================== -->
+    <section id="sec-overview">
+      <h2 class="section-heading">
+        1. クイックスタート
+        <span class="badge">Quick Start</span>
+      </h2>
+      <p>
+        Matcap Maker は、3D モデルの法線（面の傾き）に応じて陰影や反射を表現する「マットキャップ（Matcap）テクスチャ」を直感的なレイヤー操作で作成できるオーサリングツールです。複雑な 3D ライティング設定を行わなくても、球体上にライトや色を配置するだけで、ゲームエンジンや DCC ツールですぐに使えるテクスチャを書き出せます。
+      </p>
+
+      <div class="card">
+        <div class="card-title">マットキャップ（Matcap）とは</div>
+        <p>
+          球体の見え方をそのまま 3D モデルに貼り付けるマテリアル手法です。カメラから見た面の傾き（法線ベクトル）をもとにテクスチャの該当ピクセルを参照するため、リアルタイムの光源計算を必要とせず、極めて軽量かつ狙い通りのリッチな質感（金属光沢、プラスチック、肌、トゥーン調など）を表現できます。
+        </p>
+      </div>
+
+      <h3 class="sub-heading">最初のマットキャップを作る 3 ステップ</h3>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Step 1. プリセットを選ぶ</div>
+          <p>
+            起動画面またはメニューの「ファイル」→「プリセットから新規作成」から、「金属」「プラスチック」「肌」「トゥーン」などのベースを選びます。空のプロジェクトから始めることも可能です。
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">Step 2. 球体上で直接調整する</div>
+          <p>
+            中央のビューポートに表示された球体上の白いドットをドラッグして光源の位置を動かします。右側のインスペクターで色や強度、ぼかし具合を思い通りに調整します。
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">Step 3. エクスポートする</div>
+          <p>
+            画面右上の「エクスポート」ボタン（または <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>）を押し、解像度（1024 / 2048 等）を選んで保存します。自動でエッジパディングが付与され、モデルに貼った際の輪郭の黒ずみが防止されます。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SECTION 2: 画面構成と基本フロー
+    ========================================================== -->
+    <section id="sec-layout">
+      <h2 class="section-heading">
+        2. 画面構成と基本操作フロー
+        <span class="badge">Interface</span>
+      </h2>
+      <p>
+        Matcap Maker の画面は、作業効率と視認性を最大化するため、明快な 5 つの領域に分割されています。
+      </p>
+
+      <div class="ui-mockup">
+        <div class="ui-block top-bar-mock">
+          <span>[ヘッダー] メニューバー (ファイル/編集/表示/ヘルプ)</span>
+          <span>プロジェクト名.mcproj</span>
+          <span>エクスポート (Ctrl+Shift+E)</span>
+        </div>
+        <div class="ui-block">
+          <strong>レイヤーパネル</strong><br>(スタック順・ソロ・マスク)
+        </div>
+        <div class="ui-block viewport-mock">
+          <strong>中央ビューポート</strong><br>3Dプレビュー & ギズモ直接操作
+        </div>
+        <div class="ui-block">
+          <strong>インスペクター</strong><br>(レイヤー/プレビュー/プロジェクト)
+        </div>
+        <div class="ui-block status-bar-mock">
+          <span>履歴ステータス / パス数</span>
+          <span>dennokoworks</span>
+          <span>WebGL2 / 60 FPS</span>
+        </div>
+      </div>
+
+      <h3 class="sub-heading">基本操作サイクル</h3>
+      <ol>
+        <li><strong>レイヤーの追加:</strong> <kbd>Tab</kbd> キーまたはレイヤーパネル上部の <kbd>＋</kbd> ボタンを押し、目的のジェネレーター（スポットライト、フレネル、グラデーション等）を追加します。</li>
+        <li><strong>ギズモまたはインスペクターで調整:</strong> 中央のビューポートでライトの方向やリムの半径を直接ドラッグするか、右パネルの数値スライダーで微調整します。</li>
+        <li><strong>プレビュー形状の切り替え:</strong> <kbd>1</kbd>（球体）、<kbd>2</kbd>（平面）、<kbd>3</kbd>（ノーマルマップ）、<kbd>4</kbd>（メッシュ）で立体感を多角的に検証します。</li>
+        <li><strong>エクスポート:</strong> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> でエッジパディング設定を指定して書き出します。2回目以降は <kbd>Ctrl</kbd>+<kbd>E</kbd> でクイックエクスポートが可能です。</li>
+      </ol>
+    </section>
+
+    <!-- =========================================================
+         SECTION 3: レイヤーシステム仕様
+    ========================================================== -->
+    <section id="sec-layers">
+      <h2 class="section-heading">
+        3. レイヤーシステム仕様
+        <span class="badge">Layer Pipeline</span>
+      </h2>
+      <p>
+        Matcap Maker のレイヤーは、Photoshop や各種 2D DCC ツールと同様、<strong>リストの上にあるレイヤーが前面（前面合成）</strong>として評価されます。
+      </p>
+
+      <div class="diagram-img-wrap">
+        <img src="assets/layer_composition_flow.png" alt="Layer Composition Flow" class="diagram-img">
+        <div class="diagram-caption">図 3-1: レイヤーの多層合成フロー（ベタ塗りベース ＋ スポットライト加算 ＋ リムライトスクリーン）</div>
+      </div>
+
+      <h3 class="sub-heading">描画モード（12種）の合成特徴と適用指針</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>描画モード</th>
+              <th>略称</th>
+              <th>合成の特徴</th>
+              <th>主な用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>通常 (Normal)</strong></td>
+              <td><code>N</code></td>
+              <td>下のレイヤーの上にそのまま重ねます。不透明度に応じて下のレイヤーが覆い隠されます。</td>
+              <td>ベタ塗り、テクスチャ画像の配置</td>
+            </tr>
+            <tr>
+              <td><strong>加算 (Add)</strong></td>
+              <td><code>Add</code></td>
+              <td>下のレイヤーに光を足し合わせて明るく発光させます。黒（#000000）の部分は何も影響を与えません。</td>
+              <td>スポットライトのハイライト、強い発光反射</td>
+            </tr>
+            <tr>
+              <td><strong>乗算 (Multiply)</strong></td>
+              <td><code>Mul</code></td>
+              <td>下のレイヤーと色を掛け合わせ、常に暗くなります。白（#ffffff）の部分は透明のように変化しません。</td>
+              <td>アンビエントオクルージョン、影、汚れ、色付け</td>
+            </tr>
+            <tr>
+              <td><strong>スクリーン (Screen)</strong></td>
+              <td><code>Scr</code></td>
+              <td>光を透過して重ねたように全体を明るくします。加算よりも白飛びしにくく、自然な階調を保ちます。</td>
+              <td>やわらかな環境光、白飛びを抑えたリムライト</td>
+            </tr>
+            <tr>
+              <td><strong>減算 (Subtract)</strong></td>
+              <td><code>Sub</code></td>
+              <td>下のレイヤーの明るさから当レイヤーの明るさを差し引いて暗くします。</td>
+              <td>特定方向の逆光シャドウ、遮蔽のシミュレート</td>
+            </tr>
+            <tr>
+              <td><strong>比較（明）(Lighten)</strong></td>
+              <td><code>Lt</code></td>
+              <td>下のレイヤーと比べて、より明るい方のピクセル値をそのまま採用して残します。</td>
+              <td>明るい成分のみを重ねるハイライトの合成</td>
+            </tr>
+            <tr>
+              <td><strong>比較（暗）(Darken)</strong></td>
+              <td><code>Dk</code></td>
+              <td>下のレイヤーと比べて、より暗い方のピクセル値をそのまま採用して残します。</td>
+              <td>暗い成分のみを反映するシェーディング</td>
+            </tr>
+            <tr>
+              <td><strong>オーバーレイ (Overlay)</strong></td>
+              <td><code>Ov</code></td>
+              <td>下のレイヤーの明暗に応じて、明るい部分はより明るく、暗い部分はより暗くコントラストを強めます。</td>
+              <td>コントラスト強調、全体の質感テクスチャ付け</td>
+            </tr>
+            <tr>
+              <td><strong>ソフトライト (Soft Light)</strong></td>
+              <td><code>SL</code></td>
+              <td>やわらかな拡散光を当てたように、ふんわりと自然にコントラストを高めます。</td>
+              <td>自然な肌色や微細なトーンの馴染ませ</td>
+            </tr>
+            <tr>
+              <td><strong>ハードライト (Hard Light)</strong></td>
+              <td><code>HL</code></td>
+              <td>強いスポットライトを照射したように、明暗をくっきりと鋭く強調します。</td>
+              <td>はっきりとした明暗差を持つライト効果</td>
+            </tr>
+            <tr>
+              <td><strong>覆い焼きカラー (Color Dodge)</strong></td>
+              <td><code>CD</code></td>
+              <td>下のレイヤーを明るく飛ばしつつコントラストを極端に高め、強い反射光をシミュレートします。</td>
+              <td>金属表面の高輝度スペキュラ反射</td>
+            </tr>
+            <tr>
+              <td><strong>差の絶対値 (Difference)</strong></td>
+              <td><code>Dif</code></td>
+              <td>下のレイヤーとの色の差を抽出し、明暗や色相を反転させたような特殊な色彩を作ります。</td>
+              <td>特殊効果、反転トーン</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-heading">マスクシステム</h3>
+      <p>
+        各レイヤーには個別のマスクを設定でき、効果の適用領域をプロシージャルまたは画像で制限できます。
+      </p>
+      <ul>
+        <li><strong>輪郭（フレネル）マスク:</strong> 視線ベクトルと法線の外積に基づくリム領域のみにレイヤーを制限します。</li>
+        <li><strong>ノイズマスク:</strong> シンプレックスノイズによってまだら状に効果をクリップします。</li>
+        <li><strong>画像マスク:</strong> 外部PNG画像の輝度値またはアルファをマスクとして使用します。</li>
+        <li><strong>他のレイヤー参照マスク:</strong> 直下にある特定のレイヤーの描画結果（アルファ/輝度）をマスク元としてバインドします。</li>
+      </ul>
+    </section>
+
+    <!-- =========================================================
+         SECTION 4: 組み込みレイヤー全12種
+    ========================================================== -->
+    <section id="sec-layer-types">
+      <h2 class="section-heading">
+        4. 組み込みレイヤー全12種
+        <span class="badge">Layer Reference</span>
+      </h2>
+      <p>
+        Matcap Maker には、ベース生成から光学現象、テクスチャ合成、最終ポストプロセスに至るまで 12 種類のレイヤーが標準実装されています。
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">① ベタ塗り (Solid Color)</div>
+          <p>均一な単色で球体全体を塗りつぶします。マテリアルのベースカラー（地色）として最背面に配置するのが基本です。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">② スポットライト (Spot Light)</div>
+          <p>球面上にハイライトと指向性ライティングを生成します。光の方向、コーン範囲、減衰、楕円比率、回転を制御できます。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">③ フレネル / リム (Fresnel)</div>
+          <p>法線が外側を向く球体の輪郭付近にエッジライトを付与します。パワー指数で鋭さを、バイアスで幅を調整します。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">④ ノイズ (Noise)</div>
+          <p>シンプレックスノイズまたはホワイトノイズをプロシージャル生成します。金属の研磨痕や有機的な凹凸の表現に用います。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑤ イメージ (Image)</div>
+          <p>外部画像（PNG, JPG, WebP）を取り込みます。球体UV（巻き付け）または平面投影でスケーリング・配置が可能です。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑥ グラデーション (Gradient)</div>
+          <p>線形（Linear）または放射状（Radial）のカラーグラデーションを生成します。RGB補間のほか、彩度低下を防ぐOklab補間に対応。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑦ 色調補正 (Color Adjust)</div>
+          <p>下層までの合成結果に対し、明度・コントラスト・彩度・色相シフトを適用する調整レイヤーです。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑧ ブラー / シャープ (Blur/Sharpen)</div>
+          <p>高速コンボリューションフィルタにより、全体の質感をやわらげる（ブラー）または輪郭を強調（シャープ）します。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑨ トーンカーブ (Curves)</div>
+          <p>RGB総合または各チャンネル（R, G, B, 輝度）ごとの入出力カーブをスプライン補間で精密にカーブコントロールします。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑩ カラーランプ (Gradient Map)</div>
+          <p>下層のグレースケール輝度値をもとに、ユーザー定義の多段階グラデーションカラーへ再マッピングします（トゥーン調等）。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑪ 色収差 (Chromatic Aberration)</div>
+          <p>RGB各色の波長ごとの屈折率のズレをシミュレートし、エッジにレンズのプリズム効果を付加します。</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⑫ フィルムグレイン (Film Grain)</div>
+          <p>写真フィルムやシネマカメラのような微細な粒子テクスチャを付加し、デジタルの平坦感を解消します。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SECTION 5: ビューポートと直接操作ギズモ（インタラクティブ）
+    ========================================================== -->
+    <section id="sec-viewport-gizmos">
+      <h2 class="section-heading">
+        5. ビューポートと直接操作ギズモ
+        <span class="badge">Live WebGL2 Simulation</span>
+      </h2>
+      <p>
+        Matcap Maker の最大の特徴は、3Dビューポート上の球体を直接クリック＆ドラッグして直感的にパラメータを操作できる「スクリーン空間ダイレクトギズモ」です。
+      </p>
+
+      <!-- リアルタイム WebGL2 シミュレータ -->
+      <div class="interactive-stage">
+        <div class="stage-header">
+          <div class="stage-title">
+            <span class="live-dot"></span>
+            インタラクティブ WebGL2 ギズモ操作シミュレータ
+          </div>
+          <div class="stage-actions">
+            <span style="font-size:0.75rem; color:var(--text-tertiary);">球体上をドラッグしてライト位置を操作</span>
+          </div>
+        </div>
+        <div class="stage-body">
+          <div class="canvas-wrap">
+            <canvas id="webgl-canvas" width="280" height="280"></canvas>
+            <div class="canvas-overlay-hint">マウス左ドラッグ: 光源の方向ギズモ移動</div>
+          </div>
+          <div class="stage-controls">
+            <div class="control-row">
+              <div class="control-label">
+                <span>プレビューモード</span>
+              </div>
+              <div class="segmented-control" id="sim-shape-ctrl">
+                <button class="segment-btn active" data-shape="sphere">球体 (Sphere)</button>
+                <button class="segment-btn" data-shape="flat">平面 (Flat Disc)</button>
+                <button class="segment-btn" data-shape="normal">法線凹凸 (Normal Map)</button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div class="control-label">
+                <span>スポットライト強度 (Intensity)</span>
+                <span class="val" id="val-intensity">1.4</span>
+              </div>
+              <input type="range" class="range-input" id="sim-intensity" min="0" max="3" step="0.05" value="1.4">
+            </div>
+
+            <div class="control-row">
+              <div class="control-label">
+                <span>スポットライト範囲 (Range)</span>
+                <span class="val" id="val-range">0.75</span>
+              </div>
+              <input type="range" class="range-input" id="sim-range" min="0.1" max="2.0" step="0.02" value="0.75">
+            </div>
+
+            <div class="control-row">
+              <div class="control-label">
+                <span>リムライト強度 (Rim Power)</span>
+                <span class="val" id="val-rim">2.8</span>
+              </div>
+              <input type="range" class="range-input" id="sim-rim" min="0.5" max="8.0" step="0.1" value="2.8">
+            </div>
+
+            <div class="control-row">
+              <div class="control-label">
+                <span>合成色空間 (Blend Space)</span>
+              </div>
+              <div class="segmented-control" id="sim-space-ctrl">
+                <button class="segment-btn active" data-space="linear">リニア (Linear - 物理的)</button>
+                <button class="segment-btn" data-space="srgb">sRGB (ガンマ合成)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="sub-heading">ギズモの直接操作仕様</h3>
+      <ul>
+        <li><strong>光源方向ハンドル（球上の白いドット）:</strong> 左ボタンドラッグで球面上を滑るように光源ベクトルが回転します。<kbd>Alt</kbd> キーを押しながらドラッグすると、球の裏側（陰面側）へ光源を回し込めます。</li>
+        <li><strong>回転リング:</strong> 楕円形スポットライト選択時に現れる円環をドラッグすることで、ハイライトの長軸方向を回転角度として指定できます。</li>
+        <li><strong>リムライト調整ハンドル:</strong> 外周付近のハンドルをドラッグするとパワー指数（エッジの細さ）、<kbd>Shift</kbd>+ドラッグでバイアス（発光の立ち上がり位置）が変化します。</li>
+      </ul>
+
+      <h3 class="sub-heading">プレビュー分割（スプリット）モード</h3>
+      <p>
+        <kbd>\</kbd> キーを押すと、ビューポートが「前後比較（Before/After）」スライダー分割表示に切り替わります。現在選択中のレイヤーが適用される前の状態と、適用後の状態を画面上の境界線をスワイプして比較できます。
+      </p>
+
+      <!-- スプリットスライダーのデモ -->
+      <div class="split-slider-container" id="split-demo">
+        <div class="split-pane before" id="split-before">
+          <canvas id="split-canvas-before" width="600" height="320" style="width:100%; height:100%;"></canvas>
+          <span class="split-label left">適用前 (Before)</span>
+        </div>
+        <div class="split-pane after" id="split-after">
+          <canvas id="split-canvas-after" width="600" height="320" style="width:100%; height:100%;"></canvas>
+          <span class="split-label right">適用後 (After)</span>
+        </div>
+        <div class="split-divider" id="split-line">
+          <div class="split-divider-handle">◀ ▶</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SECTION 6: インスペクターとパラメータ操作
+    ========================================================== -->
+    <section id="sec-inspector">
+      <h2 class="section-heading">
+        6. インスペクターとパラメータ操作
+        <span class="badge">Controls</span>
+      </h2>
+      <p>
+        インスペクターでは、各レイヤーのあらゆるパラメータを数値レベルで厳密に制御できます。すべての数値入力ウィジェットは、プロ向けの迅速なスクラブ操作に対応しています。
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>操作方法</th>
+              <th>動作仕様</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>左右ドラッグ (Scrub)</strong></td>
+              <td>スライダーのつまみまたは数値ラベル上をドラッグして素早く値を増減</td>
+            </tr>
+            <tr>
+              <td><strong><kbd>Shift</kbd> + ドラッグ</strong></td>
+              <td>微細調整モード（通常の 1/10 の移動量で繊細にコントロール）</td>
+            </tr>
+            <tr>
+              <td><strong><kbd>Ctrl</kbd> + ドラッグ</strong></td>
+              <td>粗調整モード（通常の 10 倍の移動量で大きく変化）</td>
+            </tr>
+            <tr>
+              <td><strong>ダブルクリック</strong></td>
+              <td>パラメータを初期既定値（Default）にリセット</td>
+            </tr>
+            <tr>
+              <td><strong>右クリックコンテキストメニュー</strong></td>
+              <td>「値をコピー」「値を貼り付け」「既定値に戻す」を実行</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-heading">グラデーションエディタの操作</h3>
+      <ul>
+        <li><strong>ストップの追加:</strong> グラデーションバーの空いている場所をクリックすると、その位置に新しいカラーストップが追加されます。</li>
+        <li><strong>ストップの移動:</strong> カラードットを左右にドラッグして位置を調整します。</li>
+        <li><strong>色の変更:</strong> カラードットをダブルクリックしてカラーピッカーを開きます。</li>
+        <li><strong>ストップの削除:</strong> カラードットを選択して <kbd>Delete</kbd> キーを押すか、バーの外側へドラッグして離します。</li>
+        <li><strong>補間方式の切り替え:</strong> 通常の <code>RGB</code> 補間のほか、中間域が濁らない <code>Oklab</code> 知覚的一様色空間補間を選択できます。</li>
+      </ul>
+    </section>
+
+    <!-- =========================================================
+         SECTION 7: 合成色空間とHDRパイプライン
+    ========================================================== -->
+    <section id="sec-color-hdr">
+      <h2 class="section-heading">
+        7. 合成色空間とHDRパイプライン
+        <span class="badge">Color Science</span>
+      </h2>
+      <p>
+        Matcap Maker は、用途に応じて「sRGB合成（v3/Photoshop互換）」と「リニア合成（物理的に正確）」の 2 種類の色空間を選択できます。プロジェクトタブの「合成の色空間」から切り替えます。
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">sRGB 色空間（互換モード）</div>
+          <p>
+            各レイヤーのRGB値をガンマ空間のまま加算・乗算します。過去の Matcap Maker v3 や Photoshop のデフォルトレイヤー合成と完全に一致する見た目が得られます。
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">リニア色空間（物理ベース推奨）</div>
+          <p>
+            入力をリニア空間（$\gamma=2.2$ 伸張）に展開してから加算やブレンディングを行い、最終表示時に sRGB へ戻します。赤と緑の光が混ざり合う境界で黒ずまず、鮮明な黄色に輝くなど、現実の光学現象に即した混色が実現します。
+          </p>
+        </div>
+      </div>
+
+      <h3 class="sub-heading">HDRモードとトーンマップ</h3>
+      <p>
+        プロジェクト設定で「HDR」を有効にすると、内部FBOで 1.0 を超える高輝度値（スペキュラピーク）がクランプ（0.0〜1.0での切り捨て）されずに保持されます。
+      </p>
+      <ul>
+        <li><strong>ビューポートの露出スライダー:</strong> <kbd>0</kbd> を基準に $-4$ から $+4$ EV（段）の範囲で露光量を調整して白飛び領域の階調を確認できます。</li>
+        <li><strong>OpenEXR 書き出しとの連携:</strong> HDR がオンの状態で EXR 形式で書き出すと、ゲームエンジン（Unreal Engine, Unity HDRP）のポストプロセスブルームで激しく発光するハイダイナミックレンジテクスチャとして活用できます。</li>
+      </ul>
+    </section>
+
+    <!-- =========================================================
+         SECTION 8: エクスポートとエッジパディング
+    ========================================================== -->
+    <section id="sec-export">
+      <h2 class="section-heading">
+        8. エクスポートとエッジパディング
+        <span class="badge">Edge Padding & Export</span>
+      </h2>
+      <p>
+        マテリアルキャプチャテクスチャは正方形の画像内に円盤状に描画されますが、3DモデルのUVサンプリング時、境界付近でテクスチャフィルタリング（バイリニア補間やミップマップ）が働くことで、<strong>外周の背景色（黒または透明）が混ざってモデルの輪郭に黒いフチ（シーム）が生じる問題</strong>が頻発します。
+      </p>
+      <p>
+        Matcap Maker では、これを完全に防止するため、円盤の外周ピクセルを放射状に伸長する「エッジパディング（Dilation）」エンジンを内蔵しています。
+      </p>
+
+      <div class="diagram-img-wrap">
+        <img src="assets/edge_padding_process.png" alt="Edge Padding Comparison" class="diagram-img">
+        <div class="diagram-caption">図 8-1: エッジパディングの処理比較（未処理 vs ニアレスト伸長 vs スムースパディング）</div>
+      </div>
+
+      <h3 class="sub-heading">パディングパラメータ</h3>
+      <ul>
+        <li><strong>エッジパディング幅:</strong> 既定値は <code>16px</code>。円盤の外側へ何ピクセル分引き伸ばすかを指定します（推奨: 16〜32px）。</li>
+        <li><strong>パディングをなめらかにする（近傍平均）:</strong> 外周の伸長領域に対してボックスブラーを施し、外側へのジャギーや鋭い線状の乱れを滑らかに均します。</li>
+        <li><strong>輪郭のアルファしきい値:</strong> 半透明エッジをどの不透明度で円盤境界とみなすかの境界値です。</li>
+      </ul>
+
+      <h3 class="sub-heading">出力フォーマット</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>フォーマット</th>
+              <th>深度</th>
+              <th>特性・用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>PNG 8bit</strong></td>
+              <td>RGB / RGBA 各8bit</td>
+              <td>Web、VRoid、汎用3Dビューア向けの標準形式。可逆圧縮。</td>
+            </tr>
+            <tr>
+              <td><strong>PNG 16bit</strong></td>
+              <td>各チャンネル16bit (48bit/64bit)</td>
+              <td>滑らかなグラデーションを保持し、マッハバンド（トーンジャンプ）を防ぐ高品質形式。</td>
+            </tr>
+            <tr>
+              <td><strong>JPG</strong></td>
+              <td>8bit非可逆圧縮</td>
+              <td>ファイルサイズを極小化したい軽量プレビュー用（品質1〜100指定）。</td>
+            </tr>
+            <tr>
+              <td><strong>EXR (half)</strong></td>
+              <td>16bit 浮動小数点 (Half-Float)</td>
+              <td>Unreal Engine 5、Unity、Blender、映画制作向けのHDRデータ保持形式。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-heading">ファイル名テンプレート</h3>
+      <p>
+        エクスポートダイアログの「ファイル名」欄では以下の置換タグが使用できます。
+      </p>
+      <ul>
+        <li><code>{project}</code>: プロジェクト名（例: <code>Matcap_Gold</code>）</li>
+        <li><code>{size}</code>: 書き出し解像度（例: <code>2048</code>）</li>
+        <li><code>{padding}</code>: パディングピクセル数（例: <code>pad16</code>）</li>
+        <li><code>{date}</code>: 出力日付（例: <code>2026-09-29</code>）</li>
+      </ul>
+    </section>
+
+    <!-- =========================================================
+         SECTION 9: プリセットとプラグイン拡張
+    ========================================================== -->
+    <section id="sec-plugins">
+      <h2 class="section-heading">
+        9. プリセットとプラグイン拡張
+        <span class="badge">Extensibility</span>
+      </h2>
+      <p>
+        Matcap Maker は、カスタムレイヤーを外部追加できる完全宣言型プラグインアーキテクチャを備えています。
+      </p>
+
+      <h3 class="sub-heading">プラグインのフォルダ構成</h3>
+      <p>
+        ユーザーのドキュメントフォルダ配下に以下の構造でフォルダとファイルを配置すると、アプリ起動時に自動認識されます。
+      </p>
+      <pre><code>Documents/MatcapMaker/plugins/
+└─ myCustomPattern/
+   ├─ layer.json    # レイヤー名、パラメータ定義、型仕様
+   └─ layer.glsl    # WebGL2 フラグメントシェーダー計算ロジック</code></pre>
+
+      <h3 class="sub-heading">layer.json の記述例</h3>
+      <pre><code>{
+  "type": "hexGrid",
+  "title": "Hex Grid",
+  "version": 1,
+  "kind": "generator",
+  "category": "texture",
+  "icon": "hex",
+  "blendMode": "multiply",
+  "params": {
+    "scale": { "kind": "float", "default": 10.0, "min": 1.0, "max": 60.0 },
+    "color": { "kind": "color", "default": [0.1, 0.1, 0.1] }
+  }
+}</code></pre>
+
+      <p>
+        セキュリティと堅牢性を重視し、JavaScript コードの実行は一切行わず、純粋な GLSL uniform バインディングのみで安全に実行されます。
+      </p>
+    </section>
+
+    <!-- =========================================================
+         SECTION 10: ショートカットキー一覧
+    ========================================================== -->
+    <section id="sec-shortcuts">
+      <h2 class="section-heading">
+        10. ショートカットキー一覧
+        <span class="badge">F1 Cheat Sheet</span>
+      </h2>
+      <p>
+        キーボードのみで主要なワークフローが完結するよう、包括的なショートカット体系が割り当てられています。
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>キー操作</th>
+              <th>機能</th>
+              <th>分類</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><kbd>Tab</kbd></td>
+              <td>「レイヤーを追加」クイックパレットを開く</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>D</kbd></td>
+              <td>選択中のレイヤーを複製</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td>
+              <td>選択中のレイヤーを削除</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td>
+              <td>レイヤーの重なり順を前面 / 背面へ移動</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>G</kbd></td>
+              <td>選択レイヤーをグループ化</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd></td>
+              <td>グループ解除</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>H</kbd></td>
+              <td>レイヤーの表示 / 非表示をトグル</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>Alt</kbd> + クリック（目のアイコン）</td>
+              <td>対象レイヤーのみをソロ表示</td>
+              <td>レイヤー</td>
+            </tr>
+            <tr>
+              <td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd></td>
+              <td>ビューポート形状切り替え（球体 / 平面 / ノーマルマップ / 比較）</td>
+              <td>表示</td>
+            </tr>
+            <tr>
+              <td><kbd>G</kbd></td>
+              <td>直接操作ギズモの表示 / 非表示切り替え</td>
+              <td>表示</td>
+            </tr>
+            <tr>
+              <td><kbd>\</kbd></td>
+              <td>レイヤー適用前後のスプリット比較表示</td>
+              <td>表示</td>
+            </tr>
+            <tr>
+              <td><kbd>I</kbd></td>
+              <td>ビューポート画面から色を抽出するスポイトツール</td>
+              <td>ツール</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>V</kbd></td>
+              <td>クリップボードの画像を新しいイメージレイヤーとして貼り付け</td>
+              <td>編集</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
+              <td>元に戻す (Undo) / やり直す (Redo)</td>
+              <td>履歴</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
+              <td>プロジェクトを上書き保存</td>
+              <td>ファイル</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd></td>
+              <td>エクスポートダイアログを開く</td>
+              <td>ファイル</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>E</kbd></td>
+              <td>前回と同じ設定でクイック再エクスポート</td>
+              <td>ファイル</td>
+            </tr>
+            <tr>
+              <td><kbd>F1</kbd></td>
+              <td>アプリ内ショートカットキー一覧を表示</td>
+              <td>ヘルプ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SECTION 11: トラブルシューティング
+    ========================================================== -->
+    <section id="sec-troubleshooting">
+      <h2 class="section-heading">
+        11. エラーハンドリング・トラブル対応
+        <span class="badge">Diagnostics</span>
+      </h2>
+
+      <div class="card">
+        <div class="card-title">Q. 起動時に「Microsoft Edge WebView2 ランタイムが必要です」と表示される</div>
+        <p>
+          Matcap Maker のデスクトップ版は軽量化のため OS 標準の WebView2 を利用します。Windows 10/11 の一部最小インストール環境等でランタイムが存在しない場合、ダイアログの「はい」を選択して Microsoft 公式サイトから WebView2 ランタイムをインストールしてください。
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. 外部OBJ / GLB / FBX メッシュをドロップしても表示されない</div>
+        <p>
+          メッシュプレビューは法線ベクトル（Normals）を前提とします。法線データが欠落しているメッシュの場合、自動で頂点法線が計算されますが、極端に縮尺が巨大・微小なデータの場合はインスペクターの「スケール」調整またはカメラオービットを初期化してください。
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. エクスポートしたテクスチャの縁に黒い継ぎ目（シーム）が出る</div>
+        <p>
+          エクスポート設定で「エッジパディング」が <code>0px</code> になっている可能性があります。パディング値を <code>16px</code> 以上に設定し、「パディングをなめらかにする」にチェックを入れて再エクスポートしてください。
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. 突然の電源断やクラッシュ時のデータ復旧</div>
+        <p>
+          Matcap Maker は毎回の操作ごとに安全なバックグラウンド自動保存を行っています。異常終了後の次回起動時に「未保存の作業を復旧しますか？」というダイアログが表示され、直前の状態へワンクリックで復元可能です。
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================================================
+       INLINE INTERACTIVE SCRIPTS: WebGL2 Shader Engine
+  ========================================================== -->
+  <script>
+    // -----------------------------------------------------------
+    // WebGL2 Matcap Simulation Implementation
+    // -----------------------------------------------------------
+    (function initWebGLSim() {
+      const canvas = document.getElementById('webgl-canvas');
+      if (!canvas) return;
+      const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
+      if (!gl) {
+        console.warn('WebGL2 not available for simulator');
+        return;
+      }
+
+      // Vertex Shader
+      const vsSrc = `#version 300 es
+        in vec2 a_pos;
+        out vec2 v_uv;
+        void main() {
+          v_uv = a_pos * 0.5 + 0.5;
+          gl_Position = vec4(a_pos, 0.0, 1.0);
+        }
+      `;
+
+      // Fragment Shader
+      const fsSrc = `#version 300 es
+        precision highp float;
+        in vec2 v_uv;
+        out vec4 fragColor;
+
+        uniform vec2 u_lightPos; // -1..1
+        uniform float u_intensity;
+        uniform float u_range;
+        uniform float u_rimPower;
+        uniform int u_shape; // 0=sphere, 1=flat, 2=normal
+        uniform int u_blendSpace; // 0=linear, 1=sRGB
+
+        vec3 srgbToLinear(vec3 c) { return pow(c, vec3(2.2)); }
+        vec3 linearToSrgb(vec3 c) { return pow(c, vec3(1.0 / 2.2)); }
+
+        void main() {
+          vec2 p = v_uv * 2.0 - 1.0;
+          float r2 = dot(p, p);
+          if (r2 > 1.0) {
+            fragColor = vec4(0.04, 0.05, 0.06, 1.0);
+            return;
+          }
+
+          vec3 n;
+          if (u_shape == 0) {
+            // Sphere normal
+            float z = sqrt(max(0.0, 1.0 - r2));
+            n = vec3(p.x, p.y, z);
+          } else if (u_shape == 1) {
+            // Flat disc
+            n = vec3(0.0, 0.0, 1.0);
+          } else {
+            // Normal map procedural wrinkles
+            float z = sqrt(max(0.0, 1.0 - r2));
+            vec3 baseN = vec3(p.x, p.y, z);
+            float bump = sin(p.x * 25.0) * sin(p.y * 25.0) * 0.15;
+            n = normalize(baseN + vec3(bump, bump, 0.0));
+          }
+
+          // Light dir
+          vec3 lDir = normalize(vec3(u_lightPos, 0.7));
+
+          // Base material (Dark Slate Blue)
+          vec3 baseCol = vec3(0.12, 0.16, 0.22);
+          // Light color (Warm Gold/White)
+          vec3 lightCol = vec3(1.0, 0.88, 0.75);
+          // Rim color (Sky Cyan)
+          vec3 rimCol = vec3(0.2, 0.7, 1.0);
+
+          if (u_blendSpace == 0) {
+            baseCol = srgbToLinear(baseCol);
+            lightCol = srgbToLinear(lightCol);
+            rimCol = srgbToLinear(rimCol);
+          }
+
+          // Spot light calculation
+          float ndotl = max(0.0, dot(n, lDir));
+          vec3 h = normalize(lDir + vec3(0.0, 0.0, 1.0));
+          float ndoth = max(0.0, dot(n, h));
+          float spec = pow(ndoth, 35.0 / u_range);
+          vec3 spot = lightCol * (ndotl * 0.4 + spec * 0.8) * u_intensity;
+
+          // Rim / Fresnel calculation
+          float fresnel = pow(1.0 - max(0.0, n.z), u_rimPower);
+          vec3 rim = rimCol * fresnel * 1.2;
+
+          vec3 finalCol;
+          if (u_blendSpace == 0) {
+            // Linear add
+            finalCol = baseCol + spot + rim;
+            finalCol = linearToSrgb(finalCol);
+          } else {
+            // Naive sRGB add
+            finalCol = baseCol + spot + rim;
+          }
+
+          // Gizmo dot overlay
+          vec2 gizmoScreen = u_lightPos;
+          float distToGizmo = length(p - gizmoScreen);
+          if (distToGizmo < 0.045 && distToGizmo > 0.025) {
+            finalCol = vec3(1.0, 1.0, 1.0); // Ring
+          } else if (distToGizmo <= 0.025) {
+            finalCol = vec3(0.22, 0.74, 0.97); // Dot
+          }
+
+          fragColor = vec4(clamp(finalCol, 0.0, 1.0), 1.0);
+        }
+      `;
+
+      function compileShader(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+          console.error(gl.getShaderInfoLog(s));
+          gl.deleteShader(s);
+          return null;
+        }
+        return s;
+      }
+
+      const vs = compileShader(gl.VERTEX_SHADER, vsSrc);
+      const fs = compileShader(gl.FRAGMENT_SHADER, fsSrc);
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+
+      // Quad
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,  1, -1, -1,  1,
+        -1,  1,  1, -1,  1,  1
+      ]), gl.STATIC_DRAW);
+
+      const aPos = gl.getAttribLocation(prog, 'a_pos');
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      const uLightPos = gl.getUniformLocation(prog, 'u_lightPos');
+      const uIntensity = gl.getUniformLocation(prog, 'u_intensity');
+      const uRange = gl.getUniformLocation(prog, 'u_range');
+      const uRimPower = gl.getUniformLocation(prog, 'u_rimPower');
+      const uShape = gl.getUniformLocation(prog, 'u_shape');
+      const uBlendSpace = gl.getUniformLocation(prog, 'u_blendSpace');
+
+      // State
+      let lightX = 0.4;
+      let lightY = 0.4;
+      let intensity = 1.4;
+      let range = 0.75;
+      let rimPower = 2.8;
+      let shapeMode = 0; // 0=sphere, 1=flat, 2=normal
+      let blendSpace = 0; // 0=linear, 1=srgb
+      let isDragging = false;
+
+      function render() {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(uLightPos, lightX, lightY);
+        gl.uniform1f(uIntensity, intensity);
+        gl.uniform1f(uRange, range);
+        gl.uniform1f(uRimPower, rimPower);
+        gl.uniform1i(uShape, shapeMode);
+        gl.uniform1i(uBlendSpace, blendSpace);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
+
+      render();
+
+      // Mouse drag gizmo
+      function updatePosFromMouse(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const px = ((clientX - rect.left) / rect.width) * 2.0 - 1.0;
+        const py = -(((clientY - rect.top) / rect.height) * 2.0 - 1.0);
+        const dist = Math.sqrt(px * px + py * py);
+        if (dist <= 0.95) {
+          lightX = px;
+          lightY = py;
+        } else {
+          lightX = (px / dist) * 0.95;
+          lightY = (py / dist) * 0.95;
+        }
+        render();
+      }
+
+      canvas.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        canvas.setPointerCapture(e.pointerId);
+        updatePosFromMouse(e);
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (isDragging) updatePosFromMouse(e);
+      });
+
+      canvas.addEventListener('pointerup', () => { isDragging = false; });
+      canvas.addEventListener('pointercancel', () => { isDragging = false; });
+
+      // Range controls
+      const intInput = document.getElementById('sim-intensity');
+      const intVal = document.getElementById('val-intensity');
+      intInput.addEventListener('input', (e) => {
+        intensity = parseFloat(e.target.value);
+        intVal.textContent = intensity.toFixed(2);
+        render();
+      });
+
+      const rangeInput = document.getElementById('sim-range');
+      const rangeVal = document.getElementById('val-range');
+      rangeInput.addEventListener('input', (e) => {
+        range = parseFloat(e.target.value);
+        rangeVal.textContent = range.toFixed(2);
+        render();
+      });
+
+      const rimInput = document.getElementById('sim-rim');
+      const rimVal = document.getElementById('val-rim');
+      rimInput.addEventListener('input', (e) => {
+        rimPower = parseFloat(e.target.value);
+        rimVal.textContent = rimPower.toFixed(1);
+        render();
+      });
+
+      // Segment controls
+      const shapeBtns = document.querySelectorAll('#sim-shape-ctrl .segment-btn');
+      shapeBtns.forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          shapeBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          shapeMode = idx;
+          render();
+        });
+      });
+
+      const spaceBtns = document.querySelectorAll('#sim-space-ctrl .segment-btn');
+      spaceBtns.forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          spaceBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          blendSpace = idx;
+          render();
+        });
+      });
+    })();
+
+    // -----------------------------------------------------------
+    // Split Slider Implementation
+    // -----------------------------------------------------------
+    (function initSplitSlider() {
+      const container = document.getElementById('split-demo');
+      const afterPane = document.getElementById('split-after');
+      const line = document.getElementById('split-line');
+      const canvasBefore = document.getElementById('split-canvas-before');
+      const canvasAfter = document.getElementById('split-canvas-after');
+      if (!container || !afterPane || !line) return;
+
+      // Draw sample representations on 2D canvases
+      function drawSpheres() {
+        const ctxB = canvasBefore.getContext('2d');
+        const ctxA = canvasAfter.getContext('2d');
+        const w = 600, h = 320;
+        
+        // Before: Dark base sphere only
+        ctxB.fillStyle = '#0c0f14';
+        ctxB.fillRect(0, 0, w, h);
+        const gradB = ctxB.createRadialGradient(w/2 - 20, h/2 - 20, 10, w/2, h/2, 120);
+        gradB.addColorStop(0, '#2a3547');
+        gradB.addColorStop(0.8, '#131923');
+        gradB.addColorStop(1, '#07090d');
+        ctxB.beginPath();
+        ctxB.arc(w/2, h/2, 110, 0, Math.PI * 2);
+        ctxB.fillStyle = gradB;
+        ctxB.fill();
+
+        // After: Sphere with intense highlight and rim
+        ctxA.fillStyle = '#0c0f14';
+        ctxA.fillRect(0, 0, w, h);
+        const gradA = ctxA.createRadialGradient(w/2 + 35, h/2 - 35, 5, w/2, h/2, 110);
+        gradA.addColorStop(0, '#ffffff');
+        gradA.addColorStop(0.15, '#ffdfa0');
+        gradA.addColorStop(0.4, '#38bdf8');
+        gradA.addColorStop(0.8, '#121d2d');
+        gradA.addColorStop(1, '#000000');
+        ctxA.beginPath();
+        ctxA.arc(w/2, h/2, 110, 0, Math.PI * 2);
+        ctxA.fillStyle = gradA;
+        ctxA.fill();
+
+        // Outer cyan rim
+        ctxA.beginPath();
+        ctxA.arc(w/2, h/2, 110, 0, Math.PI * 2);
+        ctxA.lineWidth = 6;
+        ctxA.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+        ctxA.stroke();
+      }
+      drawSpheres();
+
+      let dragging = false;
+      function setSplit(percent) {
+        const p = Math.max(0, Math.min(100, percent));
+        afterPane.style.clipPath = `polygon(0 0, ${p}% 0, ${p}% 100%, 0 100%)`;
+        line.style.left = `${p}%`;
+      }
+
+      function onMove(e) {
+        if (!dragging) return;
+        const rect = container.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const p = ((clientX - rect.left) / rect.width) * 100;
+        setSplit(p);
+      }
+
+      container.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        container.setPointerCapture(e.pointerId);
+        onMove(e);
+      });
+      container.addEventListener('pointermove', onMove);
+      container.addEventListener('pointerup', () => { dragging = false; });
+      container.addEventListener('pointercancel', () => { dragging = false; });
+    })();
+
+    // -----------------------------------------------------------
+    // Plan A: Inline Full-Text Search + Highlight & Jump Engine
+    // -----------------------------------------------------------
+    (function initSearch() {
+      const input = document.getElementById('nav-filter');
+      const clearBtn = document.getElementById('search-clear-btn');
+      const counterBar = document.getElementById('search-counter-bar');
+      const countLabel = document.getElementById('search-count-label');
+      const prevBtn = document.getElementById('search-prev-btn');
+      const nextBtn = document.getElementById('search-next-btn');
+      const links = document.querySelectorAll('#nav-list .nav-link');
+      const sections = document.querySelectorAll('#main section');
+
+      if (!input || !links.length) return;
+
+      let allMatches = [];
+      let currentIndex = -1;
+
+      function clearHighlights() {
+        const marks = document.querySelectorAll('mark.search-match');
+        marks.forEach(mark => {
+          const parent = mark.parentNode;
+          if (parent) {
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize();
+          }
+        });
+        allMatches = [];
+        currentIndex = -1;
+      }
+
+      function resetNavLinks() {
+        links.forEach(link => {
+          link.style.display = 'flex';
+          link.style.opacity = '1';
+          const badge = link.querySelector('.search-match-badge');
+          if (badge) badge.remove();
+        });
+      }
+
+      function highlightInNode(root, query) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        while (walker.nextNode()) {
+          const parent = walker.currentNode.parentNode;
+          if (!parent) continue;
+          const tag = parent.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'MARK' || parent.closest('.interactive-stage') || parent.closest('#split-demo')) {
+            continue;
+          }
+          textNodes.push(walker.currentNode);
+        }
+
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(escaped, 'gi');
+        let count = 0;
+
+        for (const node of textNodes) {
+          const text = node.nodeValue;
+          if (!re.test(text)) continue;
+          re.lastIndex = 0;
+
+          const frag = document.createDocumentFragment();
+          let lastIdx = 0;
+          let m;
+          while ((m = re.exec(text)) !== null) {
+            count++;
+            if (m.index > lastIdx) {
+              frag.appendChild(document.createTextNode(text.substring(lastIdx, m.index)));
+            }
+            const mark = document.createElement('mark');
+            mark.className = 'search-match';
+            mark.textContent = m[0];
+            frag.appendChild(mark);
+            lastIdx = re.lastIndex;
+          }
+          if (lastIdx < text.length) {
+            frag.appendChild(document.createTextNode(text.substring(lastIdx)));
+          }
+          node.parentNode.replaceChild(frag, node);
+        }
+        return count;
+      }
+
+      function updateActiveMatch(newIdx) {
+        if (!allMatches.length) return;
+        if (currentIndex >= 0 && allMatches[currentIndex]) {
+          allMatches[currentIndex].classList.remove('current');
+        }
+        currentIndex = (newIdx + allMatches.length) % allMatches.length;
+        const currentMark = allMatches[currentIndex];
+        currentMark.classList.add('current');
+        countLabel.textContent = `${currentIndex + 1} / ${allMatches.length} 件`;
+        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function performSearch() {
+        clearHighlights();
+        const query = input.value.trim();
+
+        if (!query) {
+          clearBtn.style.display = 'none';
+          counterBar.style.display = 'none';
+          resetNavLinks();
+          return;
+        }
+
+        clearBtn.style.display = 'block';
+        counterBar.style.display = 'flex';
+
+        let total = 0;
+        sections.forEach(sec => {
+          const secId = sec.getAttribute('id');
+          const count = highlightInNode(sec, query);
+          total += count;
+
+          const link = document.querySelector(`#nav-list .nav-link[href="#${secId}"]`);
+          if (link) {
+            let badge = link.querySelector('.search-match-badge');
+            if (count > 0) {
+              link.style.display = 'flex';
+              link.style.opacity = '1';
+              if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'search-match-badge';
+                link.appendChild(badge);
+              }
+              badge.textContent = count;
+            } else {
+              link.style.opacity = '0.35';
+              if (badge) badge.remove();
+            }
+          }
+        });
+
+        allMatches = Array.from(document.querySelectorAll('mark.search-match'));
+
+        if (allMatches.length > 0) {
+          prevBtn.disabled = false;
+          nextBtn.disabled = false;
+          updateActiveMatch(0);
+        } else {
+          countLabel.textContent = '0 件';
+          prevBtn.disabled = true;
+          nextBtn.disabled = true;
+        }
+      }
+
+      let debounceTimer;
+      input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(performSearch, 150);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            if (allMatches.length) updateActiveMatch(currentIndex - 1);
+          } else {
+            if (allMatches.length) updateActiveMatch(currentIndex + 1);
+          }
+        } else if (e.key === 'Escape') {
+          input.value = '';
+          performSearch();
+          input.blur();
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        performSearch();
+        input.focus();
+      });
+
+      prevBtn.addEventListener('click', () => {
+        if (allMatches.length) updateActiveMatch(currentIndex - 1);
+      });
+
+      nextBtn.addEventListener('click', () => {
+        if (allMatches.length) updateActiveMatch(currentIndex + 1);
+      });
+    })();
+
+    // -----------------------------------------------------------
+    // Active Link ScrollSpy
+    // -----------------------------------------------------------
+    (function initScrollSpy() {
+      const sections = document.querySelectorAll('section');
+      const links = document.querySelectorAll('#nav-list .nav-link');
+
+      window.addEventListener('scroll', () => {
+        let current = '';
+        const scrollPos = window.scrollY + 120;
+        sections.forEach(sec => {
+          if (sec.offsetTop <= scrollPos) {
+            current = sec.getAttribute('id');
+          }
+        });
+
+        links.forEach(l => {
+          l.classList.remove('active');
+          if (l.getAttribute('href') === `#${current}`) {
+            l.classList.add('active');
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
