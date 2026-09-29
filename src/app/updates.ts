@@ -1,43 +1,78 @@
-// "A new version is available" notice (no auto-update). Checks the latest
-// GitHub release once per start when enabled in settings.
+// "A new version is available" check and notification.
+// Fetches version.json from the public GitHub repository using raw.githubusercontent.com,
+// completely avoiding the 60 req/hour unauthenticated API rate limits.
+// Modeled after DennokoMeshEditor's version checker.
 
 import { app, platform } from './state.svelte';
 import { APP_VERSION } from '$core/model/project';
+import { isNewerVersion, normalizeVersion } from '$core/util/version';
 
-// the list endpoint answers 200 [] when there are no releases (/latest would 404)
-export const RELEASES_API = 'https://api.github.com/repos/dennoko/MatcapMaker_v3/releases?per_page=5';
+export const REPO_OWNER = 'dennoko';
+export const REPO_NAME = 'MatcapMaker_v3';
+export const VERSION_URL = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/version.json`;
+export const REQUEST_TIMEOUT_MS = 8000;
 
-export function isNewer(latest: string, current: string): boolean {
-  const parse = (v: string) =>
-    v
-      .replace(/^v/i, '')
-      .split(/[.-]/)
-      .slice(0, 3)
-      .map((x) => parseInt(x, 10) || 0);
-  const a = parse(latest);
-  const b = parse(current);
-  for (let i = 0; i < 3; i++) {
-    if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0);
-  }
-  return false;
+const RELEASES_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases`;
+const WEB_DOWNLOAD_URL = `${RELEASES_URL}/latest/download/MatcapMaker_web.html`;
+
+export interface VersionInfo {
+  version: string;
+  url?: string;
+  message?: string;
 }
 
-export async function checkForUpdates() {
-  if (!app.settings.checkUpdates || (__WEB_BUILD__ && location.protocol !== 'file:')) return;
+/** Single-file web users get the HTML directly; desktop uses version.json's url if it is https. */
+function targetUrl(info: VersionInfo): string {
+  if (__WEB_BUILD__) return WEB_DOWNLOAD_URL;
+  const url = typeof info.url === 'string' ? info.url.trim() : '';
+  return /^https:\/\//i.test(url) ? url : RELEASES_URL;
+}
+
+async function fetchVersionInfo(): Promise<VersionInfo> {
+  const ctrl = new AbortController();
+  // the timeout covers the body too: a stalled response must not leave the state at 'checking'
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(RELEASES_API, { signal: ctrl.signal, headers: { Accept: 'application/vnd.github+json' } });
-    clearTimeout(t);
-    if (!res.ok) return;
-    const list = (await res.json()) as { tag_name?: string; html_url?: string; draft?: boolean; prerelease?: boolean }[];
-    const j = Array.isArray(list) ? list.find((r) => r.tag_name && !r.draft && !r.prerelease) : undefined;
-    if (!j?.tag_name) return;
-    if (isNewer(j.tag_name, APP_VERSION)) {
-      app.updateAvailable = { version: j.tag_name.replace(/^v/i, ''), url: __WEB_BUILD__ ? 'https://github.com/dennoko/MatcapMaker_v3/releases/latest/download/MatcapMaker_web.html' : j.html_url ?? 'https://github.com/dennoko/MatcapMaker_v3/releases' };
-      platform.log('info', `update available: ${j.tag_name}`);
+    const res = await fetch(VERSION_URL, { signal: ctrl.signal, cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const info = (await res.json()) as VersionInfo;
+    if (!info || typeof info.version !== 'string' || !info.version.trim()) throw new Error('invalid version.json');
+    return info;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Fetches version.json at most once per call; no retries. Automatic calls (`force = false`)
+ * run only once per session and respect the setting; `force` is for explicit user actions.
+ */
+export async function checkForUpdates(force = false): Promise<void> {
+  if (app.versionStatus.state === 'checking') return;
+  if (!force) {
+    if (!app.settings.checkUpdates) return;
+    // hosted web always serves the latest bundle; only file:// and desktop check automatically
+    if (__WEB_BUILD__ && location.protocol !== 'file:') return;
+    if (app.versionStatus.state !== 'idle') return;
+  }
+
+  app.versionStatus = { state: 'checking', currentVersion: APP_VERSION };
+  try {
+    const info = await fetchVersionInfo();
+    const latest = normalizeVersion(info.version);
+    const url = targetUrl(info);
+    const message = info.message || '';
+    if (isNewerVersion(latest, APP_VERSION)) {
+      app.updateAvailable = { version: latest, url, message };
+      app.versionStatus = { state: 'updateAvailable', currentVersion: APP_VERSION, latestVersion: latest, url, message };
+      platform.log('info', `update available: v${latest}`);
+    } else {
+      app.updateAvailable = null;
+      app.versionStatus = { state: 'upToDate', currentVersion: APP_VERSION, latestVersion: latest, url, message };
     }
-  } catch {
-    /* offline or rate-limited: stay quiet */
+  } catch (err) {
+    // offline, timeout, rate limit or a bad file: stay quiet, the About dialog offers a retry
+    app.versionStatus = { state: 'error', currentVersion: APP_VERSION };
+    platform.log('warn', `version check failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }

@@ -30,6 +30,7 @@
   import { checkForUpdates } from './updates';
   import { loadPlugins } from './plugins';
   import { basename } from '$platform/types';
+  import { APP_VERSION } from '$core/model/project';
 
   let winW = $state(window.innerWidth);
   let winH = $state(window.innerHeight);
@@ -115,7 +116,29 @@
         {title}{#if app.dirty}<span class="dot" title={tt('status.unsaved')}> •</span>{/if}
       </div>
     </div>
-    <button class="brand" title={tt('menu.help.about')} onclick={() => (app.dialog = 'about')}><DevLogo height={20} /></button>
+    <div class="center-brand">
+      <button class="brand" title={tt('menu.help.about')} onclick={() => (app.dialog = 'about')}><DevLogo height={20} /></button>
+      <button
+        class="ver-badge"
+        class:has-update={!!app.updateAvailable}
+        title={app.updateAvailable ? tt('status.update', { version: app.updateAvailable.version }) : `Matcap Maker v${APP_VERSION}`}
+        onclick={() => {
+          if (app.updateAvailable) {
+            platform.openUrl(app.updateAvailable.url);
+          } else {
+            app.dialog = 'about';
+          }
+        }}
+      >
+        {#if app.updateAvailable}
+          <span class="update-pulse"></span>
+          <span class="update-text">v{APP_VERSION} → v{app.updateAvailable.version}</span>
+          <span class="update-tag">{tt('status.updateBadge')}</span>
+        {:else}
+          <span class="ver-text">v{APP_VERSION}</span>
+        {/if}
+      </button>
+    </div>
     <div class="actions">
       <button class="btn icon ghost" title={`${tt('menu.edit.undo')} (Ctrl+Z)`} disabled={!app.canUndo} onclick={undo}>↶</button>
       <button class="btn icon ghost" title={`${tt('menu.edit.redo')} (Ctrl+Y)`} disabled={!app.canRedo} onclick={redo}>↷</button>
@@ -213,6 +236,12 @@
     gap: 12px;
     min-width: 0;
   }
+  .center-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+  }
   .brand {
     display: flex;
     align-items: center;
@@ -227,6 +256,73 @@
   .brand:hover {
     opacity: 1;
     background: var(--panel-2);
+  }
+  .ver-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 7px;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text-3);
+    font-size: 0.8em;
+    font-family: var(--mono);
+    line-height: 1.35;
+    cursor: pointer;
+    transition: all 0.15s var(--ease);
+  }
+  .ver-badge:hover {
+    color: var(--text);
+    background: var(--field);
+    border-color: var(--border-strong);
+  }
+  .ver-badge.has-update {
+    background: rgba(0, 230, 118, 0.15);
+    color: #00e676;
+    border: 1px solid #00e676;
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.35);
+    font-weight: 700;
+  }
+  :root[data-theme='light'] .ver-badge.has-update {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+    border: 1px solid #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+  }
+  .ver-badge.has-update:hover {
+    background: rgba(0, 230, 118, 0.25);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.55);
+  }
+  :root[data-theme='light'] .ver-badge.has-update:hover {
+    background: rgba(16, 185, 129, 0.25);
+  }
+  .update-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    animation: pulse-dot 1.8s infinite ease-in-out;
+  }
+  @keyframes pulse-dot {
+    0%, 100% {
+      transform: scale(0.9);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.35);
+      opacity: 1;
+    }
+  }
+  .update-tag {
+    font-size: 0.85em;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: currentColor;
+    color: var(--bg);
+    font-weight: 800;
+    letter-spacing: 0.04em;
   }
   .title {
     min-width: 0;

@@ -19,6 +19,7 @@
   "menu.file": "File",
   "menu.edit": "Edit",
   "menu.view": "View",
+  "menu.language": "言語",
   "menu.help": "Help",
   "menu.file.new": "New Project",
   "menu.file.newFromPreset": "New from Preset…",
@@ -400,6 +401,14 @@
   "bench.writeFile": "Include writing a PNG to the output folder",
 
   "update.available": "A new version ({version}) is available.",
+  "status.updateBadge": "UPDATE",
+  "status.updateAvailable": "New version available",
+  "about.checkingUpdates": "Checking for updates…",
+  "about.latestVersion": "Up to date",
+  "about.checkFailed": "Could not check for updates",
+  "about.checkUpdates": "Check for updates",
+  "about.recheckUpdates": "Check again",
+  "about.openDownloadPage": "Open update page",
 
   "platform.storageUnavailable": "Settings, autosaves and presets will not persist in this browser. Save your project to a file.",
   "platform.recoveryBusy": "Another tab owns recovery data, or tab locking is unavailable. Autosave is disabled in this tab."

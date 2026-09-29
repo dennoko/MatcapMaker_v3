@@ -16,6 +16,10 @@ async function boot(page: Page, errors: string[]) {
     if (m.type() === 'error') errors.push(m.text());
   });
   await page.setViewportSize({ width: 1400, height: 860 });
+  // keep the update check off the network so an ahead-of-HEAD version.json cannot change the UI
+  await page.route(/^https:\/\/raw\.githubusercontent\.com\//, (route) =>
+    route.fulfill({ json: { version: '0.0.0', url: 'https://example.invalid/' }, headers: { 'Access-Control-Allow-Origin': '*' } }),
+  );
   if (test.info().project.name === 'single') {
     await page.route(/^https?:/, (route) => route.abort());
     await page.addInitScript(() => localStorage.setItem('matcap-maker:settings', JSON.stringify({ checkUpdates: false })));
@@ -210,5 +214,18 @@ test('dropping an image onto the preview adds an Image layer', async ({ page }) 
   await page.dispatchEvent('[data-drop-zone="viewport"]', 'drop', { dataTransfer: dt, clientX: b.x + 50, clientY: b.y + 50 });
   await expect(page.locator('[data-row]')).toHaveCount(3);
   await expect(page.locator('[data-row]').first()).toContainText('red');
+  expect(errors).toEqual([]);
+});
+
+test('top bar always displays the version badge and opens about dialog', async ({ page }) => {
+  const errors: string[] = [];
+  await boot(page, errors);
+  await page.getByRole('button', { name: 'Skip' }).click();
+  const badge = page.locator('.ver-badge');
+  await expect(badge).toBeVisible();
+  await expect(badge).toHaveText(/^v\d+\.\d+\.\d+/);
+  await badge.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('Matcap Maker');
   expect(errors).toEqual([]);
 });

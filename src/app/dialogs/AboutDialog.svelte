@@ -5,6 +5,7 @@
   import { app, platform } from '../state.svelte';
   import { tt } from '../i18n.svelte';
   import { APP_VERSION } from '$core/model/project';
+  import { checkForUpdates } from '../updates';
   import appIcon from '../../../src-tauri/icons/128x128.png';
 
   interface Lic {
@@ -29,6 +30,9 @@
     } catch {
       list = [];
     }
+    if (app.versionStatus.state === 'idle') {
+      void checkForUpdates(false);
+    }
   });
 
   const shown = $derived(list.filter((l) => !filter || l.name.toLowerCase().includes(filter.toLowerCase())));
@@ -42,6 +46,27 @@
       <div class="name">Matcap Maker</div>
       <div class="muted">v{APP_VERSION} · {platform.kind === 'tauri' ? 'Desktop' : 'Web'}</div>
       <div class="muted small">{renderer}</div>
+      <div class="ver-check-row">
+        {#if app.versionStatus.state === 'checking'}
+          <span class="muted small checking"><span class="spin"></span>{tt('about.checkingUpdates')}</span>
+        {:else if app.updateAvailable}
+          <div class="update-box">
+            <span class="update-pulse"></span>
+            <span class="ok-text small"><strong>v{app.updateAvailable.version}</strong> {tt('status.updateAvailable')}</span>
+            <button class="btn ok small" onclick={() => platform.openUrl(app.updateAvailable!.url)}>
+              {tt('about.openDownloadPage')}
+            </button>
+          </div>
+        {:else if app.versionStatus.state === 'upToDate'}
+          <span class="ok-text small">✓ {tt('about.latestVersion')}</span>
+          <button class="btn ghost small" onclick={() => checkForUpdates(true)}>{tt('about.recheckUpdates')}</button>
+        {:else if app.versionStatus.state === 'error'}
+          <span class="muted small err">{tt('about.checkFailed')}</span>
+          <button class="btn ghost small" onclick={() => checkForUpdates(true)}>{tt('about.recheckUpdates')}</button>
+        {:else}
+          <button class="btn ghost small" onclick={() => checkForUpdates(true)}>{tt('about.checkUpdates')}</button>
+        {/if}
+      </div>
     </div>
     <button class="dev" title="github.com/dennoko" onclick={() => platform.openUrl('https://github.com/dennoko')}>
       <span class="muted small">{tt('about.developer')}</span>
@@ -160,5 +185,56 @@
     overflow: auto;
     background: var(--field);
     user-select: text;
+  }
+  .ver-check-row {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .update-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 8px;
+    border-radius: var(--radius-s);
+    background: rgba(0, 230, 118, 0.12);
+    border: 1px solid #00e676;
+  }
+  :root[data-theme='light'] .update-box {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: #10b981;
+  }
+  .update-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #00e676;
+    box-shadow: 0 0 6px #00e676;
+    animation: pulse-dot 1.8s infinite ease-in-out;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(0.9); opacity: 0.8; }
+    50% { transform: scale(1.35); opacity: 1; }
+  }
+  .ok-text {
+    color: var(--ok);
+  }
+  .checking {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .spin {
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--accent);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 </style>

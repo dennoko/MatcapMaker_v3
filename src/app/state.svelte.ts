@@ -4,7 +4,7 @@
 
 import { DocumentStore, type ChangeEvent } from '$core/commands/store';
 import { AssetStore } from '$core/io/assetStore';
-import { createDefaultProject, defaultViewState, findLayer, flattenLayers } from '$core/model/project';
+import { APP_VERSION, createDefaultProject, defaultViewState, findLayer, flattenLayers } from '$core/model/project';
 import type { LayerNode, Project, ViewState } from '$core/model/types';
 import { referencedAssets, type LoadWarning } from '$core/io/serialize';
 import { detectLocale } from '$core/i18n';
@@ -72,7 +72,17 @@ class AppState {
   /** incremented to force a redraw without a document change */
   redraw = $state(0);
   pluginsLoaded = $state(0);
-  updateAvailable = $state<{ version: string; url: string } | null>(null);
+  updateAvailable = $state<{ version: string; url: string; message?: string } | null>(null);
+  versionStatus = $state<{
+    state: 'idle' | 'checking' | 'upToDate' | 'updateAvailable' | 'error';
+    currentVersion: string;
+    latestVersion?: string;
+    url?: string;
+    message?: string;
+  }>({
+    state: 'idle',
+    currentVersion: APP_VERSION,
+  });
   lastExportPath = $state<string | null>(null);
 
   get primary(): LayerNode | null {

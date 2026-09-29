@@ -19,6 +19,7 @@
   "menu.file": "ファイル",
   "menu.edit": "編集",
   "menu.view": "表示",
+  "menu.language": "Language",
   "menu.help": "ヘルプ",
   "menu.file.new": "新規プロジェクト",
   "menu.file.newFromPreset": "プリセットから新規作成…",
@@ -400,6 +401,14 @@
   "bench.writeFile": "出力フォルダへの PNG 書き込みも含める",
 
   "update.available": "新しいバージョン（{version}）が利用できます。",
+  "status.updateBadge": "更新",
+  "status.updateAvailable": "新しいバージョンがあります",
+  "about.checkingUpdates": "更新を確認中…",
+  "about.latestVersion": "最新バージョンです",
+  "about.checkFailed": "更新の確認に失敗しました",
+  "about.checkUpdates": "更新を確認",
+  "about.recheckUpdates": "再確認",
+  "about.openDownloadPage": "更新ページを開く",
 
   "platform.storageUnavailable": "このブラウザでは設定・自動保存・プリセットが残りません。プロジェクトをファイルに保存してください。",
   "platform.recoveryBusy": "別のタブが復旧データを使用中、またはタブの排他制御が使えません。このタブでは自動保存を行いません。"
