@@ -46,6 +46,14 @@
       --sidebar-width: 290px;
     }
 
+    /* Dual Language visibility rules */
+    html[lang="ja"] .lang-en {
+      display: none !important;
+    }
+    html[lang="en"] .lang-ja {
+      display: none !important;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -85,11 +93,12 @@
     }
 
     .sidebar-header {
-      padding: 16px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .app-brand {
@@ -98,6 +107,7 @@
       gap: 10px;
       text-decoration: none;
       color: var(--text-primary);
+      min-width: 0;
     }
 
     .brand-icon {
@@ -105,12 +115,16 @@
       height: 28px;
       border-radius: var(--radius-sm);
       box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
     }
 
     .brand-title {
       font-size: 1.05rem;
       font-weight: 600;
       letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .brand-badge {
@@ -122,6 +136,41 @@
       color: var(--accent-cyan);
       border: 1px solid rgba(56, 189, 248, 0.3);
       font-family: var(--font-mono);
+    }
+
+    /* Language Switcher Button Group */
+    .lang-toggle {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      line-height: 1.2;
+    }
+
+    .lang-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .lang-btn.active {
+      background: var(--accent-cyan);
+      color: #0c0e12;
     }
 
     .search-box {
@@ -248,35 +297,36 @@
       font-size: 0.72rem;
       text-transform: uppercase;
       font-weight: 700;
+      letter-spacing: 0.05em;
       color: var(--text-tertiary);
-      letter-spacing: 0.06em;
-      padding: 10px 12px 4px;
+      padding: 12px 10px 4px;
     }
 
     .nav-link {
       display: flex;
       align-items: center;
-      padding: 7px 12px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
       color: var(--text-secondary);
       text-decoration: none;
-      font-size: 0.88rem;
-      border-radius: var(--radius-sm);
-      transition: background 0.12s ease, color 0.12s ease;
+      font-size: 0.84rem;
+      transition: all 0.15s ease;
       margin-bottom: 2px;
     }
 
     .nav-link:hover {
-      background: var(--bg-surface-2);
+      background: var(--bg-surface-hover);
       color: var(--text-primary);
     }
 
     .nav-link.active {
-      background: rgba(56, 189, 248, 0.12);
+      background: var(--bg-surface-3);
       color: var(--accent-cyan);
       font-weight: 600;
     }
 
-    .nav-link .icon {
+    .nav-link::before {
+      content: "•";
       margin-right: 8px;
       opacity: 0.75;
       font-size: 0.95rem;
@@ -336,12 +386,24 @@
       border-radius: 14px;
       text-decoration: none;
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .chip-btn:hover {
       background: var(--bg-surface-3);
       color: var(--text-primary);
       border-color: var(--border-medium);
+    }
+
+    .update-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      display: inline-block;
     }
 
     /* Document Typography */
@@ -554,6 +616,7 @@
       font-weight: 700;
       padding: 2px 6px;
       border-radius: 4px;
+      white-space: nowrap;
     }
     .status-ok { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
     .status-partial { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
@@ -602,137 +665,97 @@
     }
 
     /* -------------------------------------------------------------
-       Keyboard Keycaps (<kbd>)
-    ------------------------------------------------------------- */
-    kbd {
-      display: inline-block;
-      padding: 2px 6px;
-      font-size: 0.78rem;
-      font-family: var(--font-mono);
-      font-weight: 500;
-      color: var(--text-primary);
-      background: var(--bg-surface-3);
-      border: 1px solid var(--border-medium);
-      border-bottom-width: 2px;
-      border-radius: 4px;
-      box-shadow: 0 1px 1px rgba(0,0,0,0.4);
-      margin: 0 2px;
-    }
-
-    code {
-      font-family: var(--font-mono);
-      font-size: 0.85em;
-      padding: 2px 5px;
-      border-radius: 4px;
-      background: var(--bg-surface-2);
-      color: var(--accent-cyan);
-      border: 1px solid var(--border-subtle);
-    }
-
-    pre code {
-      display: block;
-      padding: 14px;
-      overflow-x: auto;
-      border-radius: var(--radius-md);
-      background: var(--bg-surface-2);
-      border: 1px solid var(--border-subtle);
-      color: #e2e8f0;
-      line-height: 1.5;
-      font-size: 0.83rem;
-    }
-
-    /* -------------------------------------------------------------
-       Interactive WebGL2 Matcap Simulation Stage
+       Interactive Canvas & Gizmo Simulator Stage
     ------------------------------------------------------------- */
     .interactive-stage {
       background: var(--bg-surface-1);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
       margin: 24px 0 32px;
       box-shadow: var(--shadow-md);
     }
 
     .stage-header {
-      background: var(--bg-surface-2);
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--border-subtle);
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
     }
 
     .stage-title {
-      font-size: 0.88rem;
+      font-size: 1.05rem;
       font-weight: 600;
       color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .live-dot {
       width: 8px;
       height: 8px;
-      border-radius: 50%;
       background: var(--accent-emerald);
+      border-radius: 50%;
       box-shadow: 0 0 8px var(--accent-emerald);
-      animation: pulse-dot 2s infinite ease-in-out;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      display: inline-block;
     }
 
     .stage-body {
       display: grid;
-      grid-template-columns: 340px 1fr;
-      min-height: 380px;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      align-items: center;
     }
 
-    @media (max-width: 860px) {
-      .stage-body { grid-template-columns: 1fr; }
+    @media (max-width: 768px) {
+      .stage-body { grid-template-columns: 1fr; justify-items: center; }
     }
 
     .canvas-wrap {
       position: relative;
-      background: #090b0e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-right: 1px solid var(--border-subtle);
-      user-select: none;
-      padding: 20px;
-    }
-
-    #webgl-canvas {
       width: 280px;
       height: 280px;
       border-radius: 50%;
-      cursor: crosshair;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      touch-action: none;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--border-medium);
+      background: #000;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .canvas-wrap:active {
+      cursor: grabbing;
+    }
+
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .canvas-overlay-hint {
       position: absolute;
-      bottom: 12px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--text-tertiary);
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      color: #fff;
       pointer-events: none;
+      white-space: nowrap;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .stage-controls {
-      padding: 20px 24px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      background: var(--bg-surface-1);
+      gap: 14px;
     }
 
     .control-row {
@@ -742,20 +765,21 @@
     }
 
     .control-label {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--text-secondary);
       display: flex;
       justify-content: space-between;
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text-secondary);
     }
 
-    .control-label span.val {
+    .control-label .val {
       font-family: var(--font-mono);
       color: var(--accent-cyan);
     }
 
     .range-input {
       -webkit-appearance: none;
+      appearance: none;
       width: 100%;
       height: 6px;
       border-radius: 3px;
@@ -768,36 +792,33 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: var(--text-primary);
+      background: var(--accent-cyan);
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
-      transition: transform 0.1s ease;
-    }
-
-    .range-input::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
     }
 
     .segmented-control {
       display: flex;
       background: var(--bg-surface-2);
-      padding: 3px;
       border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 4px;
       border: 1px solid var(--border-subtle);
-      gap: 2px;
     }
 
     .segment-btn {
       flex: 1;
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      font-weight: 500;
+      background: none;
       border: none;
-      background: transparent;
       color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      padding: 6px 10px;
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.15s ease;
+      font-weight: 500;
+      white-space: nowrap;
     }
 
     .segment-btn:hover {
@@ -805,24 +826,25 @@
     }
 
     .segment-btn.active {
-      background: var(--bg-surface-3);
-      color: var(--text-primary);
+      background: var(--bg-surface-hover);
+      color: var(--accent-cyan);
       box-shadow: var(--shadow-sm);
     }
 
     /* -------------------------------------------------------------
-       Split Before / After Slider
+       Split Slider (Before/After Demo)
     ------------------------------------------------------------- */
     .split-slider-container {
       position: relative;
       width: 100%;
-      max-width: 600px;
       height: 320px;
       border-radius: var(--radius-lg);
       overflow: hidden;
-      margin: 18px auto 26px;
-      border: 1px solid var(--border-medium);
+      margin: 20px 0;
+      border: 1px solid var(--border-subtle);
       user-select: none;
+      cursor: ew-resize;
+      background: #090b0e;
     }
 
     .split-pane {
@@ -831,16 +853,14 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-size: cover;
-      background-position: center;
     }
 
     .split-pane.before {
-      background-color: #141820;
+      z-index: 1;
     }
 
     .split-pane.after {
-      background-color: #1e2430;
+      z-index: 2;
       clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
     }
 
@@ -849,10 +869,11 @@
       top: 0;
       bottom: 0;
       left: 50%;
-      width: 3px;
-      background: var(--accent-cyan);
-      cursor: ew-resize;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+      width: 2px;
+      background: #fff;
+      z-index: 10;
+      transform: translateX(-50%);
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
     }
 
     .split-divider-handle {
@@ -863,50 +884,71 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: var(--text-primary);
+      background: #fff;
       color: #0c0e12;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      box-shadow: var(--shadow-md);
-      pointer-events: none;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
 
     .split-label {
       position: absolute;
-      bottom: 12px;
-      padding: 3px 8px;
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      background: rgba(0, 0, 0, 0.65);
-      border-radius: 4px;
-      color: var(--text-primary);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      bottom: 14px;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fff;
       pointer-events: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
-    .split-label.left { left: 12px; }
-    .split-label.right { right: 12px; }
+
+    .split-label.left { left: 16px; }
+    .split-label.right { right: 16px; }
 
     /* -------------------------------------------------------------
-       Animated Gizmo Demonstration (SVG + CSS Animation)
+       Code Blocks & Keys
     ------------------------------------------------------------- */
-    .gizmo-diagram-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    pre {
       background: var(--bg-surface-2);
-      border-radius: var(--radius-md);
-      padding: 24px;
-      margin: 16px 0;
       border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      margin: 14px 0 20px;
+      line-height: 1.5;
     }
 
-    .gizmo-svg {
-      max-width: 380px;
-      width: 100%;
-      height: auto;
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.86em;
+      background: var(--bg-surface-2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-cyan);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    kbd {
+      font-family: var(--font-mono);
+      font-size: 0.78em;
+      background: var(--bg-surface-3);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+      border-radius: 4px;
+      padding: 2px 6px;
+      margin: 0 2px;
+      display: inline-block;
+      white-space: nowrap;
     }
 
     /* -------------------------------------------------------------
@@ -915,7 +957,7 @@
     .ui-mockup {
       display: grid;
       grid-template-columns: 200px 1fr 220px;
-      grid-template-rows: 32px 240px 24px;
+      grid-template-rows: 36px 240px 24px;
       gap: 6px;
       background: #090b0e;
       border: 1px solid var(--border-medium);
@@ -946,6 +988,7 @@
       color: var(--text-primary);
       justify-content: space-between;
       padding: 0 12px;
+      gap: 8px;
     }
 
     .ui-block.viewport-mock {
@@ -995,7 +1038,7 @@
       #main { padding: 0 20px 40px; }
       .top-bar { margin: 0 -20px 24px; padding: 0 20px; }
       .ui-mockup { grid-template-columns: 1fr; grid-template-rows: auto; }
-      .ui-block.top-bar-mock, .ui-block.status-bar-mock { grid-column: 1; }
+      .ui-block.top-bar-mock, .ui-block.status-bar-mock { grid-column: 1; flex-direction: column; gap: 4px; padding: 8px; }
     }
   </style>
 </head>
@@ -1010,7 +1053,10 @@
         <img src="../branding/app-icon-source.png" alt="Matcap Maker" class="brand-icon">
         <span class="brand-title">Matcap Maker</span>
       </a>
-      <span class="brand-badge">v3.0.0</span>
+      <div class="lang-toggle">
+        <button type="button" class="lang-btn active" data-set-lang="ja">JA</button>
+        <button type="button" class="lang-btn" data-set-lang="en">EN</button>
+      </div>
     </div>
 
     <div class="search-box">
@@ -1021,30 +1067,75 @@
       <div class="search-counter-bar" id="search-counter-bar">
         <span id="search-count-label">0 件</span>
         <div class="nav-btns">
-          <button id="search-prev-btn" title="前の一致へ (Shift+Enter)">▲ 前へ</button>
-          <button id="search-next-btn" title="次の一致へ (Enter)">▼ 次へ</button>
+          <button id="search-prev-btn" title="前の一致へ (Shift+Enter)">▲ <span class="lang-ja">前へ</span><span class="lang-en">Prev</span></button>
+          <button id="search-next-btn" title="次の一致へ (Enter)">▼ <span class="lang-ja">次へ</span><span class="lang-en">Next</span></button>
         </div>
       </div>
     </div>
 
     <nav class="nav-scroll" id="nav-list">
-      <div class="nav-group-title">導入・概要</div>
-      <a href="#sec-overview" class="nav-link active">クイックスタート</a>
-      <a href="#sec-layout" class="nav-link">画面構成と基本フロー</a>
+      <div class="nav-group-title">
+        <span class="lang-ja">導入・概要</span>
+        <span class="lang-en">Introduction</span>
+      </div>
+      <a href="#sec-overview" class="nav-link active">
+        <span class="lang-ja">クイックスタート</span>
+        <span class="lang-en">Quick Start</span>
+      </a>
+      <a href="#sec-layout" class="nav-link">
+        <span class="lang-ja">画面構成と基本フロー</span>
+        <span class="lang-en">Interface & Basic Flow</span>
+      </a>
 
-      <div class="nav-group-title">コア機能・操作仕様</div>
-      <a href="#sec-layers" class="nav-link">レイヤーシステム仕様</a>
-      <a href="#sec-layer-types" class="nav-link">組み込みレイヤー全12種</a>
-      <a href="#sec-viewport-gizmos" class="nav-link">ビューポートと直接操作ギズモ</a>
-      <a href="#sec-inspector" class="nav-link">インスペクターとパラメータ操作</a>
-      <a href="#sec-color-hdr" class="nav-link">合成色空間とHDRパイプライン</a>
-      <a href="#sec-export" class="nav-link">エクスポートとエッジパディング</a>
+      <div class="nav-group-title">
+        <span class="lang-ja">コア機能・操作仕様</span>
+        <span class="lang-en">Core Features</span>
+      </div>
+      <a href="#sec-layers" class="nav-link">
+        <span class="lang-ja">レイヤーシステム仕様</span>
+        <span class="lang-en">Layer Pipeline</span>
+      </a>
+      <a href="#sec-layer-types" class="nav-link">
+        <span class="lang-ja">組み込みレイヤー全12種</span>
+        <span class="lang-en">12 Built-in Layer Types</span>
+      </a>
+      <a href="#sec-viewport-gizmos" class="nav-link">
+        <span class="lang-ja">ビューポートと直接操作ギズモ</span>
+        <span class="lang-en">Viewport & Gizmos</span>
+      </a>
+      <a href="#sec-inspector" class="nav-link">
+        <span class="lang-ja">インスペクターとパラメータ操作</span>
+        <span class="lang-en">Inspector & Parameters</span>
+      </a>
+      <a href="#sec-color-hdr" class="nav-link">
+        <span class="lang-ja">合成色空間とHDRパイプライン</span>
+        <span class="lang-en">Color Space & HDR</span>
+      </a>
+      <a href="#sec-export" class="nav-link">
+        <span class="lang-ja">エクスポートとエッジパディング</span>
+        <span class="lang-en">Export & Edge Padding</span>
+      </a>
 
-      <div class="nav-group-title">拡張・リファレンス</div>
-      <a href="#sec-plugins" class="nav-link">プリセットとプラグイン拡張</a>
-      <a href="#sec-shortcuts" class="nav-link">ショートカットキー一覧</a>
-      <a href="#sec-web-caps" class="nav-link">Web版の仕様・制約事項</a>
-      <a href="#sec-troubleshooting" class="nav-link">エラーハンドリング・トラブル対応</a>
+      <div class="nav-group-title">
+        <span class="lang-ja">拡張・リファレンス</span>
+        <span class="lang-en">Reference & Advanced</span>
+      </div>
+      <a href="#sec-plugins" class="nav-link">
+        <span class="lang-ja">プリセットとプラグイン拡張</span>
+        <span class="lang-en">Presets & Plugins</span>
+      </a>
+      <a href="#sec-shortcuts" class="nav-link">
+        <span class="lang-ja">ショートカットキー一覧</span>
+        <span class="lang-en">Keyboard Shortcuts</span>
+      </a>
+      <a href="#sec-web-caps" class="nav-link">
+        <span class="lang-ja">Web版の仕様・制約事項</span>
+        <span class="lang-en">Web Edition Specifications</span>
+      </a>
+      <a href="#sec-troubleshooting" class="nav-link">
+        <span class="lang-ja">エラーハンドリング・トラブル対応</span>
+        <span class="lang-en">Troubleshooting & Diagnostics</span>
+      </a>
     </nav>
   </aside>
 
@@ -1053,15 +1144,26 @@
   ========================================================== -->
   <main id="main">
     <header class="top-bar">
-      <div class="top-breadcrumb">ドキュメント / <span>機能・操作リファレンスマニュアル</span></div>
+      <div class="top-breadcrumb">
+        <span class="lang-ja">ドキュメント / <span>機能・操作リファレンスマニュアル</span></span>
+        <span class="lang-en">Documentation / <span>Feature & Operations Reference Manual</span></span>
+      </div>
       <div class="top-actions">
-        <span class="chip-btn">Version 3.0.0</span>
+        <div class="lang-toggle">
+          <button type="button" class="lang-btn active" data-set-lang="ja">JA</button>
+          <button type="button" class="lang-btn" data-set-lang="en">EN</button>
+        </div>
+        <span class="chip-btn"><span class="update-dot" title="Auto Update Checked"></span>Version 3.0.0</span>
       </div>
     </header>
 
-    <h1 class="doc-title">Matcap Maker 機能・操作リファレンスマニュアル</h1>
+    <h1 class="doc-title">
+      <span class="lang-ja">Matcap Maker 機能・操作リファレンスマニュアル</span>
+      <span class="lang-en">Matcap Maker Feature & Operations Reference Manual</span>
+    </h1>
     <p class="doc-lead">
-      本ドキュメントは、3Dモデリングおよびゲームエンジン向けマテリアルキャプチャ（Matcap）テクスチャ作成ツール「Matcap Maker」の機能仕様、UI操作系、レンダリングパイプライン、ならびに出力処理の技術仕様を体系的に解説した公式リファレンスです。
+      <span class="lang-ja">本ドキュメントは、3Dモデリングおよびゲームエンジン向けマテリアルキャプチャ（Matcap）テクスチャ作成ツール「Matcap Maker」の機能仕様、UI操作系、レンダリングパイプライン、ならびに出力処理の技術仕様を体系的に解説した公式リファレンスです。</span>
+      <span class="lang-en">This document is the official technical reference manual systematically detailing the functional specifications, UI operation system, rendering pipeline, and export processing of "Matcap Maker" — an authoring tool for Material Capture (Matcap) textures tailored for 3D modeling and real-time game engines.</span>
     </p>
 
     <!-- =========================================================
@@ -1069,52 +1171,90 @@
     ========================================================== -->
     <section id="sec-overview">
       <h2 class="section-heading">
-        1. クイックスタート
+        <span class="lang-ja">1. クイックスタート</span>
+        <span class="lang-en">1. Quick Start</span>
         <span class="badge">Quick Start</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker は、3D モデルの法線（面の傾き）に応じて陰影や反射を表現する「マットキャップ（Matcap）テクスチャ」を直感的なレイヤー操作で作成できるオーサリングツールです。複雑な 3D ライティング設定を行わなくても、球体上にライトや色を配置するだけで、ゲームエンジンや DCC ツールですぐに使えるテクスチャを書き出せます。
+      </p>
+      <p class="lang-en">
+        Matcap Maker is an authoring tool designed to create "Matcap (Material Capture) textures" — which render shading, reflections, and highlights based on 3D surface normals — through an intuitive layer-based workflow. Without setting up complex 3D lighting scenes, simply arranging lights and colors over a sphere lets you generate production-ready textures for DCC tools and game engines.
       </p>
 
       <div class="card">
-        <div class="card-title">マットキャップ（Matcap）とは</div>
-        <p>
+        <div class="card-title">
+          <span class="lang-ja">マットキャップ（Matcap）とは</span>
+          <span class="lang-en">What is a Matcap?</span>
+        </div>
+        <p class="lang-ja">
           球体の見え方をそのまま 3D モデルに貼り付けるマテリアル手法です。カメラから見た面の傾き（法線ベクトル）をもとにテクスチャの該当ピクセルを参照するため、リアルタイムの光源計算を必要とせず、極めて軽量かつ狙い通りのリッチな質感（金属光沢、プラスチック、肌、トゥーン調など）を表現できます。
+        </p>
+        <p class="lang-en">
+          Matcap is a shading technique where a pre-rendered or authored sphere's surface is mapped directly onto a 3D model. By sampling pixels using view-space surface normal coordinates, it completely bypasses expensive real-time light calculations while achieving lightweight, stylistically controllable materials such as brushed metal, glossy plastics, stylized skin, or cel-shaded toon looks.
         </p>
       </div>
 
-      <h3 class="sub-heading">最初のマットキャップを作る 3 ステップ</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">最初のマットキャップを作る 3 ステップ</span>
+        <span class="lang-en">3 Steps to Your First Matcap</span>
+      </h3>
       <div class="grid-3">
         <div class="card">
-          <div class="card-title">Step 1. プリセットを選ぶ</div>
-          <p>
+          <div class="card-title">
+            <span class="lang-ja">Step 1. プリセットを選ぶ</span>
+            <span class="lang-en">Step 1. Choose a Preset</span>
+          </div>
+          <p class="lang-ja">
             起動画面またはメニューの「ファイル」→「プリセットから新規作成」から、「金属」「プラスチック」「肌」「トゥーン」などのベースを選びます。空のプロジェクトから始めることも可能です。
           </p>
-        </div>
-        <div class="card">
-          <div class="card-title">Step 2. 球体上で直接調整する</div>
-          <p>
-            中央のビューポートに表示された球体上の白いドットをドラッグして光源の位置を動かします。右側のインスペクターで色や強度、ぼかし具合を思い通りに調整します。
+          <p class="lang-en">
+            Select a starter base such as "Metal", "Plastic", "Skin", or "Toon" from the launch screen or menu bar "File" → "New from Preset". You can also start from an empty project.
           </p>
         </div>
         <div class="card">
-          <div class="card-title">Step 3. エクスポートする</div>
-          <p>
+          <div class="card-title">
+            <span class="lang-ja">Step 2. 球体上で直接調整する</span>
+            <span class="lang-en">Step 2. Direct Sphere Tweaking</span>
+          </div>
+          <p class="lang-ja">
+            中央のビューポートに表示された球体上の白いドットをドラッグして光源の位置を動かします。右側のインスペクターで色や強度、ぼかし具合を思い通りに調整します。
+          </p>
+          <p class="lang-en">
+            Drag the white handle dot directly on the sphere in the central viewport to move the light source. Use the right inspector panel to refine colors, intensities, and falloff curves.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <span class="lang-ja">Step 3. エクスポートする</span>
+            <span class="lang-en">Step 3. Export Texture</span>
+          </div>
+          <p class="lang-ja">
             画面右上の「エクスポート」ボタン（または <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>）を押し、解像度（1024 / 2048 等）を選んで保存します。自動でエッジパディングが付与され、モデルに貼った際の輪郭の黒ずみが防止されます。
+          </p>
+          <p class="lang-en">
+            Click the "Export" button in the upper right (or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>), choose your desired resolution (1024 / 2048 etc.), and save. Radial edge padding is automatically synthesized to prevent seam artifacts on 3D silhouettes.
           </p>
         </div>
       </div>
 
       <div class="callout-web">
         <div class="callout-title">
-          <span class="badge-web">Web版についての補足</span>
-          デスクトップ版（Windowsアプリ）とWeb版の提供形態について
+          <span class="badge-web">Web / Desktop</span>
+          <span class="lang-ja">デスクトップ版（Windowsアプリ）とWeb版の提供形態について</span>
+          <span class="lang-en">Desktop App (Windows) vs Web Edition</span>
         </div>
-        <p>
+        <p class="lang-ja">
           Matcap Maker には、Windows 用ネイティブアプリ（デスクトップ版）のほか、ブラウザ上でインストール不要で即座に動作する <strong>Web版</strong> が用意されています。Web版でも同じ WebGL2 レンダリングエンジンが動作し、球体ギズモの直接操作やレイヤー合成、エクスポートなどの基本機能をそのまま利用できます。
         </p>
-        <p>
+        <p class="lang-en">
+          Matcap Maker is provided both as a native Windows desktop application (Tauri) and as an instant zero-install <strong>Web Edition</strong> running directly inside modern browsers. Both editions share the exact same WebGL2 rendering pipeline, direct manipulation gizmos, multi-layer blending, and export engine.
+        </p>
+        <p class="lang-ja">
           ただし、Web版はブラウザのセキュリティサンドボックス上で動作するため、<strong>ローカルファイルシステムへのアクセス、外部プラグインの読み込み、OpenEXR形式の書き出し等に一部制約</strong>があります。詳しくは <a href="#sec-web-caps" style="color:var(--accent-purple); text-decoration:underline;">Web版の仕様・制約事項</a> をご確認ください。
+        </p>
+        <p class="lang-en">
+          However, because the Web Edition runs within a browser security sandbox, <strong>certain constraints apply to local file system access, external GLSL plugins, and OpenEXR export</strong>. Please refer to <a href="#sec-web-caps" style="color:var(--accent-purple); text-decoration:underline;">Web Edition Specifications</a> for complete details.
         </p>
       </div>
     </section>
@@ -1124,52 +1264,116 @@
     ========================================================== -->
     <section id="sec-layout">
       <h2 class="section-heading">
-        2. 画面構成と基本操作フロー
+        <span class="lang-ja">2. 画面構成と基本操作フロー</span>
+        <span class="lang-en">2. Interface & Basic Workflow</span>
         <span class="badge">Interface</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker の画面は、作業効率と視認性を最大化するため、明快な 5 つの領域に分割されています。
+      </p>
+      <p class="lang-en">
+        The Matcap Maker interface is structured into 5 streamlined zones engineered for maximized authoring productivity and visual clarity.
       </p>
 
       <div class="ui-mockup">
         <div class="ui-block top-bar-mock">
-          <span>[ヘッダー] メニューバー (ファイル/編集/表示/ヘルプ)</span>
-          <span>プロジェクト名.mcproj</span>
-          <span>エクスポート (Ctrl+Shift+E)</span>
+          <span class="lang-ja">[ヘッダー] メニューバー (ファイル / 編集 / 表示 / Language / ヘルプ)</span>
+          <span class="lang-en">[Header] Menu Bar (File / Edit / View / 言語 / Help)</span>
+          <span>Project.mcproj</span>
+          <span style="display:flex; align-items:center; gap:8px;">
+            <span class="brand-badge" style="background:rgba(16,185,129,0.2); color:var(--accent-emerald); border-color:var(--accent-emerald);">v3.0.0 Update</span>
+            <span>Export (Ctrl+Shift+E)</span>
+          </span>
         </div>
         <div class="ui-block">
-          <strong>レイヤーパネル</strong><br>(スタック順・ソロ・マスク)
+          <span class="lang-ja"><strong>レイヤーパネル</strong><br>(スタック順・ソロ・マスク)</span>
+          <span class="lang-en"><strong>Layer Panel</strong><br>(Stack order, Solo, Mask)</span>
         </div>
         <div class="ui-block viewport-mock">
-          <strong>中央ビューポート</strong><br>3Dプレビュー & ギズモ直接操作
+          <span class="lang-ja"><strong>中央ビューポート</strong><br>3Dプレビュー & ギズモ直接操作<br>(球体 / 平面 / 法線 / メッシュ分割比較)</span>
+          <span class="lang-en"><strong>Central Viewport</strong><br>3D Preview & Direct Gizmos<br>(Sphere / Flat / Normal / Mesh Compare)</span>
         </div>
         <div class="ui-block">
-          <strong>インスペクター</strong><br>(レイヤー/プレビュー/プロジェクト)
+          <span class="lang-ja"><strong>インスペクター</strong><br>(レイヤー / プレビュー / プロジェクト)</span>
+          <span class="lang-en"><strong>Inspector</strong><br>(Layer / Preview / Project)</span>
         </div>
         <div class="ui-block status-bar-mock">
-          <span>履歴ステータス / パス数</span>
+          <span class="lang-ja">履歴ステータス / パス数</span>
+          <span class="lang-en">Undo/Redo History / Passes</span>
           <span>dennokoworks</span>
           <span>WebGL2 / 60 FPS</span>
         </div>
       </div>
 
-      <h3 class="sub-heading">基本操作サイクル</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">基本操作サイクル</span>
+        <span class="lang-en">Core Operation Cycle</span>
+      </h3>
       <ol>
-        <li><strong>レイヤーの追加:</strong> <kbd>Tab</kbd> キーまたはレイヤーパネル上部の <kbd>＋</kbd> ボタンを押し、目的のジェネレーター（スポットライト、フレネル、グラデーション等）を追加します。</li>
-        <li><strong>ギズモまたはインスペクターで調整:</strong> 中央のビューポートでライトの方向やリムの半径を直接ドラッグするか、右パネルの数値スライダーで微調整します。</li>
-        <li><strong>プレビュー形状の切り替え:</strong> <kbd>1</kbd>（球体）、<kbd>2</kbd>（平面）、<kbd>3</kbd>（ノーマルマップ）、<kbd>4</kbd>（メッシュ）で立体感を多角的に検証します。</li>
-        <li><strong>エクスポート:</strong> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> でエッジパディング設定を指定して書き出します。2回目以降は <kbd>Ctrl</kbd>+<kbd>E</kbd> でクイックエクスポートが可能です。</li>
+        <li>
+          <span class="lang-ja"><strong>レイヤーの追加:</strong> <kbd>Tab</kbd> キーまたはレイヤーパネル上部の <kbd>＋</kbd> ボタンを押し、目的のジェネレーター（スポットライト、フレネル、グラデーション等）を追加します。</span>
+          <span class="lang-en"><strong>Add Layer:</strong> Press <kbd>Tab</kbd> or click the <kbd>＋</kbd> button in the layer panel to add desired generators (Spotlight, Fresnel, Gradient, etc.).</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>ギズモまたはインスペクターで調整:</strong> 中央のビューポートでライトの方向やリムの半径を直接ドラッグするか、右パネルの数値スライダーで微調整します。</span>
+          <span class="lang-en"><strong>Adjust via Gizmo or Inspector:</strong> Drag the light orientation handle or rim radius directly in the viewport, or fine-tune numeric parameters in the right inspector.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>プレビュー形状の切り替え:</strong> <kbd>1</kbd>（球体）、<kbd>2</kbd>（平面）、<kbd>3</kbd>（ノーマルマップ凹凸板）、<kbd>4</kbd>（3Dメッシュ・分割比較）で立体感を多角的に検証します。</span>
+          <span class="lang-en"><strong>Switch Preview Shapes:</strong> Toggle shapes via <kbd>1</kbd> (Sphere), <kbd>2</kbd> (Flat Disc), <kbd>3</kbd> (Normal Map Plate), and <kbd>4</kbd> (3D Mesh with Side-by-Side Compare) to evaluate lighting response across varied geometry.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>エクスポート:</strong> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> でエッジパディング設定を指定して書き出します。2回目以降は <kbd>Ctrl</kbd>+<kbd>E</kbd> でクイックエクスポートが可能です。</span>
+          <span class="lang-en"><strong>Export:</strong> Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> to configure edge dilation and file format. Subsequent exports can be executed instantly with <kbd>Ctrl</kbd>+<kbd>E</kbd> (Quick Re-export).</span>
+        </li>
       </ol>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span class="lang-ja">メニューバーの独立言語切り替え</span>
+            <span class="lang-en">Independent Language Switcher</span>
+          </div>
+          <p class="lang-ja">
+            メニューバーには <code>Language</code>（日本語表示時）/ <code>言語</code>（英語表示時）という独立したメニュー項目が用意されています。海外ユーザーでも迷うことなく、ワンクリックで UI の言語を即座に切り替えることができます。
+          </p>
+          <p class="lang-en">
+            The top menu bar features a dedicated <code>Language</code> (when in Japanese) / <code>言語</code> (when in English) item. International users can locate and toggle the application language with a single click at any time without restarting.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <span class="lang-ja">自動バージョンチェック＆更新通知</span>
+            <span class="lang-en">Automatic Version Check & Update Badge</span>
+          </div>
+          <p class="lang-ja">
+            トップバーには現在のバージョン（例: <code>v3.0.0</code>）が常時表示されます。起動時に GitHub の公開リポジトリ（<code>version.json</code>）を非同期確認し、新バージョンが存在する場合は鮮やかな緑色のバッジが点滅して更新を知らせます。クリックすると最新のリリースノートとインストーラーに直接アクセスできます。
+          </p>
+          <p class="lang-en">
+            The active version (e.g. <code>v3.0.0</code>) is persistently displayed in the top bar. On startup, Matcap Maker asynchronously checks <code>version.json</code> on GitHub. When an update is detected, a vivid green notification badge glows to alert you. Clicking it opens the GitHub release page directly.
+          </p>
+        </div>
+      </div>
 
       <div class="callout-web">
         <div class="callout-title">
-          <span class="badge-web">Web版の操作・ファイル連携</span>
-          プロジェクトの保存・読み込みにおけるWeb版の動作仕様
+          <span class="badge-web">Web</span>
+          <span class="lang-ja">Web版の操作・ファイル連携</span>
+          <span class="lang-en">Web Edition File Operations & Workflow</span>
         </div>
         <ul>
-          <li><strong>プロジェクトの保存 (<kbd>Ctrl</kbd>+<kbd>S</kbd>):</strong> Chrome や Edge など File System Access API をサポートするブラウザでは、一度保存先を指定することでデスクトップ版と同様の上書き保存が可能です。非対応ブラウザ（Firefox、Safari等）やセキュリティ制限下では、保存操作を実行するたびに <code>.mcproj</code> ファイルがブラウザからダウンロード保存されます。</li>
-          <li><strong>プロジェクトを開く:</strong> メニューの「ファイル」→「開く」ダイアログのほか、エクスプローラー等から <code>.mcproj</code> ファイルをブラウザ画面上に<strong>直接ドラッグ＆ドロップ</strong>することでもプロジェクトを即座に復元・展開できます。</li>
-          <li><strong>非対応のデスクトップ連携機能:</strong> OS の「最近使ったファイル」履歴、エクスポート完了後の「フォルダで表示（エクスプローラーを開く）」、および <code>.mcproj</code> ファイルのダブルクリック起動（OSファイル関連付け）は、Web版では利用できません。</li>
+          <li>
+            <span class="lang-ja"><strong>プロジェクトの保存 (<kbd>Ctrl</kbd>+<kbd>S</kbd>):</strong> Chrome や Edge など File System Access API をサポートするブラウザでは、一度保存先を指定することでデスクトップ版と同様の上書き保存が可能です。非対応ブラウザ（Firefox、Safari等）やセキュリティ制限下では、保存操作を実行するたびに <code>.mcproj</code> ファイルがブラウザからダウンロード保存されます。</span>
+            <span class="lang-en"><strong>Project Saving (<kbd>Ctrl</kbd>+<kbd>S</kbd>):</strong> Browsers supporting the File System Access API (Google Chrome, Microsoft Edge) support direct overwrite saving after granting initial permission. On other browsers (Firefox, Safari) or restricted environments, saving downloads a fresh <code>.mcproj</code> file.</span>
+          </li>
+          <li>
+            <span class="lang-ja"><strong>プロジェクトを開く:</strong> メニューの「ファイル」→「開く」ダイアログのほか、エクスプローラー等から <code>.mcproj</code> ファイルをブラウザ画面上に<strong>直接ドラッグ＆ドロップ</strong>することでもプロジェクトを即座に復元・展開できます。</span>
+            <span class="lang-en"><strong>Opening Projects:</strong> In addition to "File" → "Open", you can restore any saved project instantly by <strong>dragging and dropping a <code>.mcproj</code> file directly onto the browser window</strong>.</span>
+          </li>
+          <li>
+            <span class="lang-ja"><strong>非対応のデスクトップ連携機能:</strong> OS の「最近使ったファイル」履歴、エクスポート完了後の「フォルダで表示（エクスプローラーを開く）」、および <code>.mcproj</code> ファイルのダブルクリック起動（OSファイル関連付け）は、Web版では利用できません。</span>
+            <span class="lang-en"><strong>Desktop-Specific Integration Features:</strong> OS "Recent Files" history, "Reveal in Folder" after export, and double-click file associations in Explorer are exclusive to the native desktop edition.</span>
+          </li>
         </ul>
       </div>
     </section>
@@ -1179,115 +1383,143 @@
     ========================================================== -->
     <section id="sec-layers">
       <h2 class="section-heading">
-        3. レイヤーシステム仕様
+        <span class="lang-ja">3. レイヤーシステム仕様</span>
+        <span class="lang-en">3. Layer System Pipeline</span>
         <span class="badge">Layer Pipeline</span>
       </h2>
-      <p>
-        Matcap Maker のレイヤーは、Photoshop や各種 2D DCC ツールと同様、<strong>リストの上にあるレイヤーが前面（前面合成）</strong>として評価されます。
+      <p class="lang-ja">
+        Matcap Maker のレイヤーは、Photoshop や各種 2D DCC ツールと同様、<strong>リストの上にあるレイヤーが前面（前面合成）</strong>として評価されます。各レイヤーは専用の FBO（フレームバッファオブジェクト）でオフスクリーン描画され、高度なブレンディングモードによって順次合成されます。
+      </p>
+      <p class="lang-en">
+        Similar to Photoshop and standard DCC image authoring suites, Matcap Maker evaluates layers from bottom to top: <strong>layers higher in the stack composite over underlying layers</strong>. Each layer renders into dedicated off-screen Framebuffer Objects (FBOs) and composites down the stack with full precision.
       </p>
 
       <div class="diagram-img-wrap">
         <img src="assets/layer_composition_flow.png" alt="Layer Composition Flow" class="diagram-img">
-        <div class="diagram-caption">図 3-1: レイヤーの多層合成フロー（ベタ塗りベース ＋ スポットライト加算 ＋ リムライトスクリーン）</div>
+        <div class="diagram-caption">
+          <span class="lang-ja">図 3-1: レイヤーの多層合成フロー（ベタ塗りベース ＋ スポットライト加算 ＋ リムライトスクリーン）</span>
+          <span class="lang-en">Fig 3-1: Layer Composite Flow (Base Solid Color + Spotlight Additive + Rim Light Screen)</span>
+        </div>
       </div>
 
-      <h3 class="sub-heading">描画モード（12種）の合成特徴と適用指針</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">描画モード（12種）の合成特徴と適用指針</span>
+        <span class="lang-en">12 Blending Modes & Composition Characteristics</span>
+      </h3>
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>描画モード</th>
-              <th>略称</th>
-              <th>合成の特徴</th>
-              <th>主な用途</th>
+              <th><span class="lang-ja">描画モード</span><span class="lang-en">Blend Mode</span></th>
+              <th><span class="lang-ja">略称</span><span class="lang-en">Code</span></th>
+              <th><span class="lang-ja">合成の特徴</span><span class="lang-en">Mathematical Characteristics</span></th>
+              <th><span class="lang-ja">主な用途</span><span class="lang-en">Typical Use Cases</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>通常 (Normal)</strong></td>
+              <td><strong><span class="lang-ja">通常</span><span class="lang-en">Normal</span></strong></td>
               <td><code>N</code></td>
-              <td>下のレイヤーの上にそのまま重ねます。不透明度に応じて下のレイヤーが覆い隠されます。</td>
-              <td>ベタ塗り、テクスチャ画像の配置</td>
+              <td><span class="lang-ja">下のレイヤーの上にそのまま重ねます。不透明度に応じて下のレイヤーが覆い隠されます。</span><span class="lang-en">Standard alpha over. Completely obscures lower layers based on layer opacity.</span></td>
+              <td><span class="lang-ja">ベタ塗り、テクスチャ画像の配置</span><span class="lang-en">Base coat, imported image graphics</span></td>
             </tr>
             <tr>
-              <td><strong>加算 (Add)</strong></td>
+              <td><strong><span class="lang-ja">加算</span><span class="lang-en">Add (Linear Dodge)</span></strong></td>
               <td><code>Add</code></td>
-              <td>下のレイヤーに光を足し合わせて明るく発光させます。黒（#000000）の部分は何も影響を与えません。</td>
-              <td>スポットライトのハイライト、強い発光反射</td>
+              <td><span class="lang-ja">下のレイヤーに光を足し合わせて明るく発光させます。黒（#000000）の部分は何も影響を与えません。</span><span class="lang-en">Adds pixel values directly. Pure black (#000000) contributes zero change.</span></td>
+              <td><span class="lang-ja">スポットライトのハイライト、強い発光反射</span><span class="lang-en">Specular highlights, intense emissive reflections</span></td>
             </tr>
             <tr>
-              <td><strong>乗算 (Multiply)</strong></td>
+              <td><strong><span class="lang-ja">乗算</span><span class="lang-en">Multiply</span></strong></td>
               <td><code>Mul</code></td>
-              <td>下のレイヤーと色を掛け合わせ、常に暗くなります。白（#ffffff）の部分は透明のように変化しません。</td>
-              <td>アンビエントオクルージョン、影、汚れ、色付け</td>
+              <td><span class="lang-ja">下のレイヤーと色を掛け合わせ、常に暗くなります。白（#ffffff）の部分は透明のように変化しません。</span><span class="lang-en">Multiplies colors, always darkening. Pure white (#ffffff) leaves underlying pixels untouched.</span></td>
+              <td><span class="lang-ja">アンビエントオクルージョン、影、汚れ、色付け</span><span class="lang-en">Ambient occlusion, cast shadows, grime, color tinting</span></td>
             </tr>
             <tr>
-              <td><strong>スクリーン (Screen)</strong></td>
+              <td><strong><span class="lang-ja">スクリーン</span><span class="lang-en">Screen</span></strong></td>
               <td><code>Scr</code></td>
-              <td>光を透過して重ねたように全体を明るくします。加算よりも白飛びしにくく、自然な階調を保ちます。</td>
-              <td>やわらかな環境光、白飛びを抑えたリムライト</td>
+              <td><span class="lang-ja">光を透過して重ねたように全体を明るくします。加算よりも白飛びしにくく、自然な階調を保ちます。</span><span class="lang-en">Inverts, multiplies, and inverts back. Brightens without clipping to white as aggressively as Add.</span></td>
+              <td><span class="lang-ja">やわらかな環境光、白飛びを抑えたリムライト</span><span class="lang-en">Soft ambient light fills, natural rim lighting</span></td>
             </tr>
             <tr>
-              <td><strong>減算 (Subtract)</strong></td>
+              <td><strong><span class="lang-ja">減算</span><span class="lang-en">Subtract</span></strong></td>
               <td><code>Sub</code></td>
-              <td>下のレイヤーの明るさから当レイヤーの明るさを差し引いて暗くします。</td>
-              <td>特定方向の逆光シャドウ、遮蔽のシミュレート</td>
+              <td><span class="lang-ja">下のレイヤーの明るさから当レイヤーの明るさを差し引いて暗くします。</span><span class="lang-en">Subtracts active layer values from underlying pixels, darkening towards black.</span></td>
+              <td><span class="lang-ja">特定方向の逆光シャドウ、遮蔽のシミュレート</span><span class="lang-en">Directional occlusions, backlight cutoffs</span></td>
             </tr>
             <tr>
-              <td><strong>比較（明）(Lighten)</strong></td>
+              <td><strong><span class="lang-ja">比較（明）</span><span class="lang-en">Lighten</span></strong></td>
               <td><code>Lt</code></td>
-              <td>下のレイヤーと比べて、より明るい方のピクセル値をそのまま採用して残します。</td>
-              <td>明るい成分のみを重ねるハイライトの合成</td>
+              <td><span class="lang-ja">下のレイヤーと比べて、より明るい方のピクセル値をそのまま採用して残します。</span><span class="lang-en">Compares channel values and selects the brighter pixel.</span></td>
+              <td><span class="lang-ja">明るい成分のみを重ねるハイライトの合成</span><span class="lang-en">Selectively overlays bright specular points</span></td>
             </tr>
             <tr>
-              <td><strong>比較（暗）(Darken)</strong></td>
+              <td><strong><span class="lang-ja">比較（暗）</span><span class="lang-en">Darken</span></strong></td>
               <td><code>Dk</code></td>
-              <td>下のレイヤーと比べて、より暗い方のピクセル値をそのまま採用して残します。</td>
-              <td>暗い成分のみを反映するシェーディング</td>
+              <td><span class="lang-ja">下のレイヤーと比べて、より暗い方のピクセル値をそのまま採用して残します。</span><span class="lang-en">Compares channel values and selects the darker pixel.</span></td>
+              <td><span class="lang-ja">暗い成分のみを反映するシェーディング</span><span class="lang-en">Deep cavity shadows, dark crevices</span></td>
             </tr>
             <tr>
-              <td><strong>オーバーレイ (Overlay)</strong></td>
+              <td><strong><span class="lang-ja">オーバーレイ</span><span class="lang-en">Overlay</span></strong></td>
               <td><code>Ov</code></td>
-              <td>下のレイヤーの明暗に応じて、明るい部分はより明るく、暗い部分はより暗くコントラストを強めます。</td>
-              <td>コントラスト強調、全体の質感テクスチャ付け</td>
+              <td><span class="lang-ja">下のレイヤーの明暗に応じて、明るい部分はより明るく、暗い部分はより暗くコントラストを強めます。</span><span class="lang-en">Combines Multiply and Screen based on base brightness, boosting midtone contrast.</span></td>
+              <td><span class="lang-ja">コントラスト強調、全体の質感テクスチャ付け</span><span class="lang-en">Contrast punch, surface texture overlays</span></td>
             </tr>
             <tr>
-              <td><strong>ソフトライト (Soft Light)</strong></td>
+              <td><strong><span class="lang-ja">ソフトライト</span><span class="lang-en">Soft Light</span></strong></td>
               <td><code>SL</code></td>
-              <td>やわらかな拡散光を当てたように、ふんわりと自然にコントラストを高めます。</td>
-              <td>自然な肌色や微細なトーンの馴染ませ</td>
+              <td><span class="lang-ja">やわらかな拡散光を当てたように、ふんわりと自然にコントラストを高めます。</span><span class="lang-en">Creates subtle diffuse contrast similar to shining a diffused light source.</span></td>
+              <td><span class="lang-ja">自然な肌色や微細なトーンの馴染ませ</span><span class="lang-en">Subtle skin tones, gradual tone transitions</span></td>
             </tr>
             <tr>
-              <td><strong>ハードライト (Hard Light)</strong></td>
+              <td><strong><span class="lang-ja">ハードライト</span><span class="lang-en">Hard Light</span></strong></td>
               <td><code>HL</code></td>
-              <td>強いスポットライトを照射したように、明暗をくっきりと鋭く強調します。</td>
-              <td>はっきりとした明暗差を持つライト効果</td>
+              <td><span class="lang-ja">強いスポットライトを照射したように、明暗をくっきりと鋭く強調します。</span><span class="lang-en">Similar to harsh direct spotlighting; stark contrast shifts.</span></td>
+              <td><span class="lang-ja">はっきりとした明暗差を持つライト効果</span><span class="lang-en">Sharp, high-impact key lighting</span></td>
             </tr>
             <tr>
-              <td><strong>覆い焼きカラー (Color Dodge)</strong></td>
+              <td><strong><span class="lang-ja">覆い焼きカラー</span><span class="lang-en">Color Dodge</span></strong></td>
               <td><code>CD</code></td>
-              <td>下のレイヤーを明るく飛ばしつつコントラストを極端に高め、強い反射光をシミュレートします。</td>
-              <td>金属表面の高輝度スペキュラ反射</td>
+              <td><span class="lang-ja">下のレイヤーを明るく飛ばしつつコントラストを極端に高め、強い反射光をシミュレートします。</span><span class="lang-en">Brightens underlying pixels by decreasing contrast, simulating hot specular reflections.</span></td>
+              <td><span class="lang-ja">金属表面の高輝度スペキュラ反射</span><span class="lang-en">Metallic gleams, intense anisotropic flares</span></td>
             </tr>
             <tr>
-              <td><strong>差の絶対値 (Difference)</strong></td>
+              <td><strong><span class="lang-ja">差の絶対値</span><span class="lang-en">Difference</span></strong></td>
               <td><code>Dif</code></td>
-              <td>下のレイヤーとの色の差を抽出し、明暗や色相を反転させたような特殊な色彩を作ります。</td>
-              <td>特殊効果、反転トーン</td>
+              <td><span class="lang-ja">下のレイヤーとの色の差を抽出し、明暗や色相を反転させたような特殊な色彩を作ります。</span><span class="lang-en">Subtracts pixel values and takes the absolute value, inverting hues and luminosities.</span></td>
+              <td><span class="lang-ja">特殊効果、反転トーン、サイバーパンク調</span><span class="lang-en">Inverted solarization, sci-fi cyber aesthetics</span></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 class="sub-heading">マスクシステム</h3>
-      <p>
+      <h3 class="sub-heading">
+        <span class="lang-ja">マスクシステム</span>
+        <span class="lang-en">Masking Subsystem</span>
+      </h3>
+      <p class="lang-ja">
         各レイヤーには個別のマスクを設定でき、効果の適用領域をプロシージャルまたは画像で制限できます。
       </p>
+      <p class="lang-en">
+        Every layer can be bounded by a dedicated mask, constraining its spatial contribution either procedurally or via bitmap inputs.
+      </p>
       <ul>
-        <li><strong>輪郭（フレネル）マスク:</strong> 視線ベクトルと法線の外積に基づくリム領域のみにレイヤーを制限します。</li>
-        <li><strong>ノイズマスク:</strong> シンプレックスノイズによってまだら状に効果をクリップします。</li>
-        <li><strong>画像マスク:</strong> 外部PNG画像の輝度値またはアルファをマスクとして使用します。</li>
-        <li><strong>他のレイヤー参照マスク:</strong> 直下にある特定のレイヤーの描画結果（アルファ/輝度）をマスク元としてバインドします。</li>
+        <li>
+          <span class="lang-ja"><strong>輪郭（フレネル）マスク:</strong> 視線ベクトルと法線の外積に基づくリム領域のみにレイヤーを制限します。</span>
+          <span class="lang-en"><strong>Fresnel / Rim Mask:</strong> Restricts layer influence exclusively to grazing silhouette angles based on view-normal dot products.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>ノイズマスク:</strong> シンプレックスノイズによってまだら状に効果をクリップします。</span>
+          <span class="lang-en"><strong>Procedural Noise Mask:</strong> Clips layer distribution through procedural simplex noise fields for mottled, organic patterns.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>画像マスク:</strong> 外部PNG画像の輝度値またはアルファをマスクとして使用します。</span>
+          <span class="lang-en"><strong>Image Bitmap Mask:</strong> Binds luminance or alpha channels from external PNG/JPG textures as masking coefficients.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>他のレイヤー参照マスク:</strong> 直下にある特定のレイヤーの描画結果（アルファ/輝度）をマスク元としてバインドします。</span>
+          <span class="lang-en"><strong>Layer Reference Mask:</strong> Binds the rendered output (alpha or luminance) of an underlying layer as a dynamic mask.</span>
+        </li>
       </ul>
     </section>
 
@@ -1296,61 +1528,77 @@
     ========================================================== -->
     <section id="sec-layer-types">
       <h2 class="section-heading">
-        4. 組み込みレイヤー全12種
+        <span class="lang-ja">4. 組み込みレイヤー全12種</span>
+        <span class="lang-en">4. 12 Built-in Layer Types</span>
         <span class="badge">Layer Reference</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker には、ベース生成から光学現象、テクスチャ合成、最終ポストプロセスに至るまで 12 種類のレイヤーが標準実装されています。
+      </p>
+      <p class="lang-en">
+        Matcap Maker incorporates 12 native layer generators covering everything from base shading and optical phenomena to texture compositing and post-processing.
       </p>
 
       <div class="grid-3">
         <div class="card">
-          <div class="card-title">① ベタ塗り (Solid Color)</div>
-          <p>均一な単色で球体全体を塗りつぶします。マテリアルのベースカラー（地色）として最背面に配置するのが基本です。</p>
+          <div class="card-title">① <span class="lang-ja">ベタ塗り</span><span class="lang-en">Solid Color</span></div>
+          <p class="lang-ja">均一な単色で球体全体を塗りつぶします。マテリアルのベースカラー（地色）として最背面に配置するのが基本です。</p>
+          <p class="lang-en">Fills the sphere with a uniform solid color. Serves as the foundational base coat placed at the bottom of the stack.</p>
         </div>
         <div class="card">
-          <div class="card-title">② スポットライト (Spot Light)</div>
-          <p>球面上にハイライトと指向性ライティングを生成します。光の方向、コーン範囲、減衰、楕円比率、回転を制御できます。</p>
+          <div class="card-title">② <span class="lang-ja">スポットライト</span><span class="lang-en">Spot Light</span></div>
+          <p class="lang-ja">球面上にハイライトと指向性ライティングを生成します。光の方向、コーン範囲、減衰、楕円比率、回転を制御できます。</p>
+          <p class="lang-en">Generates directional lighting and specular highlights with controls for direction, cone angle, falloff, ellipse aspect, and rotation.</p>
         </div>
         <div class="card">
-          <div class="card-title">③ フレネル / リム (Fresnel)</div>
-          <p>法線が外側を向く球体の輪郭付近にエッジライトを付与します。パワー指数で鋭さを、バイアスで幅を調整します。</p>
+          <div class="card-title">③ <span class="lang-ja">フレネル / リム</span><span class="lang-en">Fresnel / Rim</span></div>
+          <p class="lang-ja">法線が外側を向く球体の輪郭付近にエッジライトを付与します。パワー指数で鋭さを、バイアスで幅を調整します。</p>
+          <p class="lang-en">Applies grazing-angle rim lighting along the silhouette. Power adjusts edge sharpness; bias controls falloff threshold.</p>
         </div>
         <div class="card">
-          <div class="card-title">④ ノイズ (Noise)</div>
-          <p>シンプレックスノイズまたはホワイトノイズをプロシージャル生成します。金属の研磨痕や有機的な凹凸の表現に用います。</p>
+          <div class="card-title">④ <span class="lang-ja">ノイズ</span><span class="lang-en">Noise</span></div>
+          <p class="lang-ja">シンプレックスノイズまたはホワイトノイズをプロシージャル生成します。金属の研磨痕や有機的な凹凸の表現に用います。</p>
+          <p class="lang-en">Procedural simplex or white noise generator for simulating surface irregularities, brushed metal striations, and micro-bumps.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑤ イメージ (Image)</div>
-          <p>外部画像（PNG, JPG, WebP）を取り込みます。球体UV（巻き付け）または平面投影でスケーリング・配置が可能です。</p>
+          <div class="card-title">⑤ <span class="lang-ja">イメージ</span><span class="lang-en">Image</span></div>
+          <p class="lang-ja">外部画像（PNG, JPG, WebP）を取り込みます。<kbd>Ctrl</kbd>+<kbd>V</kbd> でクリップボードの画像を即座に貼り付け可能です。</p>
+          <p class="lang-en">Imports external textures (PNG, JPG, WebP). Supports instant clipboard bitmap pasting via <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑥ グラデーション (Gradient)</div>
-          <p>線形（Linear）または放射状（Radial）のカラーグラデーションを生成します。RGB補間のほか、彩度低下を防ぐOklab補間に対応。</p>
+          <div class="card-title">⑥ <span class="lang-ja">グラデーション</span><span class="lang-en">Gradient</span></div>
+          <p class="lang-ja">線形または放射状のカラーグラデーションを生成します。RGB補間のほか、中間色のにごりを防ぐ Oklab 補間に対応。</p>
+          <p class="lang-en">Renders linear or radial multi-stop color ramps. Supports perceptual Oklab color interpolation to eliminate dirty midtones.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑦ 色調補正 (Color Adjust)</div>
-          <p>下層までの合成結果に対し、明度・コントラスト・彩度・色相シフトを適用する調整レイヤーです。</p>
+          <div class="card-title">⑦ <span class="lang-ja">色調補正</span><span class="lang-en">Color Adjust</span></div>
+          <p class="lang-ja">下層までの合成結果に対し、明度・コントラスト・彩度・色相シフトを非破壊で適用する調整レイヤーです。</p>
+          <p class="lang-en">Non-destructive adjustment layer for modifying brightness, contrast, saturation, and hue shift across underlying passes.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑧ ブラー / シャープ (Blur/Sharpen)</div>
-          <p>高速コンボリューションフィルタにより、全体の質感をやわらげる（ブラー）または輪郭を強調（シャープ）します。</p>
+          <div class="card-title">⑧ <span class="lang-ja">ブラー / シャープ</span><span class="lang-en">Blur / Sharpen</span></div>
+          <p class="lang-ja">高速コンボリューションフィルタにより、全体の質感をやわらげる（ブラー）または輪郭を強調（シャープ）します。</p>
+          <p class="lang-en">High-performance convolution filter layer for softening surface textures (Gaussian Blur) or crisping silhouettes (Unsharp Mask).</p>
         </div>
         <div class="card">
-          <div class="card-title">⑨ トーンカーブ (Curves)</div>
-          <p>RGB総合または各チャンネル（R, G, B, 輝度）ごとの入出力カーブをスプライン補間で精密にカーブコントロールします。</p>
+          <div class="card-title">⑨ <span class="lang-ja">トーンカーブ</span><span class="lang-en">Curves</span></div>
+          <p class="lang-ja">RGB総合または各チャンネル（R, G, B, 輝度）ごとの入出力カーブをスプライン補間で精密にカーブコントロールします。</p>
+          <p class="lang-en">Spline-interpolated tone curve grading for Master RGB and individual R, G, B channels and luminance.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑩ カラーランプ (Gradient Map)</div>
-          <p>下層のグレースケール輝度値をもとに、ユーザー定義の多段階グラデーションカラーへ再マッピングします（トゥーン調等）。</p>
+          <div class="card-title">⑩ <span class="lang-ja">カラーランプ</span><span class="lang-en">Gradient Map (Color Ramp)</span></div>
+          <p class="lang-ja">下層のグレースケール輝度値をもとに、ユーザー定義の多段階グラデーションカラーへ再マッピングします（トゥーン調等）。</p>
+          <p class="lang-en">Remaps underlying grayscale luminance values to user-defined multi-step color gradients, ideal for cel-shaded anime looks.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑪ 色収差 (Chromatic Aberration)</div>
-          <p>RGB各色の波長ごとの屈折率のズレをシミュレートし、エッジにレンズのプリズム効果を付加します。</p>
+          <div class="card-title">⑪ <span class="lang-ja">色収差</span><span class="lang-en">Chromatic Aberration</span></div>
+          <p class="lang-ja">RGB各色の波長ごとの屈折率のズレをシミュレートし、エッジにレンズのプリズム効果を付加します。</p>
+          <p class="lang-en">Simulates optical wavelength refraction dispersion, producing subtle prism color fringing along sphere silhouettes.</p>
         </div>
         <div class="card">
-          <div class="card-title">⑫ フィルムグレイン (Film Grain)</div>
-          <p>写真フィルムやシネマカメラのような微細な粒子テクスチャを付加し、デジタルの平坦感を解消します。</p>
+          <div class="card-title">⑫ <span class="lang-ja">フィルムグレイン</span><span class="lang-en">Film Grain</span></div>
+          <p class="lang-ja">写真フィルムやシネマカメラのような微細な粒子テクスチャを付加し、デジタルの平坦感を解消します。</p>
+          <p class="lang-en">Injects organic filmic silver-halide grain micro-variations, eliminating banding and sterile CG smoothness.</p>
         </div>
       </div>
     </section>
@@ -1360,11 +1608,15 @@
     ========================================================== -->
     <section id="sec-viewport-gizmos">
       <h2 class="section-heading">
-        5. ビューポートと直接操作ギズモ
+        <span class="lang-ja">5. ビューポートと直接操作ギズモ</span>
+        <span class="lang-en">5. Viewport & Direct Manipulation Gizmos</span>
         <span class="badge">Live WebGL2 Simulation</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker の最大の特徴は、3Dビューポート上の球体を直接クリック＆ドラッグして直感的にパラメータを操作できる「スクリーン空間ダイレクトギズモ」です。
+      </p>
+      <p class="lang-en">
+        A standout hallmark of Matcap Maker is its direct viewport screen-space gizmo system, allowing artists to click and drag directly over the sphere to orient lights and shape specular lobes intuitively.
       </p>
 
       <!-- リアルタイム WebGL2 シミュレータ -->
@@ -1372,32 +1624,39 @@
         <div class="stage-header">
           <div class="stage-title">
             <span class="live-dot"></span>
-            インタラクティブ WebGL2 ギズモ操作シミュレータ
+            <span class="lang-ja">インタラクティブ WebGL2 ギズモ操作シミュレータ</span>
+            <span class="lang-en">Interactive WebGL2 Gizmo Simulator</span>
           </div>
           <div class="stage-actions">
-            <span style="font-size:0.75rem; color:var(--text-tertiary);">球体上をドラッグしてライト位置を操作</span>
+            <span style="font-size:0.75rem; color:var(--text-tertiary);">
+              <span class="lang-ja">球体上をドラッグしてライト位置を操作</span>
+              <span class="lang-en">Drag over sphere to position light</span>
+            </span>
           </div>
         </div>
         <div class="stage-body">
           <div class="canvas-wrap">
             <canvas id="webgl-canvas" width="280" height="280"></canvas>
-            <div class="canvas-overlay-hint">マウス左ドラッグ: 光源の方向ギズモ移動</div>
+            <div class="canvas-overlay-hint">
+              <span class="lang-ja">マウス左ドラッグ: 光源の方向ギズモ移動</span>
+              <span class="lang-en">Left Drag: Position light gizmo</span>
+            </div>
           </div>
           <div class="stage-controls">
             <div class="control-row">
               <div class="control-label">
-                <span>プレビューモード</span>
+                <span><span class="lang-ja">プレビュー形状</span><span class="lang-en">Preview Shape</span></span>
               </div>
               <div class="segmented-control" id="sim-shape-ctrl">
-                <button class="segment-btn active" data-shape="sphere">球体 (Sphere)</button>
-                <button class="segment-btn" data-shape="flat">平面 (Flat Disc)</button>
-                <button class="segment-btn" data-shape="normal">法線凹凸 (Normal Map)</button>
+                <button class="segment-btn active" data-shape="sphere"><span class="lang-ja">球体</span><span class="lang-en">Sphere</span></button>
+                <button class="segment-btn" data-shape="flat"><span class="lang-ja">平面</span><span class="lang-en">Flat Disc</span></button>
+                <button class="segment-btn" data-shape="normal"><span class="lang-ja">法線凹凸</span><span class="lang-en">Normal Map</span></button>
               </div>
             </div>
 
             <div class="control-row">
               <div class="control-label">
-                <span>スポットライト強度 (Intensity)</span>
+                <span><span class="lang-ja">スポットライト強度 (Intensity)</span><span class="lang-en">Spotlight Intensity</span></span>
                 <span class="val" id="val-intensity">1.4</span>
               </div>
               <input type="range" class="range-input" id="sim-intensity" min="0" max="3" step="0.05" value="1.4">
@@ -1405,7 +1664,7 @@
 
             <div class="control-row">
               <div class="control-label">
-                <span>スポットライト範囲 (Range)</span>
+                <span><span class="lang-ja">スポットライト範囲 (Range)</span><span class="lang-en">Spotlight Range</span></span>
                 <span class="val" id="val-range">0.75</span>
               </div>
               <input type="range" class="range-input" id="sim-range" min="0.1" max="2.0" step="0.02" value="0.75">
@@ -1413,7 +1672,7 @@
 
             <div class="control-row">
               <div class="control-label">
-                <span>リムライト強度 (Rim Power)</span>
+                <span><span class="lang-ja">リムライト強度 (Rim Power)</span><span class="lang-en">Rim Power Falloff</span></span>
                 <span class="val" id="val-rim">2.8</span>
               </div>
               <input type="range" class="range-input" id="sim-rim" min="0.5" max="8.0" step="0.1" value="2.8">
@@ -1421,38 +1680,73 @@
 
             <div class="control-row">
               <div class="control-label">
-                <span>合成色空間 (Blend Space)</span>
+                <span><span class="lang-ja">合成色空間 (Blend Space)</span><span class="lang-en">Composite Blend Space</span></span>
               </div>
               <div class="segmented-control" id="sim-space-ctrl">
-                <button class="segment-btn active" data-space="linear">リニア (Linear - 物理的)</button>
-                <button class="segment-btn" data-space="srgb">sRGB (ガンマ合成)</button>
+                <button class="segment-btn active" data-space="linear"><span class="lang-ja">リニア (Linear)</span><span class="lang-en">Linear (Phys.)</span></button>
+                <button class="segment-btn" data-space="srgb"><span class="lang-ja">sRGB (ガンマ)</span><span class="lang-en">sRGB (Gamma)</span></button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <h3 class="sub-heading">ギズモの直接操作仕様</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">ギズモの直接操作仕様</span>
+        <span class="lang-en">Direct Manipulation Gizmo Controls</span>
+      </h3>
       <ul>
-        <li><strong>光源方向ハンドル（球上の白いドット）:</strong> 左ボタンドラッグで球面上を滑るように光源ベクトルが回転します。<kbd>Alt</kbd> キーを押しながらドラッグすると、球の裏側（陰面側）へ光源を回し込めます。</li>
-        <li><strong>回転リング:</strong> 楕円形スポットライト選択時に現れる円環をドラッグすることで、ハイライトの長軸方向を回転角度として指定できます。</li>
-        <li><strong>リムライト調整ハンドル:</strong> 外周付近のハンドルをドラッグするとパワー指数（エッジの細さ）、<kbd>Shift</kbd>+ドラッグでバイアス（発光の立ち上がり位置）が変化します。</li>
+        <li>
+          <span class="lang-ja"><strong>光源方向ハンドル（球上の白いドット）:</strong> 左ボタンドラッグで球面上を滑るように光源ベクトルが回転します。<kbd>Alt</kbd> キーを押しながらドラッグすると、球の裏側（陰面側）へ光源を回し込めます。</span>
+          <span class="lang-en"><strong>Light Direction Handle (White Sphere Dot):</strong> Left-click and drag across the sphere to pivot the light vector. Holding <kbd>Alt</kbd> rotates the light into the back hemisphere.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>回転リング:</strong> 楕円形スポットライト選択時に現れる円環をドラッグすることで、ハイライトの長軸方向を回転角度として指定できます。</span>
+          <span class="lang-en"><strong>Rotation Ring:</strong> Dragging the circular ring visible when an elliptical spotlight is selected rotates the orientation axis of the specular elongation.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>リムライト調整ハンドル:</strong> 外周付近のハンドルをドラッグするとパワー指数（エッジの細さ）、<kbd>Shift</kbd>+ドラッグでバイアス（発光の立ち上がり位置）が変化します。</span>
+          <span class="lang-en"><strong>Rim Light Radial Handles:</strong> Dragging the outer rim handle adjusts the power exponent (tightness), while <kbd>Shift</kbd>+drag modulates the bias threshold.</span>
+        </li>
       </ul>
 
-      <h3 class="sub-heading">プレビュー分割（スプリット）モード</h3>
-      <p>
+      <h3 class="sub-heading">
+        <span class="lang-ja">4種のプレビュー形状とメッシュ「分割比較」モード</span>
+        <span class="lang-en">4 Preview Shapes & Side-by-Side Mesh Compare Mode</span>
+      </h3>
+      <p class="lang-ja">
+        ツールバーまたはショートカットキー <kbd>1</kbd>〜<kbd>4</kbd> により、4 つのプレビューモードを切り替えられます。
+      </p>
+      <p class="lang-en">
+        Use the viewport toolbar or shortcut keys <kbd>1</kbd> to <kbd>4</kbd> to toggle between 4 preview modes:
+      </p>
+      <ul>
+        <li><kbd>1</kbd> <strong><span class="lang-ja">球体 (Canonical Sphere):</span><span class="lang-en">Sphere:</span></strong> <span class="lang-ja">基準となるマットキャップ球体を表示し、ギズモで自在にライティングを調整します。</span><span class="lang-en">Standard reference matcap sphere with full direct gizmo manipulation.</span></li>
+        <li><kbd>2</kbd> <strong><span class="lang-ja">平面 (Flat Disc):</span><span class="lang-en">Flat Disc:</span></strong> <span class="lang-ja">正面を向いた平坦な円盤で、グラデーションやノイズのテクスチャ分布を確認します。</span><span class="lang-en">Flat circular disc to inspect raw texture distributions and procedural noise.</span></li>
+        <li><kbd>3</kbd> <strong><span class="lang-ja">法線凹凸 (Normal Map Plate):</span><span class="lang-en">Normal Map:</span></strong> <span class="lang-ja">細かな法線凹凸パターンが施された板で、光沢やスペキュラの質感を検証します。</span><span class="lang-en">Procedurally perturbed normal surface to evaluate specular sheen across fine detail.</span></li>
+        <li><kbd>4</kbd> <strong><span class="lang-ja">3Dメッシュ &amp; 分割比較 (Mesh &amp; Compare):</span><span class="lang-en">Mesh &amp; Side-by-Side Compare:</span></strong> <span class="lang-ja">外部 3D モデル（OBJ, GLB, FBX - バイナリ/ASCII対応）を読み込み、カメラの回転（オービット）・移動・ズームを行えます。<strong>分割比較モード</strong>では、画面左に基準球体、画面右に 3D メッシュが左右並列で同時描画され、マットキャップテクスチャの原画と立体モデル上の陰影をリアルタイムに見比べながらオーサリングできます。</span><span class="lang-en">Loads custom 3D models (OBJ, GLB, and FBX binary/ASCII) with orbit/pan/zoom camera navigation. In <strong>Side-by-Side Compare Mode</strong>, the reference sphere is rendered on the left while the orbitable 3D asset is rendered on the right simultaneously, allowing side-by-side verification in real time.</span></li>
+      </ul>
+
+      <h3 class="sub-heading">
+        <span class="lang-ja">プレビュー分割（Before / After スプリット）モード</span>
+        <span class="lang-en">Before / After Split Swipe Mode</span>
+      </h3>
+      <p class="lang-ja">
         <kbd>\</kbd> キーを押すと、ビューポートが「前後比較（Before/After）」スライダー分割表示に切り替わります。現在選択中のレイヤーが適用される前の状態と、適用後の状態を画面上の境界線をスワイプして比較できます。
+      </p>
+      <p class="lang-en">
+        Pressing <kbd>\</kbd> switches the viewport into a split comparison swipe view, allowing you to swipe the partition line to compare the composite before and after applying the selected layer.
       </p>
 
       <!-- スプリットスライダーのデモ -->
       <div class="split-slider-container" id="split-demo">
         <div class="split-pane before" id="split-before">
           <canvas id="split-canvas-before" width="600" height="320" style="width:100%; height:100%;"></canvas>
-          <span class="split-label left">適用前 (Before)</span>
+          <span class="split-label left"><span class="lang-ja">適用前 (Before)</span><span class="lang-en">Before</span></span>
         </div>
         <div class="split-pane after" id="split-after">
           <canvas id="split-canvas-after" width="600" height="320" style="width:100%; height:100%;"></canvas>
-          <span class="split-label right">適用後 (After)</span>
+          <span class="split-label right"><span class="lang-ja">適用後 (After)</span><span class="lang-en">After</span></span>
         </div>
         <div class="split-divider" id="split-line">
           <div class="split-divider-handle">◀ ▶</div>
@@ -1465,53 +1759,75 @@
     ========================================================== -->
     <section id="sec-inspector">
       <h2 class="section-heading">
-        6. インスペクターとパラメータ操作
+        <span class="lang-ja">6. インスペクターとパラメータ操作</span>
+        <span class="lang-en">6. Inspector & Parameter Controls</span>
         <span class="badge">Controls</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         インスペクターでは、各レイヤーのあらゆるパラメータを数値レベルで厳密に制御できます。すべての数値入力ウィジェットは、プロ向けの迅速なスクラブ操作に対応しています。
+      </p>
+      <p class="lang-en">
+        The inspector offers rigorous numeric control over all layer and project properties. Every numeric field supports professional scrubbing workflows.
       </p>
 
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>操作方法</th>
-              <th>動作仕様</th>
+              <th><span class="lang-ja">操作方法</span><span class="lang-en">Input Gesture</span></th>
+              <th><span class="lang-ja">動作仕様</span><span class="lang-en">Behavior</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>左右ドラッグ (Scrub)</strong></td>
-              <td>スライダーのつまみまたは数値ラベル上をドラッグして素早く値を増減</td>
+              <td><strong><span class="lang-ja">左右ドラッグ (Scrub)</span><span class="lang-en">Horizontal Scrub</span></strong></td>
+              <td><span class="lang-ja">スライダーのつまみまたは数値ラベル上をドラッグして素早く値を増減</span><span class="lang-en">Drag over slider track or numeric badge to scrub values rapidly</span></td>
             </tr>
             <tr>
-              <td><strong><kbd>Shift</kbd> + ドラッグ</strong></td>
-              <td>微細調整モード（通常の 1/10 の移動量で繊細にコントロール）</td>
+              <td><strong><kbd>Shift</kbd> + <span class="lang-ja">ドラッグ</span><span class="lang-en">Drag</span></strong></td>
+              <td><span class="lang-ja">微細調整モード（通常の 1/10 の移動量で繊細にコントロール）</span><span class="lang-en">Fine adjustment mode (1/10th speed for precision micro-tuning)</span></td>
             </tr>
             <tr>
-              <td><strong><kbd>Ctrl</kbd> + ドラッグ</strong></td>
-              <td>粗調整モード（通常の 10 倍の移動量で大きく変化）</td>
+              <td><strong><kbd>Ctrl</kbd> + <span class="lang-ja">ドラッグ</span><span class="lang-en">Drag</span></strong></td>
+              <td><span class="lang-ja">粗調整モード（通常の 10 倍の移動量で大きく変化）</span><span class="lang-en">Coarse adjustment mode (10x step rate for broad sweeps)</span></td>
             </tr>
             <tr>
-              <td><strong>ダブルクリック</strong></td>
-              <td>パラメータを初期既定値（Default）にリセット</td>
+              <td><strong><span class="lang-ja">ダブルクリック</span><span class="lang-en">Double-Click</span></strong></td>
+              <td><span class="lang-ja">パラメータを初期既定値（Default）にリセット</span><span class="lang-en">Resets parameter back to its default canonical value</span></td>
             </tr>
             <tr>
-              <td><strong>右クリックコンテキストメニュー</strong></td>
-              <td>「値をコピー」「値を貼り付け」「既定値に戻す」を実行</td>
+              <td><strong><span class="lang-ja">右クリックコンテキストメニュー</span><span class="lang-en">Right-Click Menu</span></strong></td>
+              <td><span class="lang-ja">「値をコピー」「値を貼り付け」「既定値に戻す」を実行</span><span class="lang-en">Displays context menu with "Copy Value", "Paste Value", and "Reset"</span></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 class="sub-heading">グラデーションエディタの操作</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">グラデーションエディタの操作</span>
+        <span class="lang-en">Gradient Editor Operations</span>
+      </h3>
       <ul>
-        <li><strong>ストップの追加:</strong> グラデーションバーの空いている場所をクリックすると、その位置に新しいカラーストップが追加されます。</li>
-        <li><strong>ストップの移動:</strong> カラードットを左右にドラッグして位置を調整します。</li>
-        <li><strong>色の変更:</strong> カラードットをダブルクリックしてカラーピッカーを開きます。</li>
-        <li><strong>ストップの削除:</strong> カラードットを選択して <kbd>Delete</kbd> キーを押すか、バーの外側へドラッグして離します。</li>
-        <li><strong>補間方式の切り替え:</strong> 通常の <code>RGB</code> 補間のほか、中間域が濁らない <code>Oklab</code> 知覚的一様色空間補間を選択できます。</li>
+        <li>
+          <span class="lang-ja"><strong>ストップの追加:</strong> グラデーションバーの空いている場所をクリックすると、その位置に新しいカラーストップが追加されます。</span>
+          <span class="lang-en"><strong>Add Color Stop:</strong> Click anywhere along the empty gradient track to insert a new stop at that exact position.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>ストップの移動:</strong> カラードットを左右にドラッグして位置を調整します。</span>
+          <span class="lang-en"><strong>Move Stop:</strong> Drag color pins horizontally to shift gradient transition boundaries.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>色の変更:</strong> カラードットをダブルクリックしてカラーピッカーを開きます。</span>
+          <span class="lang-en"><strong>Change Color:</strong> Double-click any pin to open the color picker palette.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>ストップの削除:</strong> カラードットを選択して <kbd>Delete</kbd> キーを押すか、バーの外側へドラッグして離します。</span>
+          <span class="lang-en"><strong>Delete Stop:</strong> Select a pin and press <kbd>Delete</kbd>, or drag it vertically away from the bar.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>補間方式の切り替え:</strong> 通常の <code>RGB</code> 補間のほか、中間域が濁らない <code>Oklab</code> 知覚的一様色空間補間を選択できます。</span>
+          <span class="lang-en"><strong>Interpolation Mode:</strong> Switch between standard <code>RGB</code> and perceptually uniform <code>Oklab</code> color mixing.</span>
+        </li>
       </ul>
     </section>
 
@@ -1520,35 +1836,63 @@
     ========================================================== -->
     <section id="sec-color-hdr">
       <h2 class="section-heading">
-        7. 合成色空間とHDRパイプライン
+        <span class="lang-ja">7. 合成色空間とHDRパイプライン</span>
+        <span class="lang-en">7. Color Science & HDR Pipeline</span>
         <span class="badge">Color Science</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker は、用途に応じて「sRGB合成（v3/Photoshop互換）」と「リニア合成（物理的に正確）」の 2 種類の色空間を選択できます。プロジェクトタブの「合成の色空間」から切り替えます。
+      </p>
+      <p class="lang-en">
+        Matcap Maker supports two distinct color composite spaces: "sRGB Composite" (Photoshop legacy compatible) and "Linear Composite" (physically accurate). Toggle via the Project tab settings.
       </p>
 
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">sRGB 色空間（互換モード）</div>
-          <p>
+          <div class="card-title">
+            <span class="lang-ja">sRGB 色空間（互換モード）</span>
+            <span class="lang-en">sRGB Space (Compatibility Mode)</span>
+          </div>
+          <p class="lang-ja">
             各レイヤーのRGB値をガンマ空間のまま加算・乗算します。過去の Matcap Maker v3 や Photoshop のデフォルトレイヤー合成と完全に一致する見た目が得られます。
+          </p>
+          <p class="lang-en">
+            Composites pixel values directly in gamma-encoded space. Produces visual results identical to classic Photoshop layer workflows.
           </p>
         </div>
         <div class="card">
-          <div class="card-title">リニア色空間（物理ベース推奨）</div>
-          <p>
-            入力をリニア空間（$\gamma=2.2$ 伸張）に展開してから加算やブレンディングを行い、最終表示時に sRGB へ戻します。赤と緑の光が混ざり合う境界で黒ずまず、鮮明な黄色に輝くなど、現実の光学現象に即した混色が実現します。
+          <div class="card-title">
+            <span class="lang-ja">リニア色空間（物理ベース推奨）</span>
+            <span class="lang-en">Linear Space (Physically Accurate)</span>
+          </div>
+          <p class="lang-ja">
+            入力をリニア空間（gamma=2.2 伸張）に展開してから加算やブレンディングを行い、最終表示時に sRGB へ戻します。赤と緑の光が混ざり合う境界で黒ずまず、鮮明な黄色に輝くなど、現実の光学現象に即した混色が実現します。
+          </p>
+          <p class="lang-en">
+            Expands inputs to linear radiometric energy (gamma=2.2 expansion) before blending, returning to sRGB for final display. Eliminates dark boundary fringes when contrasting colored lights intersect.
           </p>
         </div>
       </div>
 
-      <h3 class="sub-heading">HDRモードとトーンマップ</h3>
-      <p>
+      <h3 class="sub-heading">
+        <span class="lang-ja">HDRモードとトーンマップ</span>
+        <span class="lang-en">HDR Mode & Tonemapping</span>
+      </h3>
+      <p class="lang-ja">
         プロジェクト設定で「HDR」を有効にすると、内部FBOで 1.0 を超える高輝度値（スペキュラピーク）がクランプ（0.0〜1.0での切り捨て）されずに保持されます。
       </p>
+      <p class="lang-en">
+        Enabling "HDR" in project settings prevents floating-point FBO buffer clamping above 1.0, preserving super-luminous specular peaks.
+      </p>
       <ul>
-        <li><strong>ビューポートの露出スライダー:</strong> <kbd>0</kbd> を基準に $-4$ から $+4$ EV（段）の範囲で露光量を調整して白飛び領域の階調を確認できます。</li>
-        <li><strong>OpenEXR 書き出しとの連携:</strong> HDR がオンの状態で EXR 形式で書き出すと、ゲームエンジン（Unreal Engine, Unity HDRP）のポストプロセスブルームで激しく発光するハイダイナミックレンジテクスチャとして活用できます。</li>
+        <li>
+          <span class="lang-ja"><strong>ビューポートの露出スライダー:</strong> <kbd>0</kbd> を基準に -4 から +4 EV（段）の範囲で露光量を調整して白飛び領域の階調を確認できます。</span>
+          <span class="lang-en"><strong>Viewport Exposure Slider:</strong> Adjust exposure from -4 to +4 EV to inspect gradations within intense highlight peaks.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>OpenEXR 書き出しとの連携:</strong> HDR がオンの状態で EXR 形式で書き出すと、ゲームエンジン（Unreal Engine, Unity HDRP）のポストプロセスブルームで激しく発光するハイダイナミックレンジテクスチャとして活用できます。</span>
+          <span class="lang-en"><strong>OpenEXR Export:</strong> Exporting as EXR retains high dynamic range values, enabling bloom and emissive lighting in Unreal Engine 5 and Unity HDRP.</span>
+        </li>
       </ul>
     </section>
 
@@ -1557,58 +1901,83 @@
     ========================================================== -->
     <section id="sec-export">
       <h2 class="section-heading">
-        8. エクスポートとエッジパディング
-        <span class="badge">Edge Padding & Export</span>
+        <span class="lang-ja">8. エクスポートとエッジパディング</span>
+        <span class="lang-en">8. Edge Padding & Export</span>
+        <span class="badge">Edge Padding &amp; Export</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         マテリアルキャプチャテクスチャは正方形の画像内に円盤状に描画されますが、3DモデルのUVサンプリング時、境界付近でテクスチャフィルタリング（バイリニア補間やミップマップ）が働くことで、<strong>外周の背景色（黒または透明）が混ざってモデルの輪郭に黒いフチ（シーム）が生じる問題</strong>が頻発します。
       </p>
-      <p>
+      <p class="lang-en">
+        Matcap textures represent spherical lighting rendered into a square texture disc. When sampled across grazing normals on 3D geometry, mipmapping and bilinear texture filtering blend outer background pixels into the edge, causing <strong>unsightly black silhouette seams</strong>.
+      </p>
+      <p class="lang-ja">
         Matcap Maker では、これを完全に防止するため、円盤の外周ピクセルを放射状に伸長する「エッジパディング（Dilation）」エンジンを内蔵しています。
+      </p>
+      <p class="lang-en">
+        Matcap Maker incorporates a radial dilation edge-padding engine that extends peripheral boundary pixels outward to completely eliminate silhouette seams.
       </p>
 
       <div class="diagram-img-wrap">
         <img src="assets/edge_padding_process.png" alt="Edge Padding Comparison" class="diagram-img">
-        <div class="diagram-caption">図 8-1: エッジパディングの処理比較（未処理 vs ニアレスト伸長 vs スムースパディング）</div>
+        <div class="diagram-caption">
+          <span class="lang-ja">図 8-1: エッジパディングの処理比較（未処理 vs ニアレスト伸長 vs スムースパディング）</span>
+          <span class="lang-en">Fig 8-1: Edge Padding Comparison (Raw Disc vs Nearest Dilation vs Smooth Box Padding)</span>
+        </div>
       </div>
 
-      <h3 class="sub-heading">パディングパラメータ</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">パディングパラメータ</span>
+        <span class="lang-en">Padding Parameters</span>
+      </h3>
       <ul>
-        <li><strong>エッジパディング幅:</strong> 既定値は <code>16px</code>。円盤の外側へ何ピクセル分引き伸ばすかを指定します（推奨: 16〜32px）。</li>
-        <li><strong>パディングをなめらかにする（近傍平均）:</strong> 外周の伸長領域に対してボックスブラーを施し、外側へのジャギーや鋭い線状の乱れを滑らかに均します。</li>
-        <li><strong>輪郭のアルファしきい値:</strong> 半透明エッジをどの不透明度で円盤境界とみなすかの境界値です。</li>
+        <li>
+          <span class="lang-ja"><strong>エッジパディング幅:</strong> 既定値は <code>16px</code>。円盤の外側へ何ピクセル分引き伸ばすかを指定します（推奨: 16〜32px）。</span>
+          <span class="lang-en"><strong>Padding Width:</strong> Default <code>16px</code>. Specifies the outward pixel dilation radius (recommended: 16-32px).</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>パディングをなめらかにする（近傍平均）:</strong> 外周の伸長領域に対してボックスブラーを施し、外側へのジャギーや鋭い線状の乱れを滑らかに均します。</span>
+          <span class="lang-en"><strong>Smooth Padding:</strong> Applies box filtering across dilated borders to eliminate harsh radial spoke artifacts.</span>
+        </li>
+        <li>
+          <span class="lang-ja"><strong>輪郭のアルファしきい値:</strong> 半透明エッジをどの不透明度で円盤境界とみなすかの境界値です。</span>
+          <span class="lang-en"><strong>Alpha Threshold:</strong> Defines the opacity threshold classifying pixels as boundary edges.</span>
+        </li>
       </ul>
 
-      <h3 class="sub-heading">出力フォーマット</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">出力フォーマット</span>
+        <span class="lang-en">Export File Formats</span>
+      </h3>
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>フォーマット</th>
-              <th>深度</th>
-              <th>特性・用途</th>
+              <th><span class="lang-ja">フォーマット</span><span class="lang-en">Format</span></th>
+              <th><span class="lang-ja">深度</span><span class="lang-en">Bit Depth</span></th>
+              <th><span class="lang-ja">特性・用途</span><span class="lang-en">Features &amp; Target Platforms</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>PNG 8bit</strong></td>
-              <td>RGB / RGBA 各8bit</td>
-              <td>Web、VRoid、汎用3Dビューア向けの標準形式。可逆圧縮。</td>
+              <td>RGB / RGBA <span class="lang-ja">各8bit</span><span class="lang-en">8-bit per channel</span></td>
+              <td><span class="lang-ja">Web、VRoid、汎用3Dビューア向けの標準形式。可逆圧縮。</span><span class="lang-en">Universal lossless standard for Web, VRoid, and real-time DCC viewports.</span></td>
             </tr>
             <tr>
               <td><strong>PNG 16bit</strong></td>
-              <td>各チャンネル16bit (48bit/64bit)</td>
-              <td>滑らかなグラデーションを保持し、マッハバンド（トーンジャンプ）を防ぐ高品質形式。</td>
+              <td><span class="lang-ja">各チャンネル16bit (48bit/64bit)</span><span class="lang-en">16-bit per channel (48/64-bit)</span></td>
+              <td><span class="lang-ja">滑らかなグラデーションを保持し、マッハバンド（トーンジャンプ）を防ぐ高品質形式。</span><span class="lang-en">High bit depth eliminating banding on smooth metallic gradients.</span></td>
             </tr>
             <tr>
               <td><strong>JPG</strong></td>
-              <td>8bit非可逆圧縮</td>
-              <td>ファイルサイズを極小化したい軽量プレビュー用（品質1〜100指定）。</td>
+              <td>8bit <span class="lang-ja">非可逆圧縮</span><span class="lang-en">lossy</span></td>
+              <td><span class="lang-ja">ファイルサイズを極小化したい軽量プレビュー用（品質1〜100指定）。</span><span class="lang-en">Ultra-compact lightweight preview texture with selectable quality (1-100).</span></td>
             </tr>
             <tr>
-              <td><strong>EXR (half)</strong> <span class="badge-desktop-only">デスクトップ限定</span></td>
-              <td>16bit 浮動小数点 (Half-Float)</td>
-              <td>Unreal Engine 5、Unity、Blender、映画制作向けのHDRデータ保持形式。<strong>※Web版では非対応</strong></td>
+              <td><strong>EXR (half)</strong> <span class="badge-desktop-only"><span class="lang-ja">デスクトップ限定</span><span class="lang-en">Desktop Only</span></span></td>
+              <td>16bit <span class="lang-ja">浮動小数点 (Half-Float)</span><span class="lang-en">Float (Half-Float)</span></td>
+              <td><span class="lang-ja">Unreal Engine 5、Unity、Blender向けのHDRデータ保持形式。<strong>※Web版では非対応</strong></span><span class="lang-en">High Dynamic Range texture format for Unreal Engine 5, Unity HDRP, Blender. <strong>*Not supported in Web Edition</strong></span></td>
             </tr>
           </tbody>
         </table>
@@ -1616,24 +1985,37 @@
 
       <div class="callout-web">
         <div class="callout-title">
-          <span class="badge-web">Web版のエクスポート制約</span>
-          書き出しフォーマットと出力先に関する制限
+          <span class="badge-web">Web</span>
+          <span class="lang-ja">Web版のエクスポート制約</span>
+          <span class="lang-en">Web Edition Export Limitations</span>
         </div>
         <ul>
-          <li><strong>OpenEXR (.exr) 出力の非対応:</strong> Web版では EXR 出力エンコーダが提供されないため、エクスポートダイアログのフォーマット選択肢に <code>EXR</code> は表示されません。Web版で出力できる形式は <strong>PNG 8bit</strong>、<strong>PNG 16bit</strong>、および <strong>JPG</strong> の 3 種類となります。高階調グラデーションを保持したい場合は <strong>PNG 16bit</strong> をご利用ください。32bit 浮動小数点 HDR 形式の EXR 出力が必要な場合はデスクトップ版をご利用ください。</li>
-          <li><strong>出力先とフォルダ表示:</strong> Web版ではブラウザのダウンロード処理として保存されるため、保存先はブラウザのダウンロード設定（通常は「ダウンロード」フォルダ）に依存します。また、デスクトップ版で利用可能な「フォルダで表示（保存先フォルダを開く）」トーストアクションや、前回の保存先ディレクトリの自動記憶はWeb版では動作しません。</li>
+          <li>
+            <span class="lang-ja"><strong>OpenEXR (.exr) 出力の非対応:</strong> Web版では EXR 出力エンコーダが提供されないため、エクスポートダイアログのフォーマット選択肢に <code>EXR</code> は表示されません。Web版で出力できる形式は <strong>PNG 8bit</strong>、<strong>PNG 16bit</strong>、および <strong>JPG</strong> の 3 種類となります。高階調グラデーションを保持したい場合は <strong>PNG 16bit</strong> をご利用ください。</span>
+            <span class="lang-en"><strong>OpenEXR (.exr) Unavailable:</strong> The Web edition does not package an EXR C-encoder; <code>EXR</code> is excluded from the export options. Available formats are <strong>PNG 8-bit</strong>, <strong>PNG 16-bit</strong>, and <strong>JPG</strong>. Use <strong>PNG 16-bit</strong> to preserve high precision gradients.</span>
+          </li>
+          <li>
+            <span class="lang-ja"><strong>出力先とフォルダ表示:</strong> Web版ではブラウザのダウンロード処理として保存されるため、保存先はブラウザのダウンロード設定に依存します。また、デスクトップ版の「フォルダで表示」トーストアクションは動作しません。</span>
+            <span class="lang-en"><strong>Destination & Reveal:</strong> Web downloads depend on the browser's download manager. The native "Reveal in Folder" toast action is unavailable.</span>
+          </li>
         </ul>
       </div>
 
-      <h3 class="sub-heading">ファイル名テンプレート</h3>
-      <p>
+      <h3 class="sub-heading">
+        <span class="lang-ja">ファイル名テンプレート</span>
+        <span class="lang-en">Filename Template Tags</span>
+      </h3>
+      <p class="lang-ja">
         エクスポートダイアログの「ファイル名」欄では以下の置換タグが使用できます。
       </p>
+      <p class="lang-en">
+        The export dialog supports dynamic placeholder tags for automatic batch naming:
+      </p>
       <ul>
-        <li><code>{project}</code>: プロジェクト名（例: <code>Matcap_Gold</code>）</li>
-        <li><code>{size}</code>: 書き出し解像度（例: <code>2048</code>）</li>
-        <li><code>{padding}</code>: パディングピクセル数（例: <code>pad16</code>）</li>
-        <li><code>{date}</code>: 出力日付（例: <code>2026-09-29</code>）</li>
+        <li><code>{project}</code>: <span class="lang-ja">プロジェクト名（例: <code>Matcap_Gold</code>）</span><span class="lang-en">Project Name (e.g. <code>Matcap_Gold</code>)</span></li>
+        <li><code>{size}</code>: <span class="lang-ja">書き出し解像度（例: <code>2048</code>）</span><span class="lang-en">Export Resolution (e.g. <code>2048</code>)</span></li>
+        <li><code>{padding}</code>: <span class="lang-ja">パディングピクセル数（例: <code>pad16</code>）</span><span class="lang-en">Dilation Padding Pixels (e.g. <code>pad16</code>)</span></li>
+        <li><code>{date}</code>: <span class="lang-ja">出力日付（例: <code>2026-09-29</code>）</span><span class="lang-en">Export Date Stamp (e.g. <code>2026-09-29</code>)</span></li>
       </ul>
     </section>
 
@@ -1642,35 +2024,55 @@
     ========================================================== -->
     <section id="sec-plugins">
       <h2 class="section-heading">
-        9. プリセットとプラグイン拡張
+        <span class="lang-ja">9. プリセットとプラグイン拡張</span>
+        <span class="lang-en">9. Presets & Plugin Architecture</span>
         <span class="badge">Extensibility</span>
-        <span class="badge-desktop-only">プラグインはデスクトップ限定</span>
+        <span class="badge-desktop-only"><span class="lang-ja">プラグインはデスクトップ限定</span><span class="lang-en">Plugins: Desktop Only</span></span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker は、カスタムレイヤーを外部追加できる完全宣言型プラグインアーキテクチャを備えています。
+      </p>
+      <p class="lang-en">
+        Matcap Maker features a declarative plugin architecture allowing custom procedural shader layers to be integrated seamlessly.
       </p>
 
       <div class="callout-web">
         <div class="callout-title">
-          <span class="badge-web">Web版におけるプラグイン・プリセットの制約</span>
-          外部プラグイン読み込みとプリセットの保存先について
+          <span class="badge-web">Web</span>
+          <span class="lang-ja">Web版におけるプラグイン・プリセットの制約</span>
+          <span class="lang-en">Web Edition Plugin & Preset Storage</span>
         </div>
         <ul>
-          <li><strong>外部プラグインの非対応:</strong> Web版では、ブラウザサンドボックスのセキュリティ制約によりローカルファイルシステム（<code>Documents/MatcapMaker/plugins/</code>）を自動スキャンできないため、外部GLSLプラグインの読み込みには対応していません（ビルトインの全12種類のレイヤーはフル機能で利用可能です）。</li>
-          <li><strong>プリセットの保存先（IndexedDB）:</strong> Web版で作成・保存したプリセットは、ローカルファイルではなくブラウザ内部の <strong>IndexedDB</strong> に保管されます。ブラウザの「閲覧履歴やCookie・サイトデータの削除」を実行したり、シークレットモード（プライベートブラウズ）を終了したりするとプリセットが消失する場合があります。大切な作品は、必ず <code>.mcproj</code> プロジェクトファイルとしてダウンロード保存しておくことを強く推奨します。</li>
+          <li>
+            <span class="lang-ja"><strong>外部プラグインの非対応:</strong> Web版では、ブラウザサンドボックスのセキュリティ制約によりローカルファイルシステム（<code>Documents/MatcapMaker/plugins/</code>）を自動スキャンできないため、外部GLSLプラグインの読み込みには対応していません（ビルトインの全12種類のレイヤーはフル機能で利用可能です）。</span>
+            <span class="lang-en"><strong>External Plugins Unsupported:</strong> Due to browser sandbox security constraints preventing local directory scanning, external GLSL plugins are not supported in the Web Edition (all 12 native layers remain 100% available).</span>
+          </li>
+          <li>
+            <span class="lang-ja"><strong>プリセットの保存先（IndexedDB）:</strong> Web版で作成・保存したプリセットはブラウザ内部の <strong>IndexedDB</strong> に保管されます。ブラウザの履歴消去やシークレットモード終了でリセットされる場合があるため、大切な作品は必ず <code>.mcproj</code> ファイルとして保存してください。</span>
+            <span class="lang-en"><strong>Preset Storage (IndexedDB):</strong> User presets created in the Web Edition are persisted in browser <strong>IndexedDB</strong>. Always back up important projects by downloading <code>.mcproj</code> files.</span>
+          </li>
         </ul>
       </div>
 
-      <h3 class="sub-heading">プラグインのフォルダ構成</h3>
-      <p>
-        ユーザーのドキュメントフォルダ配下に以下の構造でフォルダとファイルを配置すると、アプリ起動時に自動認識されます。
+      <h3 class="sub-heading">
+        <span class="lang-ja">プラグインのフォルダ構成</span>
+        <span class="lang-en">Plugin Directory Structure</span>
+      </h3>
+      <p class="lang-ja">
+        ユーザーのドキュメントフォルダ配下に以下の構造で配置すると、アプリ起動時に自動認識されます。
+      </p>
+      <p class="lang-en">
+        Place plugin folders into your user Documents directory; they are auto-loaded on startup:
       </p>
       <pre><code>Documents/MatcapMaker/plugins/
 └─ myCustomPattern/
    ├─ layer.json    # レイヤー名、パラメータ定義、型仕様
    └─ layer.glsl    # WebGL2 フラグメントシェーダー計算ロジック</code></pre>
 
-      <h3 class="sub-heading">layer.json の記述例</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">layer.json の記述例</span>
+        <span class="lang-en">layer.json Example</span>
+      </h3>
       <pre><code>{
   "type": "hexGrid",
   "title": "Hex Grid",
@@ -1685,8 +2087,11 @@
   }
 }</code></pre>
 
-      <p>
+      <p class="lang-ja">
         セキュリティと堅牢性を重視し、JavaScript コードの実行は一切行わず、純粋な GLSL uniform バインディングのみで安全に実行されます。
+      </p>
+      <p class="lang-en">
+        To prioritize rock-solid security, plugins execute zero arbitrary JavaScript; all operations bind purely via sandboxed GLSL uniform bindings.
       </p>
     </section>
 
@@ -1695,112 +2100,116 @@
     ========================================================== -->
     <section id="sec-shortcuts">
       <h2 class="section-heading">
-        10. ショートカットキー一覧
+        <span class="lang-ja">10. ショートカットキー一覧</span>
+        <span class="lang-en">10. Keyboard Shortcuts</span>
         <span class="badge">F1 Cheat Sheet</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         キーボードのみで主要なワークフローが完結するよう、包括的なショートカット体系が割り当てられています。
+      </p>
+      <p class="lang-en">
+        Comprehensive hotkey mappings ensure maximum speed and productivity without reaching for the mouse.
       </p>
 
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>キー操作</th>
-              <th>機能</th>
-              <th>分類</th>
+              <th><span class="lang-ja">キー操作</span><span class="lang-en">Shortcut Key</span></th>
+              <th><span class="lang-ja">機能</span><span class="lang-en">Action</span></th>
+              <th><span class="lang-ja">分類</span><span class="lang-en">Category</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><kbd>Tab</kbd></td>
-              <td>「レイヤーを追加」クイックパレットを開く</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">「レイヤーを追加」クイックパレットを開く</span><span class="lang-en">Open "Add Layer" quick search palette</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>D</kbd></td>
-              <td>選択中のレイヤーを複製</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">選択中のレイヤーを複製</span><span class="lang-en">Duplicate active layer</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>Delete</kbd> / <kbd>Backspace</kbd></td>
-              <td>選択中のレイヤーを削除</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">選択中のレイヤーを削除</span><span class="lang-en">Delete selected layer</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td>
-              <td>レイヤーの重なり順を前面 / 背面へ移動</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">レイヤーの重なり順を前面 / 背面へ移動</span><span class="lang-en">Move active layer up / down in stack</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>G</kbd></td>
-              <td>選択レイヤーをグループ化</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">選択レイヤーをグループ化</span><span class="lang-en">Group selected layers</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd></td>
-              <td>グループ解除</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">グループ解除</span><span class="lang-en">Ungroup layers</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>H</kbd></td>
-              <td>レイヤーの表示 / 非表示をトグル</td>
-              <td>レイヤー</td>
+              <td><span class="lang-ja">レイヤーの表示 / 非表示をトグル</span><span class="lang-en">Toggle layer visibility on / off</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
-              <td><kbd>Alt</kbd> + クリック（目のアイコン）</td>
-              <td>対象レイヤーのみをソロ表示</td>
-              <td>レイヤー</td>
+              <td><kbd>Alt</kbd> + <span class="lang-ja">クリック（目のアイコン）</span><span class="lang-en">Click (Eye Icon)</span></td>
+              <td><span class="lang-ja">対象レイヤーのみをソロ表示</span><span class="lang-en">Solo active layer</span></td>
+              <td><span class="lang-ja">レイヤー</span><span class="lang-en">Layer</span></td>
             </tr>
             <tr>
               <td><kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd></td>
-              <td>ビューポート形状切り替え（球体 / 平面 / ノーマルマップ / 比較）</td>
-              <td>表示</td>
+              <td><span class="lang-ja">形状切り替え（球体 / 平面 / 法線 / メッシュ分割比較）</span><span class="lang-en">Preview Shape (Sphere / Flat / Normal / Mesh &amp; Compare)</span></td>
+              <td><span class="lang-ja">表示</span><span class="lang-en">View</span></td>
             </tr>
             <tr>
               <td><kbd>G</kbd></td>
-              <td>直接操作ギズモの表示 / 非表示切り替え</td>
-              <td>表示</td>
+              <td><span class="lang-ja">直接操作ギズモの表示 / 非表示切り替え</span><span class="lang-en">Toggle viewport gizmos visibility</span></td>
+              <td><span class="lang-ja">表示</span><span class="lang-en">View</span></td>
             </tr>
             <tr>
               <td><kbd>\</kbd></td>
-              <td>レイヤー適用前後のスプリット比較表示</td>
-              <td>表示</td>
+              <td><span class="lang-ja">レイヤー適用前後のスプリット比較表示</span><span class="lang-en">Toggle Before / After split swipe mode</span></td>
+              <td><span class="lang-ja">表示</span><span class="lang-en">View</span></td>
             </tr>
             <tr>
               <td><kbd>I</kbd></td>
-              <td>ビューポート画面から色を抽出するスポイトツール</td>
-              <td>ツール</td>
+              <td><span class="lang-ja">ビューポート画面から色を抽出するスポイトツール</span><span class="lang-en">Eyedropper tool (pick color from viewport)</span></td>
+              <td><span class="lang-ja">ツール</span><span class="lang-en">Tool</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>V</kbd></td>
-              <td>クリップボードの画像を新しいイメージレイヤーとして貼り付け</td>
-              <td>編集</td>
+              <td><span class="lang-ja">クリップボードの画像を新しいイメージレイヤーとして貼り付け</span><span class="lang-en">Paste clipboard bitmap as new Image layer</span></td>
+              <td><span class="lang-ja">編集</span><span class="lang-en">Edit</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
-              <td>元に戻す (Undo) / やり直す (Redo)</td>
-              <td>履歴</td>
+              <td><span class="lang-ja">元に戻す (Undo) / やり直す (Redo)</span><span class="lang-en">Undo / Redo operation history</span></td>
+              <td><span class="lang-ja">履歴</span><span class="lang-en">History</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
-              <td>プロジェクトを保存 / 上書き保存 <span class="badge-web">Web版: 対応環境で上書き / 非対応時はDL</span></td>
-              <td>ファイル</td>
+              <td><span class="lang-ja">プロジェクトを保存 / 上書き保存</span><span class="lang-en">Save / Overwrite Project</span> <span class="badge-web"><span class="lang-ja">Web版: 対応時上書き/他DL</span><span class="lang-en">Web: Overwrite/DL</span></span></td>
+              <td><span class="lang-ja">ファイル</span><span class="lang-en">File</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd></td>
-              <td>エクスポートダイアログを開く</td>
-              <td>ファイル</td>
+              <td><span class="lang-ja">エクスポートダイアログを開く</span><span class="lang-en">Open Export Dialog</span></td>
+              <td><span class="lang-ja">ファイル</span><span class="lang-en">File</span></td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>E</kbd></td>
-              <td>前回と同じ設定でクイック再エクスポート</td>
-              <td>ファイル</td>
+              <td><span class="lang-ja">前回と同じ設定でクイック再エクスポート</span><span class="lang-en">Quick Re-export with previous settings</span></td>
+              <td><span class="lang-ja">ファイル</span><span class="lang-en">File</span></td>
             </tr>
             <tr>
               <td><kbd>F1</kbd></td>
-              <td>アプリ内ショートカットキー一覧を表示</td>
-              <td>ヘルプ</td>
+              <td><span class="lang-ja">アプリ内ショートカットキー一覧を表示</span><span class="lang-en">Show in-app shortcut cheat sheet</span></td>
+              <td><span class="lang-ja">ヘルプ</span><span class="lang-en">Help</span></td>
             </tr>
           </tbody>
         </table>
@@ -1808,14 +2217,15 @@
 
       <div class="callout-web">
         <div class="callout-title">
-          <span class="badge-web">Web版でのキーボード操作時の注意点</span>
-          ブラウザショートカットとの兼ね合い
+          <span class="badge-web">Web</span>
+          <span class="lang-ja">Web版でのキーボード操作時の注意点</span>
+          <span class="lang-en">Web Edition Keyboard Considerations</span>
         </div>
-        <p>
-          Web版では一般的なブラウザ上で動作するため、一部のブラウザ既定ショートカット（<kbd>Ctrl</kbd>+<kbd>W</kbd> でタブを閉じる、<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> で開発者ツールを開くなど）はブラウザ側の動作が優先される場合があります。
+        <p class="lang-ja">
+          Web版では一般的なブラウザ上で動作するため、一部のブラウザ既定ショートカット（<kbd>Ctrl</kbd>+<kbd>W</kbd> でタブを閉じる、<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> で開発者ツールを開くなど）はブラウザ側の動作が優先されます。未保存の変更がある状態で誤ってタブを閉じたりリロードしたりすることを防止するため、ブラウザの「離脱防止ダイアログ」が自動的に作動します。
         </p>
-        <p>
-          また、未保存の変更がある状態で誤ってタブを閉じたりリロードしたりすることを防止するため、ブラウザの「離脱防止ダイアログ（このサイトを離れますか？）」が自動的に作動します。
+        <p class="lang-en">
+          In the Web edition, certain browser hotkeys (<kbd>Ctrl</kbd>+<kbd>W</kbd> close tab, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> devtools) take precedence. An automatic "Leave site?" beforeunload protection prompt activates whenever unsaved changes are present to prevent data loss.
         </p>
       </div>
     </section>
@@ -1825,131 +2235,152 @@
     ========================================================== -->
     <section id="sec-web-caps">
       <h2 class="section-heading">
-        11. Web版の仕様と制約事項
+        <span class="lang-ja">11. Web版の仕様と制約事項</span>
+        <span class="lang-en">11. Web Edition Specifications</span>
         <span class="badge-web">Web App Edition</span>
       </h2>
-      <p>
+      <p class="lang-ja">
         Matcap Maker は、Windows 向けデスクトップアプリケーション（Tauri）だけでなく、Google Chrome、Microsoft Edge、Safari、Firefox などの最新ブラウザで直接動作する <strong>Web版</strong> を提供しています。
-        Web版はソフトウェアのインストールが不要で、URLにアクセスするだけですぐにマットキャップの制作を行える手軽さがある一方、Webブラウザのセキュリティサンドボックス（分離保護機構）により、デスクトップ版と比べていくつかの機能差および制約が存在します。
+      </p>
+      <p class="lang-en">
+        Matcap Maker is provided both as a native Windows desktop app (Tauri) and as an instant in-browser <strong>Web Edition</strong> compatible with Chrome, Edge, Safari, and Firefox.
       </p>
 
-      <h3 class="sub-heading">デスクトップ版とWeb版の機能対照表</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">デスクトップ版とWeb版の機能対照表</span>
+        <span class="lang-en">Desktop vs Web Feature Matrix</span>
+      </h3>
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>機能カテゴリ</th>
-              <th>機能項目</th>
-              <th>デスクトップ版</th>
-              <th>Web版（ブラウザ）</th>
-              <th>詳細・代替動作</th>
+              <th><span class="lang-ja">機能カテゴリ</span><span class="lang-en">Category</span></th>
+              <th><span class="lang-ja">機能項目</span><span class="lang-en">Feature</span></th>
+              <th><span class="lang-ja">デスクトップ版</span><span class="lang-en">Desktop Edition</span></th>
+              <th><span class="lang-ja">Web版（ブラウザ）</span><span class="lang-en">Web Edition</span></th>
+              <th><span class="lang-ja">詳細・代替動作</span><span class="lang-en">Notes &amp; Fallbacks</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td rowspan="2"><strong>レンダリング</strong></td>
-              <td>12種レイヤー・ギズモ操作</td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td>同一の WebGL2 シェーダーパイプラインにより、同等品質でリアルタイム描画されます。</td>
+              <td rowspan="2"><strong><span class="lang-ja">レンダリング</span><span class="lang-en">Rendering</span></strong></td>
+              <td><span class="lang-ja">12種レイヤー・ギズモ・メッシュ比較</span><span class="lang-en">12 Layers, Gizmos, Mesh Compare</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="lang-ja">同一の WebGL2 シェーダーパイプラインにより、同等品質でリアルタイム描画されます。</span><span class="lang-en">Identical WebGL2 shader pipeline delivering 100% equivalent quality.</span></td>
             </tr>
             <tr>
-              <td>HDR・色空間（sRGB / リニア）</td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td>浮動小数点テクスチャに対応したブラウザ環境でHDR合成が動作します。</td>
+              <td><span class="lang-ja">HDR・色空間（sRGB / リニア）</span><span class="lang-en">HDR &amp; Color Spaces</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="lang-ja">浮動小数点テクスチャに対応したブラウザ環境でHDR合成が動作します。</span><span class="lang-en">Float FBO rendering supported across all standard modern browsers.</span></td>
             </tr>
             <tr>
-              <td rowspan="4"><strong>ファイル入出力</strong></td>
-              <td>プロジェクト上書き保存 (<kbd>Ctrl</kbd>+<kbd>S</kbd>)</td>
-              <td><span class="status-tag status-ok">ローカル保存</span></td>
-              <td><span class="status-tag status-partial">条件付き対応</span></td>
-              <td>File System Access API 対応環境（Chrome/Edge等）では上書き保存可能。非対応時はダウンロード保存。</td>
+              <td rowspan="4"><strong><span class="lang-ja">ファイル入出力</span><span class="lang-en">File I/O</span></strong></td>
+              <td><span class="lang-ja">プロジェクト上書き保存 (<kbd>Ctrl</kbd>+<kbd>S</kbd>)</span><span class="lang-en">Project Overwrite (<kbd>Ctrl</kbd>+<kbd>S</kbd>)</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">ローカル保存</span><span class="lang-en">Local Save</span></span></td>
+              <td><span class="status-tag status-partial"><span class="lang-ja">条件付き対応</span><span class="lang-en">Conditional</span></span></td>
+              <td><span class="lang-ja">File System Access API 対応環境（Chrome/Edge等）では上書き保存可能。非対応時はダウンロード保存。</span><span class="lang-en">Direct overwrite via File System Access API (Chrome/Edge); falls back to file download.</span></td>
             </tr>
             <tr>
-              <td>プロジェクトを開く / 画像D&amp;D</td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td>ブラウザ画面への <code>.mcproj</code> や画像ファイルの直接ドラッグ＆ドロップに対応。</td>
+              <td><span class="lang-ja">プロジェクトを開く / 画像D&amp;D</span><span class="lang-en">Open / Image Drag &amp; Drop</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="lang-ja">ブラウザ画面への <code>.mcproj</code> や画像ファイルの直接ドラッグ＆ドロップに対応。</span><span class="lang-en">Full drag &amp; drop support for <code>.mcproj</code> projects and texture assets.</span></td>
             </tr>
             <tr>
-              <td>最近使ったファイル履歴 (Recent)</td>
-              <td><span class="status-tag status-ok">対応</span></td>
-              <td><span class="status-tag status-no">非対応</span></td>
-              <td>ブラウザの制約上、ローカルファイルパスの恒久的な保持ができないため非対応です。</td>
+              <td><span class="lang-ja">最近使ったファイル履歴</span><span class="lang-en">Recent Files History</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-no"><span class="lang-ja">非対応</span><span class="lang-en">N/A</span></span></td>
+              <td><span class="lang-ja">ブラウザの制約上、ローカルファイルパスの恒久的な保持ができないため非対応です。</span><span class="lang-en">Browser sandbox prevents persistent local absolute file path access.</span></td>
             </tr>
             <tr>
-              <td>OSファイル関連付け</td>
-              <td><span class="status-tag status-ok">対応</span></td>
-              <td><span class="status-tag status-no">非対応</span></td>
-              <td>エクスプローラーから <code>.mcproj</code> をダブルクリックして開く起動はデスクトップ版のみです。</td>
+              <td><span class="lang-ja">OSファイル関連付け</span><span class="lang-en">OS File Association</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-no"><span class="lang-ja">非対応</span><span class="lang-en">N/A</span></span></td>
+              <td><span class="lang-ja">エクスプローラーから <code>.mcproj</code> をダブルクリックして開く起動はデスクトップ版のみです。</span><span class="lang-en">Opening projects directly via Explorer double-click is exclusive to Desktop.</span></td>
             </tr>
             <tr>
-              <td rowspan="3"><strong>エクスポート</strong></td>
-              <td>PNG 8bit / PNG 16bit / JPG 出力</td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td><span class="status-tag status-ok">完全対応</span></td>
-              <td>放射状エッジパディングを含め、Webブラウザ内で高速にエンコードして保存します。</td>
+              <td rowspan="3"><strong><span class="lang-ja">エクスポート</span><span class="lang-en">Export</span></strong></td>
+              <td><span class="lang-ja">PNG 8bit / PNG 16bit / JPG 出力</span><span class="lang-en">PNG 8/16-bit, JPG</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="lang-ja">放射状エッジパディングを含め、Webブラウザ内で高速にエンコードして保存します。</span><span class="lang-en">High-performance in-browser encoding with full radial dilation padding.</span></td>
             </tr>
             <tr>
-              <td>OpenEXR (32bit float HDR) 出力</td>
-              <td><span class="status-tag status-ok">対応</span></td>
-              <td><span class="status-tag status-no">非対応</span></td>
-              <td>Web環境ではEXR出力ライブラリが利用できません。高階調が必要な場合は PNG 16bit をご利用ください。</td>
+              <td><span class="lang-ja">OpenEXR (32bit float HDR) 出力</span><span class="lang-en">OpenEXR HDR Export</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-no"><span class="lang-ja">非対応</span><span class="lang-en">N/A</span></span></td>
+              <td><span class="lang-ja">Web環境ではEXR出力ライブラリが利用できません。高階調が必要な場合は PNG 16bit をご利用ください。</span><span class="lang-en">EXR encoder unavailable in web browsers; use 16-bit PNG for high gradation.</span></td>
             </tr>
             <tr>
-              <td>フォルダで表示 (Reveal in Folder)</td>
-              <td><span class="status-tag status-ok">対応</span></td>
-              <td><span class="status-tag status-no">非対応</span></td>
-              <td>Web版ではブラウザのダウンロードマネージャーに保存されるため、直接フォルダを開く機能はありません。</td>
+              <td><span class="lang-ja">フォルダで表示 (Reveal in Folder)</span><span class="lang-en">Reveal in Folder</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-no"><span class="lang-ja">非対応</span><span class="lang-en">N/A</span></span></td>
+              <td><span class="lang-ja">Web版ではブラウザのダウンロードマネージャーに保存されるため非対応です。</span><span class="lang-en">Saved via browser downloads manager.</span></td>
             </tr>
             <tr>
-              <td rowspan="3"><strong>拡張・管理</strong></td>
-              <td>外部GLSLプラグイン拡張</td>
-              <td><span class="status-tag status-ok">対応</span></td>
-              <td><span class="status-tag status-no">非対応</span></td>
-              <td><code>Documents/MatcapMaker/plugins/</code> フォルダの自動読み込みはデスクトップ版限定です。</td>
+              <td rowspan="3"><strong><span class="lang-ja">拡張・管理</span><span class="lang-en">Plugins &amp; System</span></strong></td>
+              <td><span class="lang-ja">外部GLSLプラグイン拡張</span><span class="lang-en">External GLSL Plugins</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-no"><span class="lang-ja">非対応</span><span class="lang-en">N/A</span></span></td>
+              <td><span class="lang-ja"><code>Documents/MatcapMaker/plugins/</code> フォルダの自動読み込みはデスクトップ限定です。</span><span class="lang-en">Local directory scanning for external GLSL layers is desktop only.</span></td>
             </tr>
             <tr>
-              <td>プリセット・アプリ設定の永続化</td>
-              <td><span class="status-tag status-ok">ファイル保存</span></td>
-              <td><span class="status-tag status-partial">IndexedDB</span></td>
-              <td>ブラウザの内部ストレージに保管されます。ブラウザデータ消去やシークレットモード終了でリセットされます。</td>
+              <td><span class="lang-ja">UI言語切り替え (JA / EN)</span><span class="lang-en">UI Language (JA / EN)</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="lang-ja">トップメニューバーの独立した <code>Language</code> / <code>言語</code> 項目からいつでも即時切り替え。</span><span class="lang-en">Instant 1-click toggling via top menu bar item in both editions.</span></td>
             </tr>
             <tr>
-              <td>自動復元（クラッシュリカバリ）</td>
-              <td><span class="status-tag status-ok">対応</span></td>
-              <td><span class="status-tag status-partial">単一タブ対応</span></td>
-              <td>Web Locks API により排他制御され、最初に開いたタブのみが自動復元スナップショットを管理します。</td>
+              <td><span class="lang-ja">アップデート通知 (GitHub version.json)</span><span class="lang-en">Version Check Notification</span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="status-tag status-ok"><span class="lang-ja">完全対応</span><span class="lang-en">Supported</span></span></td>
+              <td><span class="lang-ja">GitHub raw <code>version.json</code> をフェッチし、トップバーに鮮やかな緑色バッジを表示。</span><span class="lang-en">Fetches GitHub raw <code>version.json</code> and lights up vivid green badge.</span></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 class="sub-heading">Web版の主要な制約事項と対応策</h3>
+      <h3 class="sub-heading">
+        <span class="lang-ja">Web版の主要な制約事項と対応策</span>
+        <span class="lang-en">Key Constraints &amp; Best Practices</span>
+      </h3>
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">① データの消失防止とバックアップ</div>
-          <p>
+          <div class="card-title">① <span class="lang-ja">データの消失防止とバックアップ</span><span class="lang-en">Data Protection &amp; Backup</span></div>
+          <p class="lang-ja">
             Web版で作成したユーザープリセットや環境設定はブラウザ内部の IndexedDB / LocalStorage に保存されます。ブラウザの「履歴消去」や「Cookie・サイトデータの削除」を実行すると消去されてしまうため、<strong>重要な作品は必ずメニューの「保存」から <code>.mcproj</code> ファイルとしてローカルにダウンロード保存</strong>してください。
           </p>
+          <p class="lang-en">
+            Presets and settings in the Web Edition reside in browser IndexedDB/LocalStorage. Clearing browser history or site data purges this storage. <strong>Always download critical projects as <code>.mcproj</code> files</strong>.
+          </p>
         </div>
         <div class="card">
-          <div class="card-title">② OpenEXR書き出しが必要な場合</div>
-          <p>
+          <div class="card-title">② <span class="lang-ja">OpenEXR書き出しが必要な場合</span><span class="lang-en">High Dynamic Range Exports</span></div>
+          <p class="lang-ja">
             UE5 や Blender、Unity HDRP 等でハイダイナミックレンジ（1.0を超える発光輝度）を保ったまま活用したい場合、Web版では EXR 出力が利用できません。高階調を維持した <strong>PNG 16bit</strong> で書き出すか、ネイティブのデスクトップ版をご利用ください。
           </p>
-        </div>
-        <div class="card">
-          <div class="card-title">③ 上書き保存の動作と推奨ブラウザ</div>
-          <p>
-            Chromium系ブラウザ（Google Chrome、Microsoft Edge等）では、一度保存ダイアログで許可を与えることでデスクトップアプリと同様のキーボード上書き保存（<kbd>Ctrl</kbd>+<kbd>S</kbd>）が可能です。Safari や Firefox 等では毎回ダウンロード処理となるため、ファイル名管理にご留意ください。
+          <p class="lang-en">
+            For uncompressed floating-point HDR output in Unreal Engine or Unity, EXR export is exclusive to Desktop. Use <strong>16-bit PNG</strong> in Web or run the native desktop application.
           </p>
         </div>
         <div class="card">
-          <div class="card-title">④ 複数タブ利用時の自動復元</div>
-          <p>
-            Web版を複数のブラウザタブで同時に開いた場合、自動復元（リカバリ）データの競合を防ぐため、最初に開いたタブのみがリカバリ用ロックを保持します。2つ目以降のタブでは「自動復元が無効」となる通知が表示される場合があります。
+          <div class="card-title">③ <span class="lang-ja">上書き保存の動作と推奨ブラウザ</span><span class="lang-en">Direct Overwrite Saving</span></div>
+          <p class="lang-ja">
+            Chromium系ブラウザ（Google Chrome、Microsoft Edge等）では、一度保存ダイアログで許可を与えることでデスクトップアプリと同様のキーボード上書き保存（<kbd>Ctrl</kbd>+<kbd>S</kbd>）が可能です。Safari や Firefox 等では毎回ダウンロード処理となるため、ファイル名管理にご留意ください。
+          </p>
+          <p class="lang-en">
+            Chromium browsers (Google Chrome, Microsoft Edge) support seamless <kbd>Ctrl</kbd>+<kbd>S</kbd> overwrite saving via the File System Access API. Safari and Firefox trigger individual file downloads.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">④ <span class="lang-ja">複数タブ利用時の自動復元</span><span class="lang-en">Multi-Tab Crash Recovery</span></div>
+          <p class="lang-ja">
+            Web版を複数のブラウザタブで同時に開いた場合、自動復元（リカバリ）データの競合を防ぐため、最初に開いたタブのみがリカバリ用ロック（Web Locks API）を保持します。2つ目以降のタブでは「自動復元が無効」となる通知が表示される場合があります。
+          </p>
+          <p class="lang-en">
+            When opening multiple browser tabs, Web Locks API grants crash recovery rights exclusively to the primary tab to prevent conflicting snapshot overwrites.
           </p>
         </div>
       </div>
@@ -1960,58 +2391,145 @@
     ========================================================== -->
     <section id="sec-troubleshooting">
       <h2 class="section-heading">
-        12. エラーハンドリング・トラブル対応
+        <span class="lang-ja">12. エラーハンドリング・トラブル対応</span>
+        <span class="lang-en">12. Troubleshooting &amp; Diagnostics</span>
         <span class="badge">Diagnostics</span>
       </h2>
 
       <div class="card">
-        <div class="card-title">Q. 起動時に「Microsoft Edge WebView2 ランタイムが必要です」と表示される</div>
-        <p>
+        <div class="card-title">Q. <span class="lang-ja">起動時に「Microsoft Edge WebView2 ランタイムが必要です」と表示される</span><span class="lang-en">Prompted that "WebView2 Runtime is required" on Desktop startup</span></div>
+        <p class="lang-ja">
           Matcap Maker のデスクトップ版は軽量化のため OS 標準の WebView2 を利用します。Windows 10/11 の一部最小インストール環境等でランタイムが存在しない場合、ダイアログの「はい」を選択して Microsoft 公式サイトから WebView2 ランタイムをインストールしてください。
         </p>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Q. Web版で保存したプリセットやプロジェクト設定が消えてしまった</div>
-        <p>
-          Web版のデータはブラウザの IndexedDB / LocalStorage に保管されます。ブラウザの「閲覧履歴やCookieの削除」を実行したり、シークレット（プライベート）ウィンドウを閉じたりすると保存データが破棄されます。大切なプロジェクトは必ず <code>.mcproj</code> ファイルとしてエクスポート・保存しておいてください。
+        <p class="lang-en">
+          The native desktop application uses Windows WebView2 for ultra-lean memory footprints. If running on minimal Windows installations missing the runtime, click "Yes" to install it directly from Microsoft's official portal.
         </p>
       </div>
 
       <div class="card">
-        <div class="card-title">Q. Web版で「EXR」形式がエクスポートダイアログに表示されない</div>
-        <p>
+        <div class="card-title">Q. <span class="lang-ja">トップバーのバージョンバッジが鮮やかな緑色に光っている</span><span class="lang-en">The top bar version badge is glowing vivid green</span></div>
+        <p class="lang-ja">
+          GitHub 上で Matcap Maker の新しいバージョンがリリースされたことを通知しています。バッジをクリックするか、メニューの「ヘルプ」→「更新を確認」を選択することで、最新バージョンの更新内容とダウンロードページを確認できます。
+        </p>
+        <p class="lang-en">
+          This indicates that a newer version of Matcap Maker is available on GitHub. Click the glowing badge or navigate to "Help" → "Check for Updates" to review release notes and download the installer.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. <span class="lang-ja">Web版で保存したプリセットやプロジェクト設定が消えてしまった</span><span class="lang-en">Presets or project settings disappeared in the Web Edition</span></div>
+        <p class="lang-ja">
+          Web版のデータはブラウザ内部の IndexedDB / LocalStorage に保管されます。ブラウザの「閲覧履歴やCookieの削除」を実行したり、シークレット（プライベート）ウィンドウを閉じたりすると保存データが破棄されます。大切なプロジェクトは必ず <code>.mcproj</code> ファイルとしてエクスポート・保存しておいてください。
+        </p>
+        <p class="lang-en">
+          Web Edition data resides within browser IndexedDB/LocalStorage. Clearing browser cache/cookies or closing incognito windows discards stored data. Always export important projects as <code>.mcproj</code> files.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. <span class="lang-ja">Web版で「EXR」形式がエクスポートダイアログに表示されない</span><span class="lang-en">EXR format does not appear in the Web Edition export dialog</span></div>
+        <p class="lang-ja">
           Web版ではブラウザの機能制約により OpenEXR エンコーダが提供されていないため、選択肢から除外されています。高階調データを書き出したい場合は <strong>PNG 16bit</strong> をご利用いただくか、デスクトップ版の Matcap Maker をご利用ください。
         </p>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Q. 外部OBJ / GLB / FBX メッシュをドロップしても表示されない</div>
-        <p>
-          メッシュプレビューは法線ベクトル（Normals）を前提とします。法線データが欠落しているメッシュの場合、自動で頂点法線が計算されますが、極端に縮尺が巨大・微小なデータの場合はインスペクターの「スケール」調整またはカメラオービットを初期化してください。
+        <p class="lang-en">
+          OpenEXR native encoding is not available in browser environments. Use <strong>16-bit PNG</strong> for banding-free high fidelity gradients, or use the desktop Windows edition.
         </p>
       </div>
 
       <div class="card">
-        <div class="card-title">Q. エクスポートしたテクスチャの縁に黒い継ぎ目（シーム）が出る</div>
-        <p>
+        <div class="card-title">Q. <span class="lang-ja">外部OBJ / GLB / FBX メッシュをドロップしても表示されない</span><span class="lang-en">External OBJ / GLB / FBX meshes do not render after dropping</span></div>
+        <p class="lang-ja">
+          メッシュプレビューは法線ベクトル（Normals）を前提とします。法線データが欠落しているメッシュの場合、自動で頂点法線が計算されますが、極端に縮尺が巨大・微小なデータの場合はインスペクターの「スケール」調整またはカメラオービットを初期化してください。また、FBXはバイナリ形式 (6.x〜7.7) および ASCII 形式に対応しています。
+        </p>
+        <p class="lang-en">
+          Mesh previews sample surface normal vectors. Vertex normals are auto-computed if missing, but extreme model scale discrepancies may require tweaking the scale slider or resetting the orbit camera. FBX supports both binary (6.x-7.7) and ASCII formats.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. <span class="lang-ja">エクスポートしたテクスチャの縁に黒い継ぎ目（シーム）が出る</span><span class="lang-en">Black silhouette seam appears on 3D models in game engines</span></div>
+        <p class="lang-ja">
           エクスポート設定で「エッジパディング」が <code>0px</code> になっている可能性があります。パディング値を <code>16px</code> 以上に設定し、「パディングをなめらかにする」にチェックを入れて再エクスポートしてください。
         </p>
+        <p class="lang-en">
+          Edge padding may be configured to <code>0px</code>. Set padding width to at least <code>16px</code> and ensure "Smooth padding" is checked to eliminate UV border blending artifacts.
+        </p>
       </div>
 
       <div class="card">
-        <div class="card-title">Q. 突然の電源断やクラッシュ時のデータ復旧</div>
-        <p>
+        <div class="card-title">Q. <span class="lang-ja">突然の電源断やクラッシュ時のデータ復旧</span><span class="lang-en">Crash recovery and auto-save snapshots</span></div>
+        <p class="lang-ja">
           Matcap Maker は毎回の操作ごとに安全なバックグラウンド自動保存を行っています。異常終了後の次回起動時に「未保存の作業を復旧しますか？」というダイアログが表示され、直前の状態へワンクリックで復元可能です（※Web版を複数タブで開いている場合は、最初に開いたメインタブでのみ有効となります）。
+        </p>
+        <p class="lang-en">
+          Matcap Maker captures auto-save recovery snapshots after every change. If an unexpected power outage occurs, a recovery prompt will appear on next launch offering 1-click restoration (in Web, recovery is managed by the primary tab).
         </p>
       </div>
     </section>
   </main>
 
   <!-- =========================================================
-       INLINE INTERACTIVE SCRIPTS: WebGL2 Shader Engine
+       INLINE INTERACTIVE SCRIPTS: WebGL2 Simulation & Language Engine
   ========================================================== -->
   <script>
+    // -----------------------------------------------------------
+    // Language Switcher Engine (Bilingual JA/EN)
+    // -----------------------------------------------------------
+    (function initLanguage() {
+      const STORAGE_KEY = 'matcap_maker_doc_lang';
+      const searchInput = document.getElementById('nav-filter');
+      
+      function getInitialLang() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored === 'ja' || stored === 'en') return stored;
+        return (navigator.language && navigator.language.startsWith('en')) ? 'en' : 'ja';
+      }
+
+      function updateLanguageUI(lang) {
+        document.documentElement.lang = lang;
+        
+        // Update title
+        if (lang === 'en') {
+          document.title = 'Matcap Maker - Feature & Operations Reference Manual';
+          if (searchInput) searchInput.placeholder = 'Search documentation… (Enter for next)';
+        } else {
+          document.title = 'Matcap Maker - 機能・操作リファレンスマニュアル';
+          if (searchInput) searchInput.placeholder = 'マニュアル全文を検索… (Enterで次へ)';
+        }
+
+        // Update toggle button states
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+          if (btn.getAttribute('data-set-lang') === lang) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Trigger search refresh if an active search exists
+        if (window.__refreshSearch) {
+          window.__refreshSearch();
+        }
+      }
+
+      function setLang(lang) {
+        if (lang !== 'ja' && lang !== 'en') return;
+        localStorage.setItem(STORAGE_KEY, lang);
+        updateLanguageUI(lang);
+      }
+
+      // Attach click listeners to all language toggle buttons
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.lang-btn[data-set-lang]');
+        if (!btn) return;
+        const targetLang = btn.getAttribute('data-set-lang');
+        setLang(targetLang);
+      });
+
+      // Initialize
+      updateLanguageUI(getInitialLang());
+    })();
+
     // -----------------------------------------------------------
     // WebGL2 Matcap Simulation Implementation
     // -----------------------------------------------------------
@@ -2024,7 +2542,6 @@
         return;
       }
 
-      // Vertex Shader
       const vsSrc = `#version 300 es
         in vec2 a_pos;
         out vec2 v_uv;
@@ -2034,18 +2551,17 @@
         }
       `;
 
-      // Fragment Shader
       const fsSrc = `#version 300 es
         precision highp float;
         in vec2 v_uv;
         out vec4 fragColor;
 
-        uniform vec2 u_lightPos; // -1..1
+        uniform vec2 u_lightPos;
         uniform float u_intensity;
         uniform float u_range;
         uniform float u_rimPower;
-        uniform int u_shape; // 0=sphere, 1=flat, 2=normal
-        uniform int u_blendSpace; // 0=linear, 1=sRGB
+        uniform int u_shape;
+        uniform int u_blendSpace;
 
         vec3 srgbToLinear(vec3 c) { return pow(c, vec3(2.2)); }
         vec3 linearToSrgb(vec3 c) { return pow(c, vec3(1.0 / 2.2)); }
@@ -2060,28 +2576,20 @@
 
           vec3 n;
           if (u_shape == 0) {
-            // Sphere normal
             float z = sqrt(max(0.0, 1.0 - r2));
             n = vec3(p.x, p.y, z);
           } else if (u_shape == 1) {
-            // Flat disc
             n = vec3(0.0, 0.0, 1.0);
           } else {
-            // Normal map procedural wrinkles
             float z = sqrt(max(0.0, 1.0 - r2));
             vec3 baseN = vec3(p.x, p.y, z);
             float bump = sin(p.x * 25.0) * sin(p.y * 25.0) * 0.15;
             n = normalize(baseN + vec3(bump, bump, 0.0));
           }
 
-          // Light dir
           vec3 lDir = normalize(vec3(u_lightPos, 0.7));
-
-          // Base material (Dark Slate Blue)
           vec3 baseCol = vec3(0.12, 0.16, 0.22);
-          // Light color (Warm Gold/White)
           vec3 lightCol = vec3(1.0, 0.88, 0.75);
-          // Rim color (Sky Cyan)
           vec3 rimCol = vec3(0.2, 0.7, 1.0);
 
           if (u_blendSpace == 0) {
@@ -2090,34 +2598,29 @@
             rimCol = srgbToLinear(rimCol);
           }
 
-          // Spot light calculation
           float ndotl = max(0.0, dot(n, lDir));
           vec3 h = normalize(lDir + vec3(0.0, 0.0, 1.0));
           float ndoth = max(0.0, dot(n, h));
           float spec = pow(ndoth, 35.0 / u_range);
           vec3 spot = lightCol * (ndotl * 0.4 + spec * 0.8) * u_intensity;
 
-          // Rim / Fresnel calculation
           float fresnel = pow(1.0 - max(0.0, n.z), u_rimPower);
           vec3 rim = rimCol * fresnel * 1.2;
 
           vec3 finalCol;
           if (u_blendSpace == 0) {
-            // Linear add
             finalCol = baseCol + spot + rim;
             finalCol = linearToSrgb(finalCol);
           } else {
-            // Naive sRGB add
             finalCol = baseCol + spot + rim;
           }
 
-          // Gizmo dot overlay
           vec2 gizmoScreen = u_lightPos;
           float distToGizmo = length(p - gizmoScreen);
           if (distToGizmo < 0.045 && distToGizmo > 0.025) {
-            finalCol = vec3(1.0, 1.0, 1.0); // Ring
+            finalCol = vec3(1.0, 1.0, 1.0);
           } else if (distToGizmo <= 0.025) {
-            finalCol = vec3(0.22, 0.74, 0.97); // Dot
+            finalCol = vec3(0.22, 0.74, 0.97);
           }
 
           fragColor = vec4(clamp(finalCol, 0.0, 1.0), 1.0);
@@ -2144,7 +2647,6 @@
       gl.linkProgram(prog);
       gl.useProgram(prog);
 
-      // Quad
       const buf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -2163,14 +2665,13 @@
       const uShape = gl.getUniformLocation(prog, 'u_shape');
       const uBlendSpace = gl.getUniformLocation(prog, 'u_blendSpace');
 
-      // State
       let lightX = 0.4;
       let lightY = 0.4;
       let intensity = 1.4;
       let range = 0.75;
       let rimPower = 2.8;
-      let shapeMode = 0; // 0=sphere, 1=flat, 2=normal
-      let blendSpace = 0; // 0=linear, 1=srgb
+      let shapeMode = 0;
+      let blendSpace = 0;
       let isDragging = false;
 
       function render() {
@@ -2186,7 +2687,6 @@
 
       render();
 
-      // Mouse drag gizmo
       function updatePosFromMouse(e) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -2217,7 +2717,6 @@
       canvas.addEventListener('pointerup', () => { isDragging = false; });
       canvas.addEventListener('pointercancel', () => { isDragging = false; });
 
-      // Range controls
       const intInput = document.getElementById('sim-intensity');
       const intVal = document.getElementById('val-intensity');
       intInput.addEventListener('input', (e) => {
@@ -2242,7 +2741,6 @@
         render();
       });
 
-      // Segment controls
       const shapeBtns = document.querySelectorAll('#sim-shape-ctrl .segment-btn');
       shapeBtns.forEach((btn, idx) => {
         btn.addEventListener('click', () => {
@@ -2275,13 +2773,11 @@
       const canvasAfter = document.getElementById('split-canvas-after');
       if (!container || !afterPane || !line) return;
 
-      // Draw sample representations on 2D canvases
       function drawSpheres() {
         const ctxB = canvasBefore.getContext('2d');
         const ctxA = canvasAfter.getContext('2d');
         const w = 600, h = 320;
         
-        // Before: Dark base sphere only
         ctxB.fillStyle = '#0c0f14';
         ctxB.fillRect(0, 0, w, h);
         const gradB = ctxB.createRadialGradient(w/2 - 20, h/2 - 20, 10, w/2, h/2, 120);
@@ -2293,7 +2789,6 @@
         ctxB.fillStyle = gradB;
         ctxB.fill();
 
-        // After: Sphere with intense highlight and rim
         ctxA.fillStyle = '#0c0f14';
         ctxA.fillRect(0, 0, w, h);
         const gradA = ctxA.createRadialGradient(w/2 + 35, h/2 - 35, 5, w/2, h/2, 110);
@@ -2307,7 +2802,6 @@
         ctxA.fillStyle = gradA;
         ctxA.fill();
 
-        // Outer cyan rim
         ctxA.beginPath();
         ctxA.arc(w/2, h/2, 110, 0, Math.PI * 2);
         ctxA.lineWidth = 6;
@@ -2342,7 +2836,7 @@
     })();
 
     // -----------------------------------------------------------
-    // Plan A: Inline Full-Text Search + Highlight & Jump Engine
+    // Language-Aware Full-Text Search Engine
     // -----------------------------------------------------------
     (function initSearch() {
       const input = document.getElementById('nav-filter');
@@ -2382,6 +2876,7 @@
       }
 
       function highlightInNode(root, query) {
+        const curLang = document.documentElement.lang || 'ja';
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
         const textNodes = [];
         while (walker.nextNode()) {
@@ -2391,6 +2886,10 @@
           if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'MARK' || parent.closest('.interactive-stage') || parent.closest('#split-demo')) {
             continue;
           }
+          // Filter out inactive language content
+          if (curLang === 'ja' && parent.closest('.lang-en')) continue;
+          if (curLang === 'en' && parent.closest('.lang-ja')) continue;
+
           textNodes.push(walker.currentNode);
         }
 
@@ -2426,6 +2925,7 @@
       }
 
       function updateActiveMatch(newIdx) {
+        const curLang = document.documentElement.lang || 'ja';
         if (!allMatches.length) return;
         if (currentIndex >= 0 && allMatches[currentIndex]) {
           allMatches[currentIndex].classList.remove('current');
@@ -2433,12 +2933,14 @@
         currentIndex = (newIdx + allMatches.length) % allMatches.length;
         const currentMark = allMatches[currentIndex];
         currentMark.classList.add('current');
-        countLabel.textContent = `${currentIndex + 1} / ${allMatches.length} 件`;
+        const unit = curLang === 'en' ? 'matches' : '件';
+        countLabel.textContent = `${currentIndex + 1} / ${allMatches.length} ${unit}`;
         currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
       function performSearch() {
         clearHighlights();
+        const curLang = document.documentElement.lang || 'ja';
         const query = input.value.trim();
 
         if (!query) {
@@ -2483,11 +2985,13 @@
           nextBtn.disabled = false;
           updateActiveMatch(0);
         } else {
-          countLabel.textContent = '0 件';
+          countLabel.textContent = curLang === 'en' ? '0 matches' : '0 件';
           prevBtn.disabled = true;
           nextBtn.disabled = true;
         }
       }
+
+      window.__refreshSearch = performSearch;
 
       let debounceTimer;
       input.addEventListener('input', () => {
