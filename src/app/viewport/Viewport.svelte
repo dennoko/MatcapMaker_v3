@@ -193,7 +193,11 @@
     { v: 'normalMap', key: '3' },
     { v: 'mesh', key: '' },
   ];
-  const SPLITS: SplitMode[] = ['single', 'compare', 'beforeAfter'];
+  const SPLITS: { v: SplitMode; key: string }[] = [
+    { v: 'single', key: '' },
+    { v: 'compare', key: '4' },
+    { v: 'beforeAfter', key: '\\' },
+  ];
 </script>
 
 <div class="viewport" class:picking={!!app.eyedropper}>
@@ -227,7 +231,7 @@
   </div>
 
   <div class="toolbar">
-    <div class="seg">
+    <div class="seg" role="radiogroup" aria-label={tt('preview.shape')}>
       {#each SHAPES as s}
         <button
           class:on={app.view.previewShape === s.v}
@@ -238,17 +242,19 @@
           }}>{tt(`preview.shape.${s.v}`)}</button
         >
       {/each}
-      <button
-        class:on={app.view.split === 'compare'}
-        title={`${tt('preview.split.compare')} (4)`}
-        onclick={() => (app.view.split = app.view.split === 'compare' ? 'single' : 'compare')}>{tt('preview.split.compareShort')}</button
-      >
     </div>
-    <div class="seg">
-      {#each SPLITS.filter((s) => s !== 'compare') as s}
-        <button class:on={app.view.split === s} title={tt(`preview.split.${s}`)} onclick={() => (app.view.split = s)}>
-          {tt(`preview.split.${s}Short`)}
-        </button>
+    <div class="seg" role="radiogroup" aria-label={tt('preview.split')}>
+      {#each SPLITS as s}
+        <button
+          class:on={app.view.split === s.v}
+          title={`${tt(`preview.split.${s.v}`)}${s.key ? ` (${s.key})` : ''}`}
+          onclick={() => {
+            app.view.split = s.v;
+            if (s.v !== 'single' && app.view.previewShape === 'mesh') {
+              app.view.previewShape = 'sphere';
+            }
+          }}>{tt(`preview.split.${s.v}Short`)}</button
+        >
       {/each}
     </div>
     <div class="spacer"></div>

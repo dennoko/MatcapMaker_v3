@@ -67,8 +67,25 @@
       { label: tt('preview.shape.normalMap'), shortcut: '3', checked: app.view.previewShape === 'normalMap', action: () => (app.view.previewShape = 'normalMap') },
       { label: tt('preview.shape.mesh'), checked: app.view.previewShape === 'mesh', action: () => ((app.view.previewShape = 'mesh'), (app.view.split = 'single')) },
       { separator: true },
-      { label: tt('preview.split.compare'), shortcut: '4', checked: app.view.split === 'compare', action: () => (app.view.split = app.view.split === 'compare' ? 'single' : 'compare') },
-      { label: tt('preview.split.beforeAfter'), shortcut: '\\', checked: app.view.split === 'beforeAfter', action: () => (app.view.split = app.view.split === 'beforeAfter' ? 'single' : 'beforeAfter') },
+      { label: tt('preview.split.single'), checked: app.view.split === 'single', action: () => (app.view.split = 'single') },
+      {
+        label: tt('preview.split.compare'),
+        shortcut: '4',
+        checked: app.view.split === 'compare',
+        action: () => {
+          if (app.view.previewShape === 'mesh') app.view.previewShape = 'sphere';
+          app.view.split = app.view.split === 'compare' ? 'single' : 'compare';
+        },
+      },
+      {
+        label: tt('preview.split.beforeAfter'),
+        shortcut: '\\',
+        checked: app.view.split === 'beforeAfter',
+        action: () => {
+          if (app.view.previewShape === 'mesh') app.view.previewShape = 'sphere';
+          app.view.split = app.view.split === 'beforeAfter' ? 'single' : 'beforeAfter';
+        },
+      },
       { label: tt('preview.gizmos'), shortcut: 'G', checked: app.view.showGizmos, action: () => (app.view.showGizmos = !app.view.showGizmos) },
       { separator: true },
       { label: tt('preview.zoomReset'), action: () => (app.view.zoom = 1) },

@@ -112,11 +112,17 @@ export function handleKeydown(e: KeyboardEvent) {
     case '3':
       return run(() => (app.view.previewShape = 'normalMap'));
     case '4':
-      return run(() => (app.view.split = app.view.split === 'compare' ? 'single' : 'compare'));
+      return run(() => {
+        if (app.view.previewShape === 'mesh') app.view.previewShape = 'sphere';
+        app.view.split = app.view.split === 'compare' ? 'single' : 'compare';
+      });
     case 'g':
       return run(() => (app.view.showGizmos = !app.view.showGizmos));
     case '\\':
-      return run(() => (app.view.split = app.view.split === 'beforeAfter' ? 'single' : 'beforeAfter'));
+      return run(() => {
+        if (app.view.previewShape === 'mesh') app.view.previewShape = 'sphere';
+        app.view.split = app.view.split === 'beforeAfter' ? 'single' : 'beforeAfter';
+      });
     case 'F1':
       return run(() => (app.dialog = 'shortcuts'));
   }
