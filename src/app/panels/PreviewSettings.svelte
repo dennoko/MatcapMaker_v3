@@ -7,6 +7,7 @@
   import AssetField from '../widgets/AssetField.svelte';
   import Vec2Field from '../widgets/Vec2Field.svelte';
   import type { PreviewShape, SplitMode } from '$core/model/types';
+  import { MESH_EXTENSIONS } from '$render/preview/mesh';
 
   const v = $derived(app.view);
 
@@ -16,7 +17,7 @@
   }
 
   async function pickMesh() {
-    const f = await platform.pickOpenFile([{ name: 'Mesh (OBJ / GLB)', extensions: ['obj', 'glb'] }], tt('preview.loadMesh'));
+    const f = await platform.pickOpenFile([{ name: 'Mesh (OBJ / GLB / FBX)', extensions: MESH_EXTENSIONS }], tt('preview.loadMesh'));
     if (!f) return;
     try {
       await setMeshFrom(f.bytes, f.name);

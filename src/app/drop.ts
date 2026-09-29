@@ -1,10 +1,11 @@
 // File drops: projects open, images become Image layers (or the normal map
-// when dropped on the normal-map field), .obj files load as preview mesh.
+// when dropped on the normal-map field), .obj / .glb / .fbx files load as preview mesh.
 
 import { app, platform } from './state.svelte';
 import { addImageLayer, openFile, reportError, setMeshFrom, setNormalMapFrom } from './actions';
 import { tt } from './i18n.svelte';
 import { basename, type DropEvent } from '$platform/types';
+import { MESH_FILE } from '$render/preview/mesh';
 
 const IMAGE = /\.(png|jpe?g|webp|bmp|gif)$/i;
 
@@ -35,7 +36,7 @@ export async function handleDrop(e: DropEvent) {
   }
   for (const f of files) {
     try {
-      if (/\.(obj|glb)$/i.test(f.name)) {
+      if (MESH_FILE.test(f.name)) {
         await setMeshFrom(await load(f), f.name);
       } else if (IMAGE.test(f.name)) {
         if (target === 'normal') await setNormalMapFrom(await load(f), f.name);

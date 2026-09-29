@@ -29,7 +29,7 @@ import { encodePng } from '$platform/pngEncode';
 import { basename, dirname, joinPath, stripExt, type ProjectBundle } from '$platform/types';
 import type { ExportSpec } from '$render/export/Exporter';
 import { registry } from '$core/layers/registry';
-import { parseMesh } from '$render/preview/mesh';
+import { meshMime, parseMesh } from '$render/preview/mesh';
 
 export const PROJECT_FILTER = [{ name: 'Matcap Maker Project', extensions: ['mcproj'] }];
 export const OPEN_FILTER = [
@@ -469,13 +469,13 @@ export async function setNormalMapFrom(bytes: Uint8Array, name: string) {
 export async function loadMeshAsset(id: string) {
   const e = assets.get(id);
   if (!e) return;
-  app.renderer?.setMesh(parseMesh(e.bytes, e.meta.name));
+  app.renderer?.setMesh(await parseMesh(e.bytes, e.meta.name));
 }
 
 export async function setMeshFrom(bytes: Uint8Array, name: string) {
-  const mesh = parseMesh(bytes, name);
+  const mesh = await parseMesh(bytes, name);
   if (!mesh) throw new Error(tt('error.mesh'));
-  const e = await assets.add(bytes, name, /\.glb$/i.test(name) ? 'model/gltf-binary' : 'model/obj');
+  const e = await assets.add(bytes, name, meshMime(name));
   store.silent((d) => {
     d.assets[e.id] = { ...e.meta };
   });

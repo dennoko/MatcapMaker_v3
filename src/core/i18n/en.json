@@ -200,9 +200,9 @@
   "preview.normalMap.scale": "Scale",
   "preview.normalMap.offset": "Offset",
   "preview.mesh": "Mesh preview",
-  "preview.loadMesh": "Load mesh (OBJ / GLB)…",
+  "preview.loadMesh": "Load mesh (OBJ / GLB / FBX)…",
   "preview.defaultMesh": "Use default mesh",
-  "preview.meshHint": "Drag in the viewport to orbit. Drop an .obj or .glb file to load it.",
+  "preview.meshHint": "Drag in the viewport to orbit. Drop an .obj, .glb or .fbx file to load it.",
   "preview.exposure": "Exposure",
   "preview.toneMap": "Tone map",
 
@@ -270,6 +270,7 @@
   "settings.openPresets": "Open Presets Folder",
 
   "about.title": "About Matcap Maker",
+  "about.developer": "Developed by",
   "about.licenses": "Third-party licenses",
   "about.filter": "Filter…",
   "about.noLicenses": "License list unavailable in this build.",

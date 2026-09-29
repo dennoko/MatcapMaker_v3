@@ -251,8 +251,19 @@ export function parseGlb(bytes: Uint8Array): MeshData | null {
   return m;
 }
 
-/** Loads .obj (text) or .glb (binary) by file name. */
-export function parseMesh(bytes: Uint8Array, name: string): MeshData | null {
+/** File extensions accepted as preview meshes. */
+export const MESH_EXTENSIONS = ['obj', 'glb', 'fbx'];
+export const MESH_FILE = /\.(obj|glb|fbx)$/i;
+
+export function meshMime(name: string): string {
+  if (/\.glb$/i.test(name)) return 'model/gltf-binary';
+  if (/\.fbx$/i.test(name)) return 'application/octet-stream';
+  return 'model/obj';
+}
+
+/** Loads .obj (text), .glb (binary) or .fbx (binary / ASCII) by file name. */
+export async function parseMesh(bytes: Uint8Array, name: string): Promise<MeshData | null> {
   if (/\.glb$/i.test(name)) return parseGlb(bytes);
+  if (/\.fbx$/i.test(name)) return (await import('./fbx')).parseFbx(bytes);
   return parseObj(new TextDecoder().decode(bytes));
 }
