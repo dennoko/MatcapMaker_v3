@@ -107,6 +107,7 @@
 
 <div class="app" class:portrait>
   <header class="top">
+    <img class="app-icon" src={`${import.meta.env.BASE_URL}favicon.png`} alt="" />
     <MenuBar />
     <div class="title" title={app.filePath ?? ''}>
       {title}{#if app.dirty}<span class="dot" title={tt('status.unsaved')}> •</span>{/if}
@@ -198,6 +199,12 @@
     padding: 0 8px;
     background: var(--panel);
     border-bottom: 1px solid var(--border);
+  }
+  .app-icon {
+    width: 22px;
+    height: 22px;
+    margin: 0 -6px 0 2px;
+    flex: none;
   }
   .title {
     flex: 1;
