@@ -1,0 +1,60 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: lts/*, cache: pnpm }
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with: { workspaces: src-tauri }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      # builds the portable exe + NSIS installer and attaches them to a draft release
+      - uses: tauri-apps/tauri-action@v0
+        id: tauri
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Matcap Maker v__VERSION__
+          releaseDraft: true
+          releaseBody: See the assets below. The portable exe needs no installation; SHA256SUMS.txt lists checksums.
+      - name: Portable exe + checksums
+        shell: pwsh
+        run: |
+          $ver = (Get-Content package.json | ConvertFrom-Json).version
+          New-Item -ItemType Directory -Force dist-release | Out-Null
+          Copy-Item src-tauri/target/release/matcap-maker.exe "dist-release/MatcapMaker_${ver}_x64_portable.exe"
+          Copy-Item src-tauri/target/release/bundle/nsis/*.exe dist-release/
+          Get-FileHash dist-release/*.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content dist-release/SHA256SUMS.txt
+          gh release upload "v$ver" dist-release/*_portable.exe dist-release/SHA256SUMS.txt --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  web:
+    # same core published as a browser demo
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: lts/*, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:web
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: dist-web }
+      - uses: actions/deploy-pages@v4

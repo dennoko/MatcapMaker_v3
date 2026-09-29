@@ -6,7 +6,7 @@
   "description": "Matcap texture authoring tool",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/gen-licenses.mjs && vite build",
     "build:web": "vite build --mode web --outDir dist-web",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
@@ -34,5 +34,6 @@
     "typescript": "~5.9.3",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
-  }
+  },
+  "packageManager": "pnpm@12.6.0"
 }

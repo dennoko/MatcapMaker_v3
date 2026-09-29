@@ -1,0 +1,205 @@
+:root {
+  --font: 'Segoe UI Variable Text', 'Segoe UI', 'Yu Gothic UI', 'Meiryo UI', system-ui, sans-serif;
+  --mono: 'Cascadia Mono', Consolas, monospace;
+  --radius: 6px;
+  --radius-s: 4px;
+  --gap: 8px;
+  --row: 26px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ui-scale: 1;
+}
+
+:root,
+:root[data-theme='dark'] {
+  --bg: #16171a;
+  --bg-2: #1d1f23;
+  --panel: #202227;
+  --panel-2: #272a30;
+  --field: #15161a;
+  --field-hover: #1b1d22;
+  --border: #33363d;
+  --border-strong: #454952;
+  --text: #e6e7ea;
+  --text-2: #a9adb6;
+  --text-3: #7a7f89;
+  --accent: #4c9bff;
+  --accent-2: #2f7de0;
+  --accent-soft: rgba(76, 155, 255, 0.16);
+  --danger: #ff5d5d;
+  --ok: #3ecf8e;
+  --warn: #f5b041;
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  --viewport-bg: #1a1b1e;
+  --viewport-bg-2: #232429;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #eceef2;
+  --bg-2: #e3e6eb;
+  --panel: #f7f8fa;
+  --panel-2: #eef0f3;
+  --field: #ffffff;
+  --field-hover: #f3f5f8;
+  --border: #d5d9e0;
+  --border-strong: #b9bfc9;
+  --text: #1d2026;
+  --text-2: #4d535e;
+  --text-3: #7c828d;
+  --accent: #1f6fe0;
+  --accent-2: #185cbd;
+  --accent-soft: rgba(31, 111, 224, 0.12);
+  --danger: #d93636;
+  --ok: #17a468;
+  --warn: #c98300;
+  --shadow: 0 8px 28px rgba(20, 30, 50, 0.18);
+  --viewport-bg: #d9dce2;
+  --viewport-bg-2: #cfd3da;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: calc(12.5px * var(--ui-scale));
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#app {
+  height: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--field-hover);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+.btn.danger {
+  color: var(--danger);
+}
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn.ghost:hover:not(:disabled) {
+  background: var(--panel-2);
+  border-color: transparent;
+}
+.btn.icon {
+  width: 28px;
+  padding: 0;
+}
+.btn.small {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 0.92em;
+}
+
+.field {
+  height: var(--row);
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border);
+  background: var(--field);
+  padding: 0 8px;
+  min-width: 0;
+}
+.field:hover {
+  border-color: var(--border-strong);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+select.field {
+  padding-right: 4px;
+}
+
+.section-title {
+  font-size: 0.82em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-3);
+}
+
+.kbd {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--text-2);
+}
+
+.scroll {
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.checker {
+  background-color: #999;
+  background-image: linear-gradient(45deg, #666 25%, transparent 25%), linear-gradient(-45deg, #666 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #666 75%), linear-gradient(-45deg, transparent 75%, #666 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+}

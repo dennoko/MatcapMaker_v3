@@ -18,6 +18,8 @@ export interface ExportSpec {
   /** extra 3x3 averaging pass over padded pixels (closer to v3's look) */
   smoothPadding: boolean;
   jpgQuality: number;
+  /** read back only this region (top-down pixel coords) — used by the padding preview */
+  crop?: { x: number; y: number; w: number; h: number };
 }
 
 export interface EncodedPixels {
@@ -152,12 +154,14 @@ export class Exporter {
 
       const readMode = (m: number) => this.encodeAndRead(img, m, spec, project.settings.hdr);
       let out: EncodedPixels;
-      const px = size * size;
+      const outW = spec.crop ? spec.crop.w : size;
+      const outH = spec.crop ? spec.crop.h : size;
+      const px = outW * outH;
       if (spec.format === 'png8' || spec.format === 'jpg') {
         const rgba = readMode(spec.format === 'jpg' ? 1 : 0);
         lap('readback');
         if (spec.padding > 0 && !gpuPadding) {
-          dilateRGBA8(rgba, size, size, spec.padding);
+          dilateRGBA8(rgba, outW, outH, spec.padding);
           lap('padding');
         }
         if (spec.format === 'jpg') {
@@ -167,9 +171,9 @@ export class Exporter {
             rgb[j + 1] = rgba[i + 1];
             rgb[j + 2] = rgba[i + 2];
           }
-          out = { width: size, height: size, data: rgb, channels: 3, bitDepth: 8, timings };
+          out = { width: outW, height: outH, data: rgb, channels: 3, bitDepth: 8, timings };
         } else {
-          out = { width: size, height: size, data: rgba, channels: 4, bitDepth: 8, timings };
+          out = { width: outW, height: outH, data: rgba, channels: 4, bitDepth: 8, timings };
         }
       } else {
         const isHalf = spec.format === 'exr';
@@ -186,7 +190,7 @@ export class Exporter {
             data[i * 2 + 1] = lo[i];
           }
         }
-        out = { width: size, height: size, data, channels: 4, bitDepth: 16, timings };
+        out = { width: outW, height: outH, data, channels: 4, bitDepth: 16, timings };
       }
       return out;
     } finally {
@@ -253,9 +257,13 @@ export class Exporter {
   private encodeAndRead(src: RenderTarget, mode: number, spec: ExportSpec, hdr: boolean): Uint8Array {
     const { ctx } = this;
     const gl = ctx.gl;
-    const w = src.width;
-    const h = src.height;
-    const target = new RenderTarget(ctx, w, h, 'rgba8', 'nearest');
+    const c = spec.crop;
+    const w = c ? c.w : src.width;
+    const h = c ? c.h : src.height;
+    // GL rows are bottom-up
+    const rx = c ? c.x : 0;
+    const ry = c ? src.height - c.y - c.h : 0;
+    const target = new RenderTarget(ctx, src.width, src.height, 'rgba8', 'nearest');
     try {
       const enc = this.res.custom('encode', () => ENCODE);
       ctx.bindTarget(target);
@@ -267,7 +275,7 @@ export class Exporter {
       ctx.drawFullscreen();
       const buf = new Uint8Array(w * h * 4);
       gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
-      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      gl.readPixels(rx, ry, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       return flipRows(buf, w, h, 4);
     } finally {
