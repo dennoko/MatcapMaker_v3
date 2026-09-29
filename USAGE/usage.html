@@ -736,20 +736,22 @@
       display: block;
     }
 
-    .canvas-overlay-hint {
-      position: absolute;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(6px);
-      padding: 3px 10px;
+    .canvas-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .canvas-hint {
+      background: var(--bg-surface-2);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 14px;
       border-radius: 12px;
-      font-size: 0.72rem;
-      color: #fff;
-      pointer-events: none;
+      font-size: 0.76rem;
+      color: var(--text-secondary);
       white-space: nowrap;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
     }
 
     .stage-controls {
@@ -1635,9 +1637,11 @@
           </div>
         </div>
         <div class="stage-body">
-          <div class="canvas-wrap">
-            <canvas id="webgl-canvas" width="280" height="280"></canvas>
-            <div class="canvas-overlay-hint">
+          <div class="canvas-col">
+            <div class="canvas-wrap">
+              <canvas id="webgl-canvas" width="280" height="280"></canvas>
+            </div>
+            <div class="canvas-hint">
               <span class="lang-ja">マウス左ドラッグ: 光源の方向ギズモ移動</span>
               <span class="lang-en">Left Drag: Position light gizmo</span>
             </div>
