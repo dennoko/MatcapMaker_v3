@@ -38,3 +38,4 @@
 | [06_build_and_distribution.md](06_build_and_distribution.md) | ビルド、署名なし配布、CI、更新 |
 | [07_roadmap.md](07_roadmap.md) | 開発フェーズ、旧プロジェクトの移行、リスクと検証計画 |
 | [08_licenses_and_commercial_use.md](08_licenses_and_commercial_use.md) | 採用技術の商用利用・有償exe配布の調査、ライセンス戦略 |
+| [09_extensions.md](09_extensions.md) | 拡張：FBX の読み込み、アプリアイコン、開発元ロゴ |
