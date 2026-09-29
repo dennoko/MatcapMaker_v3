@@ -4,6 +4,7 @@
   "version": "3.0.0",
   "type": "module",
   "description": "Matcap texture authoring tool",
+  "license": "SEE LICENSE IN LICENCE/LICENSE.txt",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/gen-licenses.mjs && vite build",
@@ -12,7 +13,8 @@
     "test": "vitest run && cargo test --manifest-path src-tauri/Cargo.toml",
     "test:core": "vitest run",
     "test:golden": "playwright test",
-    "licenses": "node scripts/gen-licenses.mjs",
+    "licenses": "node scripts/gen-licenses.mjs && node scripts/gen-license-files.mjs",
+    "licenses:files": "node scripts/gen-license-files.mjs",
     "tauri": "tauri",
     "build:single": "vite build --mode single && node scripts/check-single.mjs",
     "test:single": "playwright test --project single"
