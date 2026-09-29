@@ -154,3 +154,105 @@ function normalize(a: number[]) {
   const l = Math.hypot(a[0], a[1], a[2]) || 1;
   return [a[0] / l, a[1] / l, a[2] / l];
 }
+
+// --- binary glTF (.glb) ---------------------------------------------------------
+
+interface GltfAccessor {
+  bufferView?: number;
+  byteOffset?: number;
+  componentType: number;
+  count: number;
+  type: string;
+}
+
+const COMPONENTS: Record<string, number> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
+
+function readAccessor(json: any, bin: DataView, index: number): Float64Array {
+  const acc = json.accessors[index] as GltfAccessor;
+  const view = json.bufferViews[acc.bufferView ?? 0];
+  const comps = COMPONENTS[acc.type] ?? 1;
+  const size = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4 }[acc.componentType as 5126] ?? 4;
+  const stride = view.byteStride ?? comps * size;
+  const base = (view.byteOffset ?? 0) + (acc.byteOffset ?? 0);
+  const out = new Float64Array(acc.count * comps);
+  for (let i = 0; i < acc.count; i++) {
+    for (let c = 0; c < comps; c++) {
+      const o = base + i * stride + c * size;
+      let v: number;
+      switch (acc.componentType) {
+        case 5126:
+          v = bin.getFloat32(o, true);
+          break;
+        case 5125:
+          v = bin.getUint32(o, true);
+          break;
+        case 5123:
+          v = bin.getUint16(o, true);
+          break;
+        case 5122:
+          v = bin.getInt16(o, true);
+          break;
+        case 5121:
+          v = bin.getUint8(o);
+          break;
+        default:
+          v = bin.getInt8(o);
+      }
+      out[i * comps + c] = v;
+    }
+  }
+  return out;
+}
+
+/** Minimal GLB reader: merges every triangle primitive (node transforms ignored). */
+export function parseGlb(bytes: Uint8Array): MeshData | null {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (dv.getUint32(0, true) !== 0x46546c67) return null; // 'glTF'
+  let o = 12;
+  let json: any = null;
+  let bin: DataView | null = null;
+  while (o + 8 <= bytes.length) {
+    const len = dv.getUint32(o, true);
+    const type = dv.getUint32(o + 4, true);
+    const chunk = bytes.subarray(o + 8, o + 8 + len);
+    if (type === 0x4e4f534a) json = JSON.parse(new TextDecoder().decode(chunk));
+    else if (type === 0x004e4942) bin = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+    o += 8 + len;
+  }
+  if (!json || !bin) return null;
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const indices: number[] = [];
+  let hasNormals = true;
+  for (const mesh of json.meshes ?? []) {
+    for (const prim of mesh.primitives ?? []) {
+      if (prim.mode !== undefined && prim.mode !== 4) continue;
+      if (prim.attributes?.POSITION === undefined) continue;
+      const base = positions.length / 3;
+      const pos = readAccessor(json, bin, prim.attributes.POSITION);
+      positions.push(...pos);
+      if (prim.attributes.NORMAL !== undefined) normals.push(...readAccessor(json, bin, prim.attributes.NORMAL));
+      else {
+        hasNormals = false;
+        normals.push(...new Array(pos.length).fill(0));
+      }
+      if (prim.indices !== undefined) for (const i of readAccessor(json, bin, prim.indices)) indices.push(base + i);
+      else for (let i = 0; i < pos.length / 3; i++) indices.push(base + i);
+    }
+  }
+  if (!indices.length) return null;
+  const m: MeshData = {
+    positions: new Float32Array(positions),
+    normals: new Float32Array(normals),
+    indices: new Uint32Array(indices),
+  };
+  if (!hasNormals) computeNormals(m);
+  normalizeBounds(m);
+  return m;
+}
+
+/** Loads .obj (text) or .glb (binary) by file name. */
+export function parseMesh(bytes: Uint8Array, name: string): MeshData | null {
+  if (/\.glb$/i.test(name)) return parseGlb(bytes);
+  return parseObj(new TextDecoder().decode(bytes));
+}

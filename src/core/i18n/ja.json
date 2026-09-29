@@ -72,6 +72,10 @@
   "layer.curves.title": "トーンカーブ",
   "layer.chromaticAberration.title": "色収差",
   "layer.grain.title": "フィルムグレイン",
+  "layer.gradientMap.title": "カラーランプ",
+  "layer.gradientMap.param.stops": "ランプ",
+  "param.falloff": "減衰カーブ",
+  "param.monochrome": "モノクロ",
 
   "layer.spotLight.param.scale": "形状スケール",
   "layer.image.param.scaleXY": "スケール X / Y",
@@ -196,9 +200,9 @@
   "preview.normalMap.scale": "スケール",
   "preview.normalMap.offset": "オフセット",
   "preview.mesh": "メッシュのプレビュー",
-  "preview.loadMesh": "OBJ を読み込む…",
+  "preview.loadMesh": "メッシュを読み込む（OBJ / GLB）…",
   "preview.defaultMesh": "既定のメッシュに戻す",
-  "preview.meshHint": "ビューポートをドラッグすると回転します。.obj をドロップしても読み込めます。",
+  "preview.meshHint": "ビューポートをドラッグすると回転します。.obj / .glb をドロップしても読み込めます。",
   "preview.exposure": "露出",
   "preview.toneMap": "トーンマップ",
 

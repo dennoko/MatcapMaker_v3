@@ -3,7 +3,7 @@ import type { ResourceCache } from './resources';
 import { registry } from '$core/layers/registry';
 import type { LayerDef } from '$core/layers/defineLayer';
 import { BLEND_MODES, type LayerNode, type Project } from '$core/model/types';
-import { findLayer, isGroup } from '$core/model/project';
+import { findLayer, flattenLayers, isGroup } from '$core/model/project';
 import { toUniforms, uniformName } from '$core/schema/params';
 
 export interface RenderOptions {
@@ -25,7 +25,12 @@ interface Slot {
   key: string;
   rt: RenderTarget;
   used: boolean;
+  /** frame number of the last (re)render, for LRU eviction */
+  stamp: number;
 }
+
+/** Soft cap for cached intermediate results per pipeline. */
+export const CACHE_BUDGET_BYTES = 384 * 1024 * 1024;
 
 interface StackResult {
   rt: RenderTarget;
@@ -51,6 +56,7 @@ export class MatcapPipeline {
   stats: FrameStats = { passes: 0, reused: 0, ms: 0 };
   private project!: Project;
   private opts: RenderOptions = {};
+  private frameNo = 0;
 
   constructor(
     private ctx: GLContext,
@@ -69,6 +75,7 @@ export class MatcapPipeline {
     this.project = project;
     this.opts = opts;
     this.stats = { passes: 0, reused: 0, ms: 0 };
+    this.frameNo++;
     for (const s of this.slots.values()) s.used = false;
 
     const gl = this.ctx.gl;
@@ -78,12 +85,17 @@ export class MatcapPipeline {
 
     const result = this.renderStack(project.layers, 'root');
 
+    // accumulation slots follow the current stack exactly; standalone layer
+    // outputs are kept while the layer exists (reused when only its
+    // opacity/blend/order changes) and trimmed by the memory budget
+    const alive = new Set(flattenLayers(project.layers).map((n) => `layer:${n.id}`));
     for (const [id, s] of this.slots) {
-      if (!s.used) {
+      if (!s.used && !alive.has(id)) {
         this.pool.release(s.rt);
         this.slots.delete(id);
       }
     }
+    this.evict();
     this.stats.ms = performance.now() - t0;
     return result.rt;
   }
@@ -133,12 +145,31 @@ export class MatcapPipeline {
       return { slot: s, fresh: true };
     }
     if (!s) {
-      s = { key, rt: this.pool.acquire(this.size, this.size, this.format), used: true };
+      s = { key, rt: this.pool.acquire(this.size, this.size, this.format), used: true, stamp: this.frameNo };
       this.slots.set(id, s);
     }
     s.key = key;
     s.used = true;
+    s.stamp = this.frameNo;
     return { slot: s, fresh: false };
+  }
+
+  /**
+   * Over budget: drop standalone generator outputs that changed least
+   * recently (they are simply recomputed when needed). The accumulation
+   * chain is kept because it is what makes edits near the front cheap.
+   */
+  private evict() {
+    let bytes = this.memoryBytes;
+    if (bytes <= CACHE_BUDGET_BYTES) return;
+    const layerSlots = [...this.slots.entries()].filter(([id]) => id.startsWith('layer:')).sort((a, b) => a[1].stamp - b[1].stamp);
+    for (const [id, s] of layerSlots) {
+      if (bytes <= CACHE_BUDGET_BYTES) break;
+      bytes -= s.rt.bytes;
+      s.rt.dispose();
+      this.slots.delete(id);
+    }
+    this.pool.dispose();
   }
 
   private renderStack(nodes: LayerNode[], scope: string): StackResult {
@@ -158,20 +189,23 @@ export class MatcapPipeline {
       const isFilter = !group && def!.kind !== 'generator';
 
       let src: StackResult | null = null;
+      let contentKey: string;
       if (group) {
         if (!node.children?.length) continue;
         src = this.renderStack(node.children, node.id);
-      } else if (!isFilter) {
-        src = this.generate(node, def!);
-        if (!src) continue;
+        contentKey = src.key;
+      } else {
+        // generators are only evaluated below when this step is stale
+        if (!isFilter && !this.res.generator(def!)) continue;
+        contentKey = this.paramKey(node, def!);
       }
       const mask = this.maskInfo(node);
-      const contentKey = isFilter ? this.paramKey(node, def!) : src!.key;
       const stepKey = hashString(
         `${acc.key}|${node.id}|${blendMode}|${node.opacity}|${settingsKey}|${mask.key}|${contentKey}`,
       );
       const { slot, fresh } = this.slot(`acc:${scope}:${node.id}`, stepKey);
       if (!fresh) {
+        if (!group && !isFilter) src = this.generate(node, def!);
         let temps: RenderTarget[] = [];
         let srcRt: RenderTarget | null = src?.rt ?? null;
         if (isFilter) {

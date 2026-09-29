@@ -35,7 +35,7 @@ export async function handleDrop(e: DropEvent) {
   }
   for (const f of files) {
     try {
-      if (/\.obj$/i.test(f.name)) {
+      if (/\.(obj|glb)$/i.test(f.name)) {
         await setMeshFrom(await load(f), f.name);
       } else if (IMAGE.test(f.name)) {
         if (target === 'normal') await setNormalMapFrom(await load(f), f.name);

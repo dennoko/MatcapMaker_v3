@@ -7,6 +7,7 @@ import previewGlsl from './shaders/preview.glsl?raw';
 import { computeLayout } from './preview/layout';
 import { generateNormalMap } from './preview/proceduralNormal';
 import { MeshPreview } from './preview/MeshPreview';
+import type { MeshData } from './preview/mesh';
 import type { AssetStore } from '$core/io/assetStore';
 import type { LayerNode, Project, ViewState } from '$core/model/types';
 
@@ -92,7 +93,7 @@ export class Renderer {
     this.before = null;
     this.preview = this.res.custom('preview', () => withCommon(previewGlsl));
     this.mesh = new MeshPreview(this.ctx);
-    if (this.meshText !== undefined) this.mesh.load(this.meshText);
+    if (this.meshData !== undefined) this.mesh.load(this.meshData);
     const gl = this.ctx.gl;
     const size = 512;
     const tex = gl.createTexture()!;
@@ -232,12 +233,12 @@ export class Renderer {
     return new Exporter(this.ctx, this.res).run(project, spec);
   }
 
-  /** Loads a mesh for the mesh preview (OBJ text). */
-  setMesh(objText: string | null) {
-    this.meshText = objText;
-    this.mesh.load(objText);
+  /** Mesh for the mesh preview (null = built-in torus knot). */
+  setMesh(mesh: MeshData | null) {
+    this.meshData = mesh;
+    this.mesh.load(mesh);
   }
-  private meshText: string | null | undefined;
+  private meshData: MeshData | null | undefined;
 
   get memoryBytes() {
     return this.hi.memoryBytes + this.lo.memoryBytes + (this.before?.memoryBytes ?? 0);

@@ -16,7 +16,7 @@
   }
 
   async function pickMesh() {
-    const f = await platform.pickOpenFile([{ name: 'Wavefront OBJ', extensions: ['obj'] }], tt('preview.loadMesh'));
+    const f = await platform.pickOpenFile([{ name: 'Mesh (OBJ / GLB)', extensions: ['obj', 'glb'] }], tt('preview.loadMesh'));
     if (!f) return;
     try {
       await setMeshFrom(f.bytes, f.name);

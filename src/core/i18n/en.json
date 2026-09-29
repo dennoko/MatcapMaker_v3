@@ -72,6 +72,10 @@
   "layer.curves.title": "Curves",
   "layer.chromaticAberration.title": "Chromatic Aberration",
   "layer.grain.title": "Film Grain",
+  "layer.gradientMap.title": "Color Ramp",
+  "layer.gradientMap.param.stops": "Ramp",
+  "param.falloff": "Falloff curve",
+  "param.monochrome": "Monochrome",
 
   "layer.spotLight.param.scale": "Shape Scale",
   "layer.image.param.scaleXY": "Scale X / Y",
@@ -196,9 +200,9 @@
   "preview.normalMap.scale": "Scale",
   "preview.normalMap.offset": "Offset",
   "preview.mesh": "Mesh preview",
-  "preview.loadMesh": "Load OBJ…",
+  "preview.loadMesh": "Load mesh (OBJ / GLB)…",
   "preview.defaultMesh": "Use default mesh",
-  "preview.meshHint": "Drag in the viewport to orbit. Drop a .obj file to load it.",
+  "preview.meshHint": "Drag in the viewport to orbit. Drop an .obj or .glb file to load it.",
   "preview.exposure": "Exposure",
   "preview.toneMap": "Tone map",
 

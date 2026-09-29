@@ -7,6 +7,10 @@ import image from './image';
 import gradient from './gradient';
 import colorAdjust from './colorAdjust';
 import blurSharpen from './blurSharpen';
+import curves from './curves';
+import gradientMap from './gradientMap';
+import chromaticAberration from './chromaticAberration';
+import grain from './grain';
 
 type Listener = () => void;
 
@@ -56,6 +60,10 @@ export const BUILTIN_LAYERS: LayerDef[] = [
   gradient,
   colorAdjust,
   blurSharpen,
+  curves,
+  gradientMap,
+  chromaticAberration,
+  grain,
 ];
 
 for (const d of BUILTIN_LAYERS) registry.register(d);

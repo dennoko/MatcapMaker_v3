@@ -27,6 +27,7 @@
   import { checkRecovery, clearRecovery, startAutosave } from './recovery.svelte';
   import { dropHint, handleDrop, setDropHover } from './drop';
   import { checkForUpdates } from './updates';
+  import { loadPlugins } from './plugins';
   import { basename } from '$platform/types';
 
   let winW = $state(window.innerWidth);
@@ -53,6 +54,7 @@
         return true;
       });
       platform.onFileDrop((e) => handleDrop(e), setDropHover);
+      await loadPlugins();
       const launch = await platform.launchFile().catch(() => null);
       recovery = await checkRecovery();
       if (launch) await openPath(launch);

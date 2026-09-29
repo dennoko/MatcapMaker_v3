@@ -35,7 +35,7 @@
 
 <Modal title={tt('about.title')} onclose={() => (app.dialog = null)} width={640}>
   <div class="hero">
-    <img src="/favicon.png" alt="" />
+    <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="" />
     <div>
       <div class="name">Matcap Maker</div>
       <div class="muted">v{APP_VERSION} · {platform.kind === 'tauri' ? 'Desktop' : 'Web'}</div>

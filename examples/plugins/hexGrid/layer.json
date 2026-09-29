@@ -1,0 +1,22 @@
+{
+  "type": "hexGrid",
+  "title": "Hex Grid",
+  "version": 1,
+  "kind": "generator",
+  "category": "texture",
+  "icon": "⬡",
+  "blendMode": "multiply",
+  "params": {
+    "scale": { "kind": "float", "default": 10, "min": 1, "max": 60, "softMax": 30 },
+    "width": { "kind": "float", "default": 0.08, "min": 0, "max": 0.5 },
+    "color": { "kind": "color", "default": "#1a1a1a" },
+    "space": { "kind": "enum", "default": "normal", "options": ["normal", "planar"] }
+  },
+  "i18n": {
+    "ja": {
+      "title": "六角グリッド",
+      "params": { "scale": "スケール", "width": "線の太さ", "color": "線の色", "space": "座標" },
+      "options": { "normal": "法線", "planar": "平面" }
+    }
+  }
+}

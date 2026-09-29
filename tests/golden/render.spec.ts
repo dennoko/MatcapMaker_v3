@@ -103,6 +103,11 @@ const LAYERS: Record<string, unknown[]> = {
   blur: [{ type: 'blurSharpen', params: { radius: 0.6 } }, { type: 'spotLight', params: { range: 0.1, blur: 0 } }, black],
   sharpen: [{ type: 'blurSharpen', params: { mode: 'sharpen', radius: 0.3, amount: 2 } }, { type: 'noise' }, gray],
   imageMissing: [{ type: 'image' }, gray],
+  curves: [{ type: 'curves', params: { curve: [{ x: 0, y: 0 }, { x: 0.3, y: 0.6 }, { x: 1, y: 1 }] } }, { type: 'spotLight' }, gray],
+  colorRamp: [{ type: 'gradientMap' }, { type: 'spotLight', params: { range: 0.5, blur: 0.8 } }, black],
+  chromaticAberration: [{ type: 'chromaticAberration', params: { amount: 0.05 } }, { type: 'spotLight', params: { range: 0.05, blur: 0 } }, black],
+  grain: [{ type: 'grain', params: { amount: 0.3 } }, gray],
+  spotFalloff: [{ type: 'spotLight', params: { range: 0.5, blur: 0.5, falloff: [{ x: 0, y: 0 }, { x: 0.5, y: 0.1 }, { x: 1, y: 1 }] } }, black],
   groupAndMask: [
     {
       type: 'group',
@@ -123,6 +128,57 @@ test.describe('pipeline', () => {
       expect(r.glError, name).toBe(0);
       compareGolden(name, r);
     }
+  });
+
+  test('example plugins compile and render', async ({ page }) => {
+    await open(page);
+    for (const [dir, files] of [['hexGrid', ['layer.glsl']], ['vignette', ['pass0.glsl']]] as const) {
+      const root = join(here, '..', '..', 'examples', 'plugins', dir);
+      const json = readFileSync(join(root, 'layer.json'), 'utf8');
+      const glsl = files.map((f) => readFileSync(join(root, f), 'utf8'));
+      await page.evaluate(([j, g]) => (window as any).mm.registerPlugin(j, g), [json, glsl] as const);
+    }
+    const r = await render(page, project({ type: 'vignette' }, { type: 'hexGrid' }, { type: 'spotLight' }, gray));
+    expect(r.errors).toEqual([]);
+    compareGolden('plugins', r);
+  });
+
+  test('differential cache matches a full re-render', async ({ page }) => {
+    await open(page);
+    const ids = ['a', 'b', 'c', 'd', 'e'];
+    const base = [
+      { id: 'a', type: 'fresnel', params: { power: 3 } },
+      { id: 'b', type: 'blurSharpen', params: { radius: 0.3 } },
+      { id: 'c', type: 'spotLight', params: { range: 0.3 } },
+      { id: 'd', type: 'noise', params: { intensity: 0.4 } },
+      { id: 'e', type: 'solidColor', params: { color: [0.3, 0.2, 0.1] } },
+    ];
+    void ids;
+    const edits: ((l: any[]) => void)[] = [
+      (l) => (l[0].params.power = 6), // front layer
+      (l) => (l[3].params.seed = 5), // behind a filter
+      (l) => (l[2].opacity = 0.4), // opacity only
+      (l) => l.splice(1, 0, l.splice(2, 1)[0]), // reorder
+      (l) => (l[4].enabled = false), // hide the base
+      (l) => (l[0].blendMode = 'screen'),
+    ];
+    let layers = structuredClone(base);
+    const first = await page.evaluate((j) => (window as any).mm.cachedRender(j), project(...layers));
+    expect(first.stats.passes).toBeGreaterThan(0);
+    for (const edit of edits) {
+      layers = structuredClone(layers);
+      edit(layers);
+      const json = project(...layers);
+      const c = await page.evaluate((j) => (window as any).mm.cachedRender(j), json);
+      const f = await page.evaluate((j) => (window as any).mm.freshRender(j), json);
+      let maxErr = 0;
+      for (let i = 0; i < f.length; i++) maxErr = Math.max(maxErr, Math.abs(c.px[i] - f[i]));
+      expect(maxErr, edit.toString()).toBeLessThan(1e-3);
+      expect(c.stats.reused, 'something was reused').toBeGreaterThan(0);
+    }
+    // unchanged document: nothing is re-rendered
+    const again = await page.evaluate((j) => (window as any).mm.cachedRender(j), project(...layers));
+    expect(again.stats.passes).toBe(0);
   });
 
   test('matcap space: disc mask, solid color and orientation', async ({ page }) => {

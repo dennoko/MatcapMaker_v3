@@ -19,6 +19,7 @@ const MIME_EXT: Record<string, string> = {
   'image/tiff': 'tif',
   'text/plain': 'txt',
   'model/obj': 'obj',
+  'model/gltf-binary': 'glb',
 };
 
 export function mimeFromName(name: string): string {
@@ -33,6 +34,7 @@ export function mimeFromName(name: string): string {
     tif: 'image/tiff',
     tiff: 'image/tiff',
     obj: 'model/obj',
+    glb: 'model/gltf-binary',
   };
   return map[ext] ?? 'application/octet-stream';
 }

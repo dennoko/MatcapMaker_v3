@@ -30,6 +30,7 @@ vec4 evalLayer(MatcapCtx ctx) {
   float cutoff = 1.0 - u_range;
   float eps = u_blur + 0.0001;
   float spot = smoothstep(cutoff - eps, cutoff + eps, modifiedNdotL);
+  spot = evalCurve(u_falloff_count, u_falloff_pts, spot);
 
   return vec4(spot * u_colorEff * u_intensityEff, spot);
 }

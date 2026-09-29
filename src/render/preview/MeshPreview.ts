@@ -1,6 +1,6 @@
 import { Program, type GLContext } from '../gl/gl';
 import type { ViewState } from '$core/model/types';
-import { parseObj, torusKnot, type MeshData } from './mesh';
+import { torusKnot, type MeshData } from './mesh';
 
 const VS = `#version 300 es
 layout(location = 0) in vec3 a_pos;
@@ -42,8 +42,7 @@ export class MeshPreview {
 
   constructor(private ctx: GLContext) {}
 
-  load(objText: string | null) {
-    const mesh: MeshData | null = objText ? parseObj(objText) : null;
+  load(mesh: MeshData | null) {
     this.upload(mesh ?? torusKnot());
   }
 

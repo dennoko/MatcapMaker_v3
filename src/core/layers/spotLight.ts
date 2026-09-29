@@ -26,6 +26,8 @@ export default defineLayer({
     blur: p.float({ default: 0.1, min: 0, max: 1 }),
     scale: p.vec2({ default: [1, 1], min: 0.01, max: 10, softMin: 0.1, softMax: 5 }),
     rotation: p.angle({ default: 0, gizmo: 'rotateRing' }),
+    // light falloff; the default straight line keeps the v3 look
+    falloff: p.curve({ default: [{ x: 0, y: 0 }, { x: 1, y: 1 }] }),
   },
   shader: glsl,
   uniforms: (params, node) => foldColorIntensity(params.color as RGB, params.intensity as number, node),

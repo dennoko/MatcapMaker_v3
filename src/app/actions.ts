@@ -29,6 +29,7 @@ import { encodePng } from '$platform/pngEncode';
 import { basename, dirname, joinPath, stripExt, type ProjectBundle } from '$platform/types';
 import type { ExportSpec } from '$render/export/Exporter';
 import { registry } from '$core/layers/registry';
+import { parseMesh } from '$render/preview/mesh';
 
 export const PROJECT_FILTER = [{ name: 'Matcap Maker Project', extensions: ['mcproj'] }];
 export const OPEN_FILTER = [
@@ -468,15 +469,20 @@ export async function setNormalMapFrom(bytes: Uint8Array, name: string) {
 export async function loadMeshAsset(id: string) {
   const e = assets.get(id);
   if (!e) return;
-  app.renderer?.setMesh(new TextDecoder().decode(e.bytes));
+  app.renderer?.setMesh(parseMesh(e.bytes, e.meta.name));
 }
 
 export async function setMeshFrom(bytes: Uint8Array, name: string) {
-  const e = await assets.add(bytes, name, 'model/obj');
+  const mesh = parseMesh(bytes, name);
+  if (!mesh) throw new Error(tt('error.mesh'));
+  const e = await assets.add(bytes, name, /\.glb$/i.test(name) ? 'model/gltf-binary' : 'model/obj');
+  store.silent((d) => {
+    d.assets[e.id] = { ...e.meta };
+  });
   app.view.mesh = e.id;
   app.view.previewShape = 'mesh';
   app.view.split = 'single';
-  app.renderer?.setMesh(new TextDecoder().decode(bytes));
+  app.renderer?.setMesh(mesh);
 }
 
 export async function pasteFromClipboard() {

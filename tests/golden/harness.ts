@@ -6,6 +6,19 @@ import { deserializeProject } from '../../src/core/io/serialize';
 import { encodePng } from '../../src/platform/pngEncode';
 import { defaultViewState } from '../../src/core/model/project';
 import type { ExportFormat } from '../../src/render/export/Exporter';
+import { loadPlugin } from '../../src/core/layers/pluginLoader';
+import { BUILTIN_LAYERS, registry } from '../../src/core/layers/registry';
+import { MatcapPipeline } from '../../src/render/pipeline/MatcapPipeline';
+
+let cached: MatcapPipeline | null = null;
+function readRt(rt: { fbo: WebGLFramebuffer; width: number; height: number }) {
+  const gl = renderer.ctx.gl;
+  const out = new Float32Array(rt.width * rt.height * 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, rt.fbo);
+  gl.readPixels(0, 0, rt.width, rt.height, gl.RGBA, gl.FLOAT, out);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  return out;
+}
 
 const canvas = document.getElementById('c') as HTMLCanvasElement;
 const assets = new AssetStore();
@@ -20,6 +33,22 @@ function b64(bytes: Uint8Array) {
 }
 
 (window as any).mm = {
+  /** Renders through one long-lived pipeline (exercises the differential cache). */
+  cachedRender(json: string) {
+    cached ??= new MatcapPipeline(renderer.ctx, renderer.res, 64);
+    const rt = cached.render(deserializeProject(json).project);
+    return { px: Array.from(readRt(rt)), stats: cached.stats };
+  },
+  freshRender(json: string) {
+    const p = new MatcapPipeline(renderer.ctx, renderer.res, 64);
+    const px = Array.from(readRt(p.render(deserializeProject(json).project)));
+    p.dispose();
+    return px;
+  },
+  registerPlugin(json: string, glsl: string[]) {
+    const { def } = loadPlugin(json, glsl, new Set(BUILTIN_LAYERS.map((d) => d.type)));
+    registry.register(def);
+  },
   caps: () => renderer.caps,
   async addAsset(name: string, base64: string) {
     const bin = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
