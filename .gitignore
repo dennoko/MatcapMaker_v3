@@ -13,3 +13,4 @@ src-tauri/gen/
 test-results/
 tests/golden/__output__/
 playwright-report/
+src/generated/
