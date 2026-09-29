@@ -67,6 +67,54 @@ test('mesh preview presents visible pixels without WebGL errors', async ({ page 
   expect(errors).toEqual([]);
 });
 
+test('compare shows the sphere and the mesh side by side', async ({ page }) => {
+  const errors: string[] = [];
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    (HTMLCanvasElement.prototype as any).getContext = function (...args: any[]) {
+      const gl = original.apply(this, args as any) as WebGL2RenderingContext | null;
+      if (args[0] === 'webgl2' && gl && !(gl as any).__captureHalves) {
+        (gl as any).__captureHalves = true;
+        let resolvedMesh = false;
+        const blit = gl.blitFramebuffer.bind(gl);
+        gl.blitFramebuffer = (...values) => {
+          blit(...values);
+          resolvedMesh = true;
+        };
+        const draw = gl.drawArrays.bind(gl);
+        gl.drawArrays = (...values) => {
+          draw(...values);
+          if (!resolvedMesh || gl.getParameter(gl.FRAMEBUFFER_BINDING) !== null) return;
+          resolvedMesh = false;
+          const w = gl.drawingBufferWidth;
+          const h = gl.drawingBufferHeight;
+          const pixels = new Uint8Array(w * h * 4);
+          gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+          // distinct red values along the middle row of each half
+          const row = Math.floor(h / 2) * w * 4;
+          const half = (x0: number, x1: number) => {
+            const set = new Set<number>();
+            for (let x = x0; x < x1; x++) set.add(pixels[row + x * 4]);
+            return set.size;
+          };
+          (window as any).__halves = [half(0, w >> 1), half(w >> 1, w)];
+        };
+      }
+      return gl;
+    };
+  });
+  await boot(page, errors);
+  await page.getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.getByRole('button', { name: 'Mesh', exact: true }).click();
+  await page.getByRole('button', { name: 'Split', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Mesh', exact: true })).toHaveClass(/\bon\b/);
+  await expect.poll(() => page.evaluate(() => (window as any).__halves as number[] | undefined)).toEqual([expect.any(Number), expect.any(Number)]);
+  const [left, right] = await page.evaluate(() => (window as any).__halves as number[]);
+  expect(left).toBeGreaterThan(3);
+  expect(right).toBeGreaterThan(3);
+  expect(errors).toEqual([]);
+});
+
 test('first run shows the tour, then the app edits without errors', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);

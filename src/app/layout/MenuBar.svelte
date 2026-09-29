@@ -65,7 +65,14 @@
       { label: tt('preview.shape.sphere'), shortcut: '1', checked: app.view.previewShape === 'sphere', action: () => (app.view.previewShape = 'sphere') },
       { label: tt('preview.shape.flat'), shortcut: '2', checked: app.view.previewShape === 'flat', action: () => (app.view.previewShape = 'flat') },
       { label: tt('preview.shape.normalMap'), shortcut: '3', checked: app.view.previewShape === 'normalMap', action: () => (app.view.previewShape = 'normalMap') },
-      { label: tt('preview.shape.mesh'), checked: app.view.previewShape === 'mesh', action: () => ((app.view.previewShape = 'mesh'), (app.view.split = 'single')) },
+      {
+        label: tt('preview.shape.mesh'),
+        checked: app.view.previewShape === 'mesh',
+        action: () => {
+          app.view.previewShape = 'mesh';
+          if (app.view.split === 'beforeAfter') app.view.split = 'single';
+        },
+      },
       { separator: true },
       { label: tt('preview.split.single'), checked: app.view.split === 'single', action: () => (app.view.split = 'single') },
       {
@@ -73,7 +80,6 @@
         shortcut: '4',
         checked: app.view.split === 'compare',
         action: () => {
-          if (app.view.previewShape === 'mesh') app.view.previewShape = 'sphere';
           app.view.split = app.view.split === 'compare' ? 'single' : 'compare';
         },
       },

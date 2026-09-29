@@ -4,7 +4,7 @@ import { ResourceCache } from './pipeline/resources';
 import { withCommon } from './pipeline/shaderBuilder';
 import { Exporter, type EncodedPixels, type ExportSpec } from './export/Exporter';
 import previewGlsl from './shaders/preview.glsl?raw';
-import { computeLayout } from './preview/layout';
+import { computeLayout, type PreviewLayout } from './preview/layout';
 import { generateNormalMap } from './preview/proceduralNormal';
 import { MeshPreview } from './preview/MeshPreview';
 import type { MeshData } from './preview/mesh';
@@ -154,11 +154,33 @@ export class Renderer {
       this.canvas.height = h;
     }
     const view = req.view;
-    if (view.previewShape === 'mesh' && view.split === 'single') {
-      this.mesh.draw(final.texture, view, w, h, req.theme.bg, req.project.settings.hdr);
+    const layout = computeLayout(req.cssWidth, req.cssHeight, view);
+    const s = req.dpr;
+    if (layout.mesh) {
+      const m = layout.mesh;
+      const x0 = Math.round(m.x * s);
+      const x1 = Math.min(w, Math.round((m.x + m.w) * s));
+      const y0 = Math.round(m.y * s);
+      const y1 = Math.min(h, Math.round((m.y + m.h) * s));
+      const vp = { x: x0, y: h - y1, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+      const full = vp.x === 0 && vp.y === 0 && vp.w === w && vp.h === h;
+      if (!full) this.drawDiscs(final, before, req, layout, matcapSize, w, h);
+      this.mesh.draw(final.texture, view, vp, req.theme.bg, req.project.settings.hdr);
       return;
     }
-    const layout = computeLayout(req.cssWidth, req.cssHeight, view);
+    this.drawDiscs(final, before, req, layout, matcapSize, w, h);
+  }
+
+  private drawDiscs(
+    final: RenderTarget,
+    before: RenderTarget | null,
+    req: FrameRequest,
+    layout: PreviewLayout,
+    matcapSize: number,
+    w: number,
+    h: number,
+  ) {
+    const view = req.view;
     const s = req.dpr;
     const p = this.preview;
     this.ctx.bindTarget(null, w, h);

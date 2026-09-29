@@ -185,7 +185,7 @@
   "preview.shape.mesh": "メッシュ",
   "preview.split": "レイアウト",
   "preview.split.single": "単体",
-  "preview.split.compare": "比較（ノーマルマップ）",
+  "preview.split.compare": "比較（ノーマルマップ・メッシュ）",
   "preview.split.beforeAfter": "前後比較（選択レイヤー）",
   "preview.split.singleShort": "単体",
   "preview.split.compareShort": "比較",

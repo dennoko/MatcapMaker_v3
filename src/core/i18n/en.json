@@ -185,7 +185,7 @@
   "preview.shape.mesh": "Mesh",
   "preview.split": "Layout",
   "preview.split.single": "Single",
-  "preview.split.compare": "Compare (normal map)",
+  "preview.split.compare": "Compare (normal map / mesh)",
   "preview.split.beforeAfter": "Before / After (selected layer)",
   "preview.split.singleShort": "Single",
   "preview.split.compareShort": "Split",

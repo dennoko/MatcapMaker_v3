@@ -113,7 +113,6 @@ export function handleKeydown(e: KeyboardEvent) {
       return run(() => (app.view.previewShape = 'normalMap'));
     case '4':
       return run(() => {
-        if (app.view.previewShape === 'mesh') app.view.previewShape = 'sphere';
         app.view.split = app.view.split === 'compare' ? 'single' : 'compare';
       });
     case 'g':

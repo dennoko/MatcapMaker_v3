@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Renderer } from '$render/Renderer';
-  import { computeLayout, hitDisc, screenToDisc } from '$render/preview/layout';
+  import { computeLayout, hitDisc, inRect, screenToDisc } from '$render/preview/layout';
   import { app, assets, onDocChange, store } from '../state.svelte';
   import { tt } from '../i18n.svelte';
   import { reportError } from '../actions';
@@ -150,7 +150,7 @@
       return;
     }
     const target = e.currentTarget as HTMLElement;
-    if (app.view.previewShape === 'mesh' && app.view.split === 'single') {
+    if (layout.mesh && inRect(layout.mesh, x, y)) {
       target.setPointerCapture(e.pointerId);
       const x0 = e.clientX;
       const y0 = e.clientY;
@@ -211,7 +211,7 @@
     {onwheel}
   >
     <canvas bind:this={canvas}></canvas>
-    {#if app.view.showGizmos && !app.eyedropper && app.view.previewShape !== 'mesh'}
+    {#if app.view.showGizmos && !app.eyedropper && (!layout.mesh || app.view.split === 'compare')}
       <Gizmos {layout} />
     {/if}
     {#if failed}
@@ -238,7 +238,7 @@
           title={`${tt(`preview.shape.${s.v}`)}${s.key ? ` (${s.key})` : ''}`}
           onclick={() => {
             app.view.previewShape = s.v;
-            if (s.v === 'mesh') app.view.split = 'single';
+            if (s.v === 'mesh' && app.view.split === 'beforeAfter') app.view.split = 'single';
           }}>{tt(`preview.shape.${s.v}`)}</button
         >
       {/each}
@@ -250,7 +250,7 @@
           title={`${tt(`preview.split.${s.v}`)}${s.key ? ` (${s.key})` : ''}`}
           onclick={() => {
             app.view.split = s.v;
-            if (s.v !== 'single' && app.view.previewShape === 'mesh') {
+            if (s.v === 'beforeAfter' && app.view.previewShape === 'mesh') {
               app.view.previewShape = 'sphere';
             }
           }}>{tt(`preview.split.${s.v}Short`)}</button

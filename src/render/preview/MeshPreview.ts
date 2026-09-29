@@ -2,6 +2,13 @@ import { Program, RenderTarget, type GLContext } from '../gl/gl';
 import type { ViewState } from '$core/model/types';
 import { torusKnot, type MeshData } from './mesh';
 
+export interface DeviceRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 const VS = `#version 300 es
 layout(location = 0) in vec3 a_pos;
 layout(location = 1) in vec3 a_normal;
@@ -134,8 +141,13 @@ export class MeshPreview {
     this.fbSize = [w, h];
   }
 
-  draw(matcap: WebGLTexture, view: ViewState, w: number, h: number, bg: [number, number, number], hdr: boolean) {
+  /**
+   * Draws into the canvas rectangle `vp` (device px, GL origin bottom-left);
+   * pixels outside it are left untouched.
+   */
+  draw(matcap: WebGLTexture, view: ViewState, vp: DeviceRect, bg: [number, number, number], hdr: boolean) {
     const gl = this.ctx.gl;
+    const { w, h } = vp;
     if (!this.vao) this.load(null);
     if (!this.prog) this.prog = new Program(this.ctx, FS, VS);
     this.ensureFbo(w, h);
@@ -156,7 +168,8 @@ export class MeshPreview {
     // R = Rx(pitch) * Ry(yaw), column-major
     const rot = [cy, sp * sy, -cp * sy, 0, cp, sp, sy, -sp * cy, cp * cy];
     gl.uniformMatrix3fv(gl.getUniformLocation(prog.program, 'u_rot'), false, rot);
-    prog.f('u_scale', 0.85 * view.zoom);
+    // fit the shorter side, like the sphere disc
+    prog.f('u_scale', 0.85 * view.zoom * Math.min(1, w / h));
     prog.f('u_aspect', w / h);
     prog.i('u_hdr', hdr ? 1 : 0);
     prog.tex('u_matcap', matcap);
@@ -169,7 +182,8 @@ export class MeshPreview {
     // can use RGB8, so resolve into RGBA8 before presenting with a shader.
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.resolved!.fbo);
     gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.COLOR_BUFFER_BIT, gl.NEAREST);
-    this.ctx.bindTarget(null, w, h);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(vp.x, vp.y, w, h);
     this.present ??= new Program(this.ctx, PRESENT_FS);
     this.present.use();
     this.present.tex('u_src', this.resolved!.texture);

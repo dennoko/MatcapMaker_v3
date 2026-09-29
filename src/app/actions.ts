@@ -484,7 +484,7 @@ export async function setMeshFrom(bytes: Uint8Array, name: string) {
   });
   app.view.mesh = e.id;
   app.view.previewShape = 'mesh';
-  app.view.split = 'single';
+  if (app.view.split === 'beforeAfter') app.view.split = 'single';
   app.renderer?.setMesh(mesh);
 }
 
