@@ -5,6 +5,7 @@
   import { app, platform } from '../state.svelte';
   import { tt } from '../i18n.svelte';
   import { APP_VERSION } from '$core/model/project';
+  import appIcon from '../../../branding/app-icon-source.png';
 
   interface Lic {
     name: string;
@@ -36,7 +37,7 @@
 
 <Modal title={tt('about.title')} onclose={() => (app.dialog = null)} width={640}>
   <div class="hero">
-    <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="" />
+    <img src={appIcon} alt="" />
     <div>
       <div class="name">Matcap Maker</div>
       <div class="muted">v{APP_VERSION} · {platform.kind === 'tauri' ? 'Desktop' : 'Web'}</div>
