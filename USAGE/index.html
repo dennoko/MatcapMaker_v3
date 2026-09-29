@@ -467,6 +467,99 @@
     }
 
     /* -------------------------------------------------------------
+       Badges & Callouts for Web / Desktop Differences
+    ------------------------------------------------------------- */
+    .badge-web {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      font-family: var(--font-mono);
+      vertical-align: middle;
+      line-height: 1.2;
+    }
+
+    .badge-desktop-only {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      font-family: var(--font-mono);
+      vertical-align: middle;
+      line-height: 1.2;
+    }
+
+    .callout-web {
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-left: 4px solid var(--accent-purple);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin: 16px 0 20px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .callout-web .callout-title {
+      font-weight: 600;
+      color: var(--accent-purple);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.94rem;
+    }
+
+    .callout-web p {
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .callout-web p:last-child {
+      margin-bottom: 0;
+    }
+
+    .callout-web ul, .callout-web ol {
+      margin-left: 20px;
+      margin-bottom: 0;
+      color: var(--text-secondary);
+    }
+
+    .callout-web li {
+      font-size: 0.88rem;
+      margin-bottom: 4px;
+    }
+
+    .callout-web li:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .status-ok { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+    .status-partial { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+    .status-no { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+
+    /* -------------------------------------------------------------
        Tables
     ------------------------------------------------------------- */
     .table-container {
@@ -950,6 +1043,7 @@
       <div class="nav-group-title">拡張・リファレンス</div>
       <a href="#sec-plugins" class="nav-link">プリセットとプラグイン拡張</a>
       <a href="#sec-shortcuts" class="nav-link">ショートカットキー一覧</a>
+      <a href="#sec-web-caps" class="nav-link">Web版の仕様・制約事項</a>
       <a href="#sec-troubleshooting" class="nav-link">エラーハンドリング・トラブル対応</a>
     </nav>
   </aside>
@@ -1010,6 +1104,19 @@
           </p>
         </div>
       </div>
+
+      <div class="callout-web">
+        <div class="callout-title">
+          <span class="badge-web">Web版についての補足</span>
+          デスクトップ版（Windowsアプリ）とWeb版の提供形態について
+        </div>
+        <p>
+          Matcap Maker には、Windows 用ネイティブアプリ（デスクトップ版）のほか、ブラウザ上でインストール不要で即座に動作する <strong>Web版</strong> が用意されています。Web版でも同じ WebGL2 レンダリングエンジンが動作し、球体ギズモの直接操作やレイヤー合成、エクスポートなどの基本機能をそのまま利用できます。
+        </p>
+        <p>
+          ただし、Web版はブラウザのセキュリティサンドボックス上で動作するため、<strong>ローカルファイルシステムへのアクセス、外部プラグインの読み込み、OpenEXR形式の書き出し等に一部制約</strong>があります。詳しくは <a href="#sec-web-caps" style="color:var(--accent-purple); text-decoration:underline;">Web版の仕様・制約事項</a> をご確認ください。
+        </p>
+      </div>
     </section>
 
     <!-- =========================================================
@@ -1053,6 +1160,18 @@
         <li><strong>プレビュー形状の切り替え:</strong> <kbd>1</kbd>（球体）、<kbd>2</kbd>（平面）、<kbd>3</kbd>（ノーマルマップ）、<kbd>4</kbd>（メッシュ）で立体感を多角的に検証します。</li>
         <li><strong>エクスポート:</strong> <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> でエッジパディング設定を指定して書き出します。2回目以降は <kbd>Ctrl</kbd>+<kbd>E</kbd> でクイックエクスポートが可能です。</li>
       </ol>
+
+      <div class="callout-web">
+        <div class="callout-title">
+          <span class="badge-web">Web版の操作・ファイル連携</span>
+          プロジェクトの保存・読み込みにおけるWeb版の動作仕様
+        </div>
+        <ul>
+          <li><strong>プロジェクトの保存 (<kbd>Ctrl</kbd>+<kbd>S</kbd>):</strong> Chrome や Edge など File System Access API をサポートするブラウザでは、一度保存先を指定することでデスクトップ版と同様の上書き保存が可能です。非対応ブラウザ（Firefox、Safari等）やセキュリティ制限下では、保存操作を実行するたびに <code>.mcproj</code> ファイルがブラウザからダウンロード保存されます。</li>
+          <li><strong>プロジェクトを開く:</strong> メニューの「ファイル」→「開く」ダイアログのほか、エクスプローラー等から <code>.mcproj</code> ファイルをブラウザ画面上に<strong>直接ドラッグ＆ドロップ</strong>することでもプロジェクトを即座に復元・展開できます。</li>
+          <li><strong>非対応のデスクトップ連携機能:</strong> OS の「最近使ったファイル」履歴、エクスポート完了後の「フォルダで表示（エクスプローラーを開く）」、および <code>.mcproj</code> ファイルのダブルクリック起動（OSファイル関連付け）は、Web版では利用できません。</li>
+        </ul>
+      </div>
     </section>
 
     <!-- =========================================================
@@ -1487,12 +1606,23 @@
               <td>ファイルサイズを極小化したい軽量プレビュー用（品質1〜100指定）。</td>
             </tr>
             <tr>
-              <td><strong>EXR (half)</strong></td>
+              <td><strong>EXR (half)</strong> <span class="badge-desktop-only">デスクトップ限定</span></td>
               <td>16bit 浮動小数点 (Half-Float)</td>
-              <td>Unreal Engine 5、Unity、Blender、映画制作向けのHDRデータ保持形式。</td>
+              <td>Unreal Engine 5、Unity、Blender、映画制作向けのHDRデータ保持形式。<strong>※Web版では非対応</strong></td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="callout-web">
+        <div class="callout-title">
+          <span class="badge-web">Web版のエクスポート制約</span>
+          書き出しフォーマットと出力先に関する制限
+        </div>
+        <ul>
+          <li><strong>OpenEXR (.exr) 出力の非対応:</strong> Web版では EXR 出力エンコーダが提供されないため、エクスポートダイアログのフォーマット選択肢に <code>EXR</code> は表示されません。Web版で出力できる形式は <strong>PNG 8bit</strong>、<strong>PNG 16bit</strong>、および <strong>JPG</strong> の 3 種類となります。高階調グラデーションを保持したい場合は <strong>PNG 16bit</strong> をご利用ください。32bit 浮動小数点 HDR 形式の EXR 出力が必要な場合はデスクトップ版をご利用ください。</li>
+          <li><strong>出力先とフォルダ表示:</strong> Web版ではブラウザのダウンロード処理として保存されるため、保存先はブラウザのダウンロード設定（通常は「ダウンロード」フォルダ）に依存します。また、デスクトップ版で利用可能な「フォルダで表示（保存先フォルダを開く）」トーストアクションや、前回の保存先ディレクトリの自動記憶はWeb版では動作しません。</li>
+        </ul>
       </div>
 
       <h3 class="sub-heading">ファイル名テンプレート</h3>
@@ -1514,10 +1644,22 @@
       <h2 class="section-heading">
         9. プリセットとプラグイン拡張
         <span class="badge">Extensibility</span>
+        <span class="badge-desktop-only">プラグインはデスクトップ限定</span>
       </h2>
       <p>
         Matcap Maker は、カスタムレイヤーを外部追加できる完全宣言型プラグインアーキテクチャを備えています。
       </p>
+
+      <div class="callout-web">
+        <div class="callout-title">
+          <span class="badge-web">Web版におけるプラグイン・プリセットの制約</span>
+          外部プラグイン読み込みとプリセットの保存先について
+        </div>
+        <ul>
+          <li><strong>外部プラグインの非対応:</strong> Web版では、ブラウザサンドボックスのセキュリティ制約によりローカルファイルシステム（<code>Documents/MatcapMaker/plugins/</code>）を自動スキャンできないため、外部GLSLプラグインの読み込みには対応していません（ビルトインの全12種類のレイヤーはフル機能で利用可能です）。</li>
+          <li><strong>プリセットの保存先（IndexedDB）:</strong> Web版で作成・保存したプリセットは、ローカルファイルではなくブラウザ内部の <strong>IndexedDB</strong> に保管されます。ブラウザの「閲覧履歴やCookie・サイトデータの削除」を実行したり、シークレットモード（プライベートブラウズ）を終了したりするとプリセットが消失する場合があります。大切な作品は、必ず <code>.mcproj</code> プロジェクトファイルとしてダウンロード保存しておくことを強く推奨します。</li>
+        </ul>
+      </div>
 
       <h3 class="sub-heading">プラグインのフォルダ構成</h3>
       <p>
@@ -1642,7 +1784,7 @@
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd> + <kbd>S</kbd></td>
-              <td>プロジェクトを上書き保存</td>
+              <td>プロジェクトを保存 / 上書き保存 <span class="badge-web">Web版: 対応環境で上書き / 非対応時はDL</span></td>
               <td>ファイル</td>
             </tr>
             <tr>
@@ -1663,14 +1805,162 @@
           </tbody>
         </table>
       </div>
+
+      <div class="callout-web">
+        <div class="callout-title">
+          <span class="badge-web">Web版でのキーボード操作時の注意点</span>
+          ブラウザショートカットとの兼ね合い
+        </div>
+        <p>
+          Web版では一般的なブラウザ上で動作するため、一部のブラウザ既定ショートカット（<kbd>Ctrl</kbd>+<kbd>W</kbd> でタブを閉じる、<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> で開発者ツールを開くなど）はブラウザ側の動作が優先される場合があります。
+        </p>
+        <p>
+          また、未保存の変更がある状態で誤ってタブを閉じたりリロードしたりすることを防止するため、ブラウザの「離脱防止ダイアログ（このサイトを離れますか？）」が自動的に作動します。
+        </p>
+      </div>
     </section>
 
     <!-- =========================================================
-         SECTION 11: トラブルシューティング
+         SECTION 11: Web版の仕様・制約事項
+    ========================================================== -->
+    <section id="sec-web-caps">
+      <h2 class="section-heading">
+        11. Web版の仕様と制約事項
+        <span class="badge-web">Web App Edition</span>
+      </h2>
+      <p>
+        Matcap Maker は、Windows 向けデスクトップアプリケーション（Tauri）だけでなく、Google Chrome、Microsoft Edge、Safari、Firefox などの最新ブラウザで直接動作する <strong>Web版</strong> を提供しています。
+        Web版はソフトウェアのインストールが不要で、URLにアクセスするだけですぐにマットキャップの制作を行える手軽さがある一方、Webブラウザのセキュリティサンドボックス（分離保護機構）により、デスクトップ版と比べていくつかの機能差および制約が存在します。
+      </p>
+
+      <h3 class="sub-heading">デスクトップ版とWeb版の機能対照表</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>機能カテゴリ</th>
+              <th>機能項目</th>
+              <th>デスクトップ版</th>
+              <th>Web版（ブラウザ）</th>
+              <th>詳細・代替動作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td rowspan="2"><strong>レンダリング</strong></td>
+              <td>12種レイヤー・ギズモ操作</td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td>同一の WebGL2 シェーダーパイプラインにより、同等品質でリアルタイム描画されます。</td>
+            </tr>
+            <tr>
+              <td>HDR・色空間（sRGB / リニア）</td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td>浮動小数点テクスチャに対応したブラウザ環境でHDR合成が動作します。</td>
+            </tr>
+            <tr>
+              <td rowspan="4"><strong>ファイル入出力</strong></td>
+              <td>プロジェクト上書き保存 (<kbd>Ctrl</kbd>+<kbd>S</kbd>)</td>
+              <td><span class="status-tag status-ok">ローカル保存</span></td>
+              <td><span class="status-tag status-partial">条件付き対応</span></td>
+              <td>File System Access API 対応環境（Chrome/Edge等）では上書き保存可能。非対応時はダウンロード保存。</td>
+            </tr>
+            <tr>
+              <td>プロジェクトを開く / 画像D&amp;D</td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td>ブラウザ画面への <code>.mcproj</code> や画像ファイルの直接ドラッグ＆ドロップに対応。</td>
+            </tr>
+            <tr>
+              <td>最近使ったファイル履歴 (Recent)</td>
+              <td><span class="status-tag status-ok">対応</span></td>
+              <td><span class="status-tag status-no">非対応</span></td>
+              <td>ブラウザの制約上、ローカルファイルパスの恒久的な保持ができないため非対応です。</td>
+            </tr>
+            <tr>
+              <td>OSファイル関連付け</td>
+              <td><span class="status-tag status-ok">対応</span></td>
+              <td><span class="status-tag status-no">非対応</span></td>
+              <td>エクスプローラーから <code>.mcproj</code> をダブルクリックして開く起動はデスクトップ版のみです。</td>
+            </tr>
+            <tr>
+              <td rowspan="3"><strong>エクスポート</strong></td>
+              <td>PNG 8bit / PNG 16bit / JPG 出力</td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td><span class="status-tag status-ok">完全対応</span></td>
+              <td>放射状エッジパディングを含め、Webブラウザ内で高速にエンコードして保存します。</td>
+            </tr>
+            <tr>
+              <td>OpenEXR (32bit float HDR) 出力</td>
+              <td><span class="status-tag status-ok">対応</span></td>
+              <td><span class="status-tag status-no">非対応</span></td>
+              <td>Web環境ではEXR出力ライブラリが利用できません。高階調が必要な場合は PNG 16bit をご利用ください。</td>
+            </tr>
+            <tr>
+              <td>フォルダで表示 (Reveal in Folder)</td>
+              <td><span class="status-tag status-ok">対応</span></td>
+              <td><span class="status-tag status-no">非対応</span></td>
+              <td>Web版ではブラウザのダウンロードマネージャーに保存されるため、直接フォルダを開く機能はありません。</td>
+            </tr>
+            <tr>
+              <td rowspan="3"><strong>拡張・管理</strong></td>
+              <td>外部GLSLプラグイン拡張</td>
+              <td><span class="status-tag status-ok">対応</span></td>
+              <td><span class="status-tag status-no">非対応</span></td>
+              <td><code>Documents/MatcapMaker/plugins/</code> フォルダの自動読み込みはデスクトップ版限定です。</td>
+            </tr>
+            <tr>
+              <td>プリセット・アプリ設定の永続化</td>
+              <td><span class="status-tag status-ok">ファイル保存</span></td>
+              <td><span class="status-tag status-partial">IndexedDB</span></td>
+              <td>ブラウザの内部ストレージに保管されます。ブラウザデータ消去やシークレットモード終了でリセットされます。</td>
+            </tr>
+            <tr>
+              <td>自動復元（クラッシュリカバリ）</td>
+              <td><span class="status-tag status-ok">対応</span></td>
+              <td><span class="status-tag status-partial">単一タブ対応</span></td>
+              <td>Web Locks API により排他制御され、最初に開いたタブのみが自動復元スナップショットを管理します。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-heading">Web版の主要な制約事項と対応策</h3>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">① データの消失防止とバックアップ</div>
+          <p>
+            Web版で作成したユーザープリセットや環境設定はブラウザ内部の IndexedDB / LocalStorage に保存されます。ブラウザの「履歴消去」や「Cookie・サイトデータの削除」を実行すると消去されてしまうため、<strong>重要な作品は必ずメニューの「保存」から <code>.mcproj</code> ファイルとしてローカルにダウンロード保存</strong>してください。
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">② OpenEXR書き出しが必要な場合</div>
+          <p>
+            UE5 や Blender、Unity HDRP 等でハイダイナミックレンジ（1.0を超える発光輝度）を保ったまま活用したい場合、Web版では EXR 出力が利用できません。高階調を維持した <strong>PNG 16bit</strong> で書き出すか、ネイティブのデスクトップ版をご利用ください。
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">③ 上書き保存の動作と推奨ブラウザ</div>
+          <p>
+            Chromium系ブラウザ（Google Chrome、Microsoft Edge等）では、一度保存ダイアログで許可を与えることでデスクトップアプリと同様のキーボード上書き保存（<kbd>Ctrl</kbd>+<kbd>S</kbd>）が可能です。Safari や Firefox 等では毎回ダウンロード処理となるため、ファイル名管理にご留意ください。
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">④ 複数タブ利用時の自動復元</div>
+          <p>
+            Web版を複数のブラウザタブで同時に開いた場合、自動復元（リカバリ）データの競合を防ぐため、最初に開いたタブのみがリカバリ用ロックを保持します。2つ目以降のタブでは「自動復元が無効」となる通知が表示される場合があります。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SECTION 12: トラブルシューティング
     ========================================================== -->
     <section id="sec-troubleshooting">
       <h2 class="section-heading">
-        11. エラーハンドリング・トラブル対応
+        12. エラーハンドリング・トラブル対応
         <span class="badge">Diagnostics</span>
       </h2>
 
@@ -1678,6 +1968,20 @@
         <div class="card-title">Q. 起動時に「Microsoft Edge WebView2 ランタイムが必要です」と表示される</div>
         <p>
           Matcap Maker のデスクトップ版は軽量化のため OS 標準の WebView2 を利用します。Windows 10/11 の一部最小インストール環境等でランタイムが存在しない場合、ダイアログの「はい」を選択して Microsoft 公式サイトから WebView2 ランタイムをインストールしてください。
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. Web版で保存したプリセットやプロジェクト設定が消えてしまった</div>
+        <p>
+          Web版のデータはブラウザの IndexedDB / LocalStorage に保管されます。ブラウザの「閲覧履歴やCookieの削除」を実行したり、シークレット（プライベート）ウィンドウを閉じたりすると保存データが破棄されます。大切なプロジェクトは必ず <code>.mcproj</code> ファイルとしてエクスポート・保存しておいてください。
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Q. Web版で「EXR」形式がエクスポートダイアログに表示されない</div>
+        <p>
+          Web版ではブラウザの機能制約により OpenEXR エンコーダが提供されていないため、選択肢から除外されています。高階調データを書き出したい場合は <strong>PNG 16bit</strong> をご利用いただくか、デスクトップ版の Matcap Maker をご利用ください。
         </p>
       </div>
 
@@ -1698,7 +2002,7 @@
       <div class="card">
         <div class="card-title">Q. 突然の電源断やクラッシュ時のデータ復旧</div>
         <p>
-          Matcap Maker は毎回の操作ごとに安全なバックグラウンド自動保存を行っています。異常終了後の次回起動時に「未保存の作業を復旧しますか？」というダイアログが表示され、直前の状態へワンクリックで復元可能です。
+          Matcap Maker は毎回の操作ごとに安全なバックグラウンド自動保存を行っています。異常終了後の次回起動時に「未保存の作業を復旧しますか？」というダイアログが表示され、直前の状態へワンクリックで復元可能です（※Web版を複数タブで開いている場合は、最初に開いたメインタブでのみ有効となります）。
         </p>
       </div>
     </section>
