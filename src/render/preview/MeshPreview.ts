@@ -1,4 +1,4 @@
-import { Program, type GLContext } from '../gl/gl';
+import { Program, RenderTarget, type GLContext } from '../gl/gl';
 import type { ViewState } from '$core/model/types';
 import { torusKnot, type MeshData } from './mesh';
 
@@ -29,9 +29,19 @@ void main() {
   o_color = vec4(rgb * c.a, 1.0);
 }`;
 
+const PRESENT_FS = `#version 300 es
+precision highp float;
+in vec2 v_uv;
+uniform sampler2D u_src;
+out vec4 o_color;
+void main() { o_color = texture(u_src, v_uv); }
+`;
+
 /** Arbitrary mesh preview (OBJ). View-space normals index the matcap. */
 export class MeshPreview {
   private prog: Program | null = null;
+  private present: Program | null = null;
+  private resolved: RenderTarget | null = null;
   private vao: WebGLVertexArrayObject | null = null;
   private buffers: WebGLBuffer[] = [];
   private count = 0;
@@ -46,7 +56,7 @@ export class MeshPreview {
 
   /** GPU memory of the vertex data and the multisampled color/depth buffers. */
   get memoryBytes() {
-    return this.bufferBytes + (this.fbo ? this.fbSize[0] * this.fbSize[1] * 8 * Math.max(1, this.samples) : 0);
+    return this.bufferBytes + (this.fbo ? this.fbSize[0] * this.fbSize[1] * (8 * Math.max(1, this.samples) + 4) : 0);
   }
 
   dispose() {
@@ -59,6 +69,8 @@ export class MeshPreview {
     this.deleteFbo();
     this.prog?.dispose();
     this.prog = null;
+    this.present?.dispose();
+    this.present = null;
   }
 
   private deleteFbo() {
@@ -67,6 +79,8 @@ export class MeshPreview {
     if (this.color) gl.deleteRenderbuffer(this.color);
     if (this.depth) gl.deleteRenderbuffer(this.depth);
     this.fbo = this.color = this.depth = null;
+    this.resolved?.dispose();
+    this.resolved = null;
     this.fbSize = [0, 0];
   }
 
@@ -103,6 +117,7 @@ export class MeshPreview {
     const gl = this.ctx.gl;
     if (this.fbo && this.fbSize[0] === w && this.fbSize[1] === h) return;
     this.deleteFbo();
+    this.resolved = new RenderTarget(this.ctx, w, h, 'rgba8', 'nearest');
     const samples = Math.min(4, gl.getParameter(gl.MAX_SAMPLES) as number);
     this.samples = samples;
     this.color = gl.createRenderbuffer();
@@ -150,8 +165,14 @@ export class MeshPreview {
     gl.bindVertexArray(null);
     gl.disable(gl.DEPTH_TEST);
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbo);
-    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+    // Multisample resolve requires matching color formats. The opaque canvas
+    // can use RGB8, so resolve into RGBA8 before presenting with a shader.
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.resolved!.fbo);
     gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.COLOR_BUFFER_BIT, gl.NEAREST);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    this.ctx.bindTarget(null, w, h);
+    this.present ??= new Program(this.ctx, PRESENT_FS);
+    this.present.use();
+    this.present.tex('u_src', this.resolved!.texture);
+    this.ctx.drawFullscreen();
   }
 }

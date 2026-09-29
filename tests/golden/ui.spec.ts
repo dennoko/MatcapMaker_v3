@@ -24,6 +24,49 @@ async function boot(page: Page, errors: string[]) {
   await expect(page.locator('.menubar')).toBeVisible();
 }
 
+test('mesh preview presents visible pixels without WebGL errors', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (m) => {
+    if (/GL_INVALID|GL_OUT_OF_MEMORY/.test(m.text())) errors.push(m.text());
+  });
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    (HTMLCanvasElement.prototype as any).getContext = function (...args: any[]) {
+      const gl = original.apply(this, args as any) as WebGL2RenderingContext | null;
+      if (args[0] === 'webgl2' && gl && !(gl as any).__captureMesh) {
+        (gl as any).__captureMesh = true;
+        let resolvedMesh = false;
+        const blit = gl.blitFramebuffer.bind(gl);
+        gl.blitFramebuffer = (...values) => {
+          blit(...values);
+          resolvedMesh = true;
+        };
+        const draw = gl.drawArrays.bind(gl);
+        gl.drawArrays = (...values) => {
+          draw(...values);
+          if (resolvedMesh && gl.getParameter(gl.FRAMEBUFFER_BINDING) === null && gl.drawingBufferWidth > 1) {
+            resolvedMesh = false;
+            const pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+            gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            const reds = new Set<number>();
+            for (let i = 0; i < pixels.length; i += 4) reds.add(pixels[i]);
+            (window as any).__previewColors = reds.size;
+            (window as any).__previewError = gl.getError();
+          }
+        };
+      }
+      return gl;
+    };
+  });
+  await boot(page, errors);
+  await page.getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.getByRole('tab', { name: 'Preview', exact: true }).click();
+  await page.locator('select').filter({ has: page.locator('option[value="mesh"]') }).selectOption('mesh');
+  await expect.poll(() => page.evaluate(() => (window as any).__previewColors)).toBeGreaterThan(3);
+  expect(await page.evaluate(() => (window as any).__previewError)).toBe(0);
+  expect(errors).toEqual([]);
+});
+
 test('first run shows the tour, then the app edits without errors', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
