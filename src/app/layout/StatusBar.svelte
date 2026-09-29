@@ -1,6 +1,7 @@
 <script lang="ts">
   import { app, platform, store } from '../state.svelte';
   import { tt } from '../i18n.svelte';
+  import DevLogo from '../widgets/DevLogo.svelte';
 
   const history = $derived.by(() => {
     void app.historyVersion;
@@ -44,9 +45,24 @@
       {/if}
     {/if}
   </span>
+  <button class="brand" title={tt('menu.help.about')} onclick={() => (app.dialog = 'about')}><DevLogo height={13} /></button>
 </footer>
 
 <style>
+  .brand {
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    border: none;
+    background: none;
+    color: var(--text-3);
+    opacity: 0.7;
+    cursor: pointer;
+  }
+  .brand:hover {
+    opacity: 1;
+    color: var(--text);
+  }
   .status {
     display: flex;
     align-items: center;

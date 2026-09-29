@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Modal from './Modal.svelte';
+  import DevLogo from '../widgets/DevLogo.svelte';
   import { app, platform } from '../state.svelte';
   import { tt } from '../i18n.svelte';
   import { APP_VERSION } from '$core/model/project';
@@ -41,6 +42,10 @@
       <div class="muted">v{APP_VERSION} · {platform.kind === 'tauri' ? 'Desktop' : 'Web'}</div>
       <div class="muted small">{renderer}</div>
     </div>
+    <button class="dev" title="github.com/dennoko" onclick={() => platform.openUrl('https://github.com/dennoko')}>
+      <span class="muted small">{tt('about.developer')}</span>
+      <DevLogo height={26} />
+    </button>
   </div>
 
   <div class="head">
@@ -81,6 +86,22 @@
   .hero img {
     width: 56px;
     height: 56px;
+  }
+  .dev {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 6px 8px;
+    border: none;
+    border-radius: var(--radius-s);
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .dev:hover {
+    background: var(--panel-2);
   }
   .name {
     font-size: 1.4em;
