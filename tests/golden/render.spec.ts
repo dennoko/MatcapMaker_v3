@@ -277,25 +277,43 @@ test.describe('pipeline', () => {
     compareGolden('padding', r);
   });
 
-  test('padding ignores the degraded anti-aliased fringe', async ({ page }) => {
+  test('padding ignores the degraded anti-aliased rim', async ({ page }) => {
     await open(page);
     const S = 64;
-    // multiply barely applies where the backdrop alpha is ~0, so the fringe is
-    // pinkish while the disc is red; the fill must still be pure red
+    // multiply only partly applies on the anti-aliased rim, so the rim is
+    // pinkish while the disc is red; the rim and the fill must still be pure
+    // red, with no 1px seam between the disc and the padding
     const json = project({ type: 'solidColor', blendMode: 'multiply', params: { color: [1, 1, 1] } }, { type: 'solidColor', params: { color: [1, 0, 0] } });
     const r = await render(page, json, S, 6);
     let filled = 0;
     for (let y = 0; y < S; y++) {
       for (let x = 0; x < S; x++) {
-        const d = Math.hypot(x + 0.5 - S / 2, y + 0.5 - S / 2);
-        if (d < S / 2 + 1.5) continue; // disc and its fringe
         const c = px(r, S, x, y);
         if (c[3] === 0) continue;
-        filled++;
+        if (Math.hypot(x + 0.5 - S / 2, y + 0.5 - S / 2) > S / 2 + 1) filled++;
         expect(c, `(${x}, ${y})`).toEqual([255, 0, 0, 255]);
       }
     }
     expect(filled).toBeGreaterThan(0);
+  });
+
+  test('padding continues the disc edge without a seam', async ({ page }) => {
+    await open(page);
+    const S = 128;
+    // fresnel is steepest at the edge, so a seam or a fill taken from the
+    // wrong ring shows up as a jump between the disc and the padding
+    const r = await render(page, project({ type: 'fresnel', blendMode: 'add' }, gray), S, 8);
+    // along the diagonal: the last fully covered pixel, then the padding
+    const R = S / 2;
+    const ks: number[] = [];
+    for (let k = 0; k < R; k++) ks.push(k);
+    const dist = (k: number) => Math.SQRT2 * (R - k - 0.5);
+    const last = ks.find((k) => dist(k) <= R - Math.SQRT2 / 2 - 0.05)!;
+    const edge = px(r, S, last, last);
+    for (let k = last - 1; k >= 0 && px(r, S, k, k)[3] > 0; k--) {
+      const c = px(r, S, k, k);
+      for (let ch = 0; ch < 3; ch++) expect(Math.abs(c[ch] - edge[ch]), `(${k}, ${k}) vs edge ${edge}`).toBeLessThanOrEqual(6);
+    }
   });
 
   test('outer background fills pixels beyond the padding', async ({ page }) => {

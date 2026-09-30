@@ -73,31 +73,60 @@ void main() {
 
 // The disc's anti-aliased rim is a poor colour source: every layer's alpha is
 // scaled by the coverage there, so blend modes only partly apply and its colour
-// is off (darker or washed out). Copied outward it streaks in fans, so a rim
-// seed takes its colour from the fully covered pixel radially inward instead,
-// and pixels that are not seeds, the rim included, are laid over the fill by
-// their alpha.
+// is off (darker or washed out). Copied outward it streaks in fans, and kept
+// as-is it leaves a 1px seam between the disc and the padding. So where the
+// nearest seed is at the edge, the disc is extended radially: each pixel takes
+// the colour of the outermost fully covered ring along its own angle. Inside,
+// pixels below the threshold are laid over the fill by their alpha.
 const JFA_RESOLVE = withCommon(`
 uniform sampler2D u_src;
 uniform sampler2D u_seeds;
 uniform float u_padding;
 uniform float u_threshold;
-vec2 fillSource(vec2 s) {
-  float radius = u_resolution.x * 0.5;
-  vec2 d = s - vec2(radius);
+float radius() { return u_resolution.x * 0.5; }
+// partly covered by the disc: makeCtx ramps coverage over fwidth(r), which in
+// pixels is (|dx| + |dy|) / r, centred on the edge (small margin for the
+// quad-based derivatives)
+bool onRim(vec2 p) {
+  vec2 d = p - vec2(radius());
   float r = length(d);
-  // the rim is at most ~1.4px wide (makeCtx: aa <= 2*sqrt(2)/size in r)
-  float inner = radius - 1.5;
-  return r > radius - 1.0 && r > 0.0 ? vec2(radius) + d * (inner / r) : s;
+  float aa = r > 0.0 ? (abs(d.x) + abs(d.y)) / r : 1.0;
+  return r > radius() - 0.5 * aa - 0.05;
+}
+// the colour of the outermost fully covered ring along p's angle: bilinear
+// (so it varies smoothly around the circle) over the covered texels only
+vec3 radialFill(vec2 p) {
+  vec2 d = p - vec2(radius());
+  float r = length(d);
+  if (r <= 0.0) return texelFetch(u_src, ivec2(p), 0).rgb;
+  vec2 u = d / r;
+  float aa = abs(u.x) + abs(u.y);
+  vec2 q = vec2(radius()) + u * max(radius() - 0.5 * aa - 0.5, 0.0) - 0.5;
+  ivec2 i = ivec2(floor(q));
+  vec2 f = fract(q);
+  vec3 sum = vec3(0.0);
+  float wsum = 0.0;
+  for (int y = 0; y <= 1; y++) for (int x = 0; x <= 1; x++) {
+    ivec2 t = i + ivec2(x, y);
+    if (onRim(vec2(t) + 0.5)) continue;
+    float w = (x == 1 ? f.x : 1.0 - f.x) * (y == 1 ? f.y : 1.0 - f.y) + 1e-4;
+    sum += texelFetch(u_src, t, 0).rgb * w;
+    wsum += w;
+  }
+  return wsum > 0.0 ? sum / wsum : texelFetch(u_src, ivec2(q - u), 0).rgb;
 }
 void main() {
   ivec2 px = ivec2(gl_FragCoord.xy);
   vec4 own = texelFetch(u_src, px, 0);
   vec2 s = texelFetch(u_seeds, px, 0).xy;
   if (s.x < 0.0 || distance(s, gl_FragCoord.xy) > u_padding + 0.5) { o_color = own; return; }
-  vec3 fill = texelFetch(u_src, ivec2(fillSource(s)), 0).rgb;
+  bool rim = onRim(gl_FragCoord.xy);
+  // seeds near the edge (the rim, or just inside it when a high threshold
+  // drops the rim) extend radially; others, e.g. around holes, copy the seed
+  bool edgeSeed = distance(s, vec2(radius())) > radius() - 3.0;
+  vec3 fill = edgeSeed ? radialFill(rim ? gl_FragCoord.xy : s) : texelFetch(u_src, ivec2(s), 0).rgb;
   // interior seeds keep their colour as before
-  float keep = own.a > u_threshold && fillSource(s) == s ? 1.0 : clamp(own.a, 0.0, 1.0);
+  float keep = rim ? 0.0 : own.a > u_threshold ? 1.0 : clamp(own.a, 0.0, 1.0);
   o_color = vec4(mix(fill, own.rgb, keep), 1.0);
 }`);
 
