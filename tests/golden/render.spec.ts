@@ -28,8 +28,8 @@ async function open(page: Page) {
   await page.waitForFunction(() => (window as unknown as { mmReady?: boolean }).mmReady === true);
 }
 
-async function render(page: Page, json: string, size = 128, padding = 0): Promise<RenderResult> {
-  return page.evaluate(([j, s, p]) => (window as any).mm.render(j, s, p), [json, size, padding] as const);
+async function render(page: Page, json: string, size = 128, padding = 0, outer = 'transparent'): Promise<RenderResult> {
+  return page.evaluate(([j, s, p, o]) => (window as any).mm.render(j, s, p, 'png8', o), [json, size, padding, outer] as const);
 }
 
 function px(r: RenderResult, size: number, x: number, y: number) {
@@ -275,6 +275,18 @@ test.describe('pipeline', () => {
     // ~8px outside stays transparent
     expect(px(r, S, 3, 3)[3]).toBe(0);
     compareGolden('padding', r);
+  });
+
+  test('outer background fills pixels beyond the padding', async ({ page }) => {
+    await open(page);
+    const S = 64;
+    const json = project({ type: 'solidColor', params: { color: [0, 1, 0] } });
+    for (const [outer, want] of [['black', [0, 0, 0, 255]], ['white', [255, 255, 255, 255]]] as const) {
+      const r = await render(page, json, S, 4, outer);
+      expect(px(r, S, 7, 7), outer).toEqual([0, 255, 0, 255]);
+      expect(px(r, S, 3, 3), outer).toEqual(want);
+      expect(px(r, S, 32, 32), outer).toEqual([0, 255, 0, 255]);
+    }
   });
 
   test('4K export performance (informational)', async ({ page }) => {

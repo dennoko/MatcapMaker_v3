@@ -1,5 +1,5 @@
 import type { Locale } from '$core/i18n';
-import type { ExportFormat } from '$render/export/Exporter';
+import type { ExportFormat, OuterBackground } from '$render/export/Exporter';
 
 export type Theme = 'dark' | 'light';
 
@@ -10,6 +10,8 @@ export interface ExportSettings {
   background: [number, number, number];
   alphaThreshold: number;
   smoothPadding: boolean;
+  /** PNG/EXR: fill outside the padded disc */
+  outerBackground: OuterBackground;
   jpgQuality: number;
   /** e.g. {project}_{size} */
   template: string;
@@ -50,6 +52,7 @@ export function defaultSettings(language: Locale): AppSettings {
       background: [0, 0, 0],
       alphaThreshold: 0,
       smoothPadding: false,
+      outerBackground: 'black',
       jpgQuality: 92,
       template: '{project}_{size}',
       lastDir: '',
@@ -78,6 +81,7 @@ export function mergeSettings(base: AppSettings, raw: unknown): AppSettings {
   out.uiScale = Math.min(2, Math.max(0.6, Number(out.uiScale) || 1));
   out.export.size = Math.min(8192, Math.max(16, Math.round(Number(out.export.size) || 2048)));
   out.export.padding = Math.min(256, Math.max(0, Math.round(Number(out.export.padding) || 0)));
+  if (!['transparent', 'black', 'white'].includes(out.export.outerBackground)) out.export.outerBackground = base.export.outerBackground;
   return out;
 }
 

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dilateRGBA8, nearestPadRGBA8 } from '../../src/core/io/padding';
+import { flattenRGBA8 } from '../../src/render/export/Exporter';
+import { defaultSettings, mergeSettings } from '../../src/app/settings';
 
 function disc(size: number, r: number) {
   const img = new Uint8Array(size * size * 4);
@@ -38,5 +40,21 @@ describe('edge padding', () => {
     expect(Math.abs(out[i] - img[src])).toBeLessThanOrEqual(16);
     const far = (0 * 32 + 0) * 4;
     expect(out[far + 3]).toBe(0);
+  });
+});
+
+describe('outer background', () => {
+  it('flattens straight alpha onto the matte color', () => {
+    const img = new Uint8Array([0, 255, 0, 255, 0, 255, 0, 0, 200, 0, 0, 128]);
+    flattenRGBA8(img, [1, 1, 1]);
+    expect(Array.from(img)).toEqual([0, 255, 0, 255, 255, 255, 255, 255, 227, 127, 127, 255]);
+  });
+
+  it('settings default to black and reject unknown values', () => {
+    const base = defaultSettings('en');
+    expect(base.export.outerBackground).toBe('black');
+    expect(mergeSettings(base, { export: { outerBackground: 'white' } }).export.outerBackground).toBe('white');
+    expect(mergeSettings(base, { export: { outerBackground: 'red' } }).export.outerBackground).toBe('black');
+    expect(mergeSettings(base, { export: {} }).export.outerBackground).toBe('black');
   });
 });

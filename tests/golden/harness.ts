@@ -5,7 +5,7 @@ import { AssetStore } from '../../src/core/io/assetStore';
 import { deserializeProject } from '../../src/core/io/serialize';
 import { encodePng } from '../../src/platform/pngEncode';
 import { defaultViewState } from '../../src/core/model/project';
-import type { ExportFormat } from '../../src/render/export/Exporter';
+import type { ExportFormat, OuterBackground } from '../../src/render/export/Exporter';
 import { loadPlugin } from '../../src/core/layers/pluginLoader';
 import { BUILTIN_LAYERS, registry } from '../../src/core/layers/registry';
 import { MatcapPipeline } from '../../src/render/pipeline/MatcapPipeline';
@@ -62,7 +62,7 @@ function b64(bytes: Uint8Array) {
     const e = await assets.add(bin, name);
     return { id: e.id, meta: e.meta };
   },
-  render(json: string, size: number, padding = 0, format: ExportFormat = 'png8') {
+  render(json: string, size: number, padding = 0, format: ExportFormat = 'png8', outerBackground: OuterBackground = 'transparent') {
     errors.length = 0;
     const { project, warnings } = deserializeProject(json);
     // exercise the preview path as well (shader compile of preview program)
@@ -72,7 +72,7 @@ function b64(bytes: Uint8Array) {
     });
     const t0 = performance.now();
     const out = renderer.export(project, {
-      size, padding, format, background: [0, 0, 0], alphaThreshold: 0, smoothPadding: false, jpgQuality: 90,
+      size, padding, format, background: [0, 0, 0], alphaThreshold: 0, smoothPadding: false, jpgQuality: 90, outerBackground,
     });
     const ms = performance.now() - t0;
     const png = format === 'png8' ? b64(encodePng(out.data, out.width, out.height, 8)) : '';

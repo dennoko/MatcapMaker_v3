@@ -285,6 +285,7 @@ export function exportSpec(): ExportSpec {
     background: e.background,
     alphaThreshold: e.alphaThreshold,
     smoothPadding: e.smoothPadding,
+    outerBackground: e.outerBackground,
     jpgQuality: e.jpgQuality,
   };
 }

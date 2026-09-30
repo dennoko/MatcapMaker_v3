@@ -6,6 +6,13 @@ import type { Project } from '$core/model/types';
 import { dilateRGBA8 } from '$core/io/padding';
 
 export type ExportFormat = 'png8' | 'png16' | 'jpg' | 'exr';
+/** fill for pixels left outside the padded disc (PNG/EXR; JPG uses `background`) */
+export type OuterBackground = 'transparent' | 'black' | 'white';
+
+const OUTER_RGB: Record<Exclude<OuterBackground, 'transparent'>, [number, number, number]> = {
+  black: [0, 0, 0],
+  white: [1, 1, 1],
+};
 
 export interface ExportSpec {
   size: number;
@@ -18,6 +25,8 @@ export interface ExportSpec {
   /** extra 3x3 averaging pass over padded pixels (closer to v3's look) */
   smoothPadding: boolean;
   jpgQuality: number;
+  /** PNG/EXR only; defaults to transparent */
+  outerBackground?: OuterBackground;
   /** read back only this region (top-down pixel coords) — used by the padding preview */
   crop?: { x: number; y: number; w: number; h: number };
 }
@@ -99,15 +108,19 @@ void main() {
 }`);
 
 // Packs the final image into RGBA8 so it can be read back portably.
-// mode 0: 8-bit straight, 1: jpg (flattened on bg), 2/3: 16-bit hi/lo bytes,
-// 4/5: half-float hi/lo bytes.
+// mode 0: 8-bit straight, 2/3: 16-bit hi/lo bytes, 4/5: half-float hi/lo bytes.
+// With u_matte the image is first flattened onto u_matteColor (JPG background
+// or the PNG/EXR outer background).
 const ENCODE = withCommon(`
 uniform sampler2D u_src;
 uniform int u_encMode;
-uniform vec3 u_bg;
 uniform int u_hdr;
+uniform int u_matte;
+uniform vec3 u_matteColor;
 void main() {
   vec4 c = texelFetch(u_src, ivec2(gl_FragCoord.xy), 0);
+  if (u_encMode < 4) c = clamp(c, 0.0, 1.0);
+  if (u_matte == 1) c = vec4(mix(u_matteColor, c.rgb, clamp(c.a, 0.0, 1.0)), 1.0);
   if (u_encMode >= 4) {
     uvec4 h = uvec4(packHalf2x16(vec2(c.r, 0.0)), packHalf2x16(vec2(c.g, 0.0)),
                     packHalf2x16(vec2(c.b, 0.0)), packHalf2x16(vec2(c.a, 0.0))) & 0xffffu;
@@ -115,8 +128,6 @@ void main() {
     o_color = vec4(b) / 255.0;
     return;
   }
-  c = clamp(c, 0.0, 1.0);
-  if (u_encMode == 1) { o_color = vec4(mix(u_bg, c.rgb, c.a), 1.0); return; }
   if (u_encMode == 0) { o_color = c; return; }
   uvec4 v = uvec4(round(c * 65535.0));
   uvec4 b = u_encMode == 2 ? (v >> 8u) : (v & 0xffu);
@@ -182,16 +193,21 @@ export class Exporter {
         lap('padding');
       }
 
-      const readMode = (m: number) => this.encodeAndRead(img, m, spec, project.settings.hdr);
+      const outer = spec.outerBackground ?? 'transparent';
+      const matte = spec.format === 'jpg' ? spec.background : outer === 'transparent' ? null : OUTER_RGB[outer];
+      // the CPU padding fallback needs the alpha, so it flattens after dilating
+      const cpuPadding = spec.padding > 0 && !gpuPadding && (spec.format === 'png8' || spec.format === 'jpg');
+      const readMode = (m: number) => this.encodeAndRead(img, m, spec, project.settings.hdr, cpuPadding ? null : matte);
       let out: EncodedPixels;
       const outW = spec.crop ? spec.crop.w : size;
       const outH = spec.crop ? spec.crop.h : size;
       const px = outW * outH;
       if (spec.format === 'png8' || spec.format === 'jpg') {
-        const rgba = readMode(spec.format === 'jpg' ? 1 : 0);
+        const rgba = readMode(0);
         lap('readback');
-        if (spec.padding > 0 && !gpuPadding) {
+        if (cpuPadding) {
           dilateRGBA8(rgba, outW, outH, spec.padding);
+          if (matte) flattenRGBA8(rgba, matte);
           lap('padding');
         }
         if (spec.format === 'jpg') {
@@ -293,7 +309,7 @@ export class Exporter {
   }
 
   /** Runs the encode pass into RGBA8 and reads it back top-down. */
-  private encodeAndRead(src: RenderTarget, mode: number, spec: ExportSpec, hdr: boolean): Uint8Array {
+  private encodeAndRead(src: RenderTarget, mode: number, spec: ExportSpec, hdr: boolean, matte: [number, number, number] | null): Uint8Array {
     const { ctx } = this;
     const gl = ctx.gl;
     const c = spec.crop;
@@ -309,8 +325,9 @@ export class Exporter {
       enc.use();
       enc.tex('u_src', src.texture);
       enc.i('u_encMode', mode);
-      enc.v3('u_bg', spec.background);
       enc.i('u_hdr', hdr ? 1 : 0);
+      enc.i('u_matte', matte ? 1 : 0);
+      enc.v3('u_matteColor', matte ?? [0, 0, 0]);
       ctx.drawFullscreen();
       const buf = new Uint8Array(w * h * 4);
       gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
@@ -320,6 +337,16 @@ export class Exporter {
     } finally {
       target.dispose();
     }
+  }
+}
+
+/** Composites straight-alpha RGBA8 over an opaque sRGB 0..1 color, in place. */
+export function flattenRGBA8(rgba: Uint8Array, bg: [number, number, number]): void {
+  const b = bg.map((v) => v * 255);
+  for (let i = 0; i < rgba.length; i += 4) {
+    const a = rgba[i + 3] / 255;
+    for (let k = 0; k < 3; k++) rgba[i + k] = Math.round(b[k] + (rgba[i + k] - b[k]) * a);
+    rgba[i + 3] = 255;
   }
 }
 

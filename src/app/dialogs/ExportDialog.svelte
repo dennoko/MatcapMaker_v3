@@ -7,7 +7,7 @@
   import ScrubNumber from '../widgets/ScrubNumber.svelte';
   import ColorField from '../widgets/ColorField.svelte';
   import EnumField from '../widgets/EnumField.svelte';
-  import { estimateExportBytes, type ExportFormat } from '$render/export/Exporter';
+  import { estimateExportBytes, type ExportFormat, type OuterBackground } from '$render/export/Exporter';
 
   const e = $derived(app.settings.export);
   let preview = $state<HTMLCanvasElement>();
@@ -18,6 +18,7 @@
   /** resolution the preview actually renders at (lower than the export when it would exceed the budget) */
   let previewSize = $state(0);
 
+  const outerBackgrounds: OuterBackground[] = ['black', 'white', 'transparent'];
   const formats: ExportFormat[] = platform.caps.exr ? ['png8', 'png16', 'jpg', 'exr'] : ['png8', 'png16', 'jpg'];
 
   function set<K extends keyof typeof e>(k: K, v: (typeof e)[K]) {
@@ -113,6 +114,12 @@
           <ColorField value={e.background} onedit={(v) => set('background', v)} />
           <span>{tt('export.quality')}</span>
           <ScrubNumber value={e.jpgQuality} min={1} max={100} integer defaultValue={92} onedit={(v) => set('jpgQuality', v)} />
+        </div>
+      {/if}
+      {#if e.format !== 'jpg'}
+        <div class="grid">
+          <span>{tt('export.outerBackground')}</span>
+          <EnumField value={e.outerBackground} options={outerBackgrounds} label={(o) => tt(`export.outerBackground.${o}`)} onedit={(v) => set('outerBackground', v as OuterBackground)} />
         </div>
       {/if}
       {#if e.format === 'exr' && !app.doc.settings.hdr}
