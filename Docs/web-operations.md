@@ -19,7 +19,7 @@ pnpm test:golden
 
 ## リリースと Pages
 
-1. `package.json` のバージョンを更新し、同じ番号の `v<version>` タグを push します。
+1. `version.json` のバージョンを更新し、同じ番号の `v<version>` タグを push します（一致しないと `pnpm check` が失敗します）。
 2. Release workflow は Web HTML を一度生成し、テスト後に `MatcapMaker_<ver>_web.html` と `MatcapMaker_web.html` をデスクトップ版と同じ下書きリリースへ添付します。両 HTML を `SHA256SUMS.txt` に含めます。
 3. Pages ジョブはその成果物をダウンロードし、Firefox / WebKit のオフライン PNG スモークを実行後、`index.html` としてデプロイします。main の push ではデプロイしません。
 4. リリース内容を確認して下書きを公開します。固定名の latest URL はこの時点で新しくなります。Pages はタグの workflow で先に更新されるため、下書きでも Web 版が公開される点に注意してください。

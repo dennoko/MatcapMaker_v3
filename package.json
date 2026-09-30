@@ -1,7 +1,6 @@
 {
   "name": "matcap-maker",
   "private": true,
-  "version": "3.0.0",
   "type": "module",
   "description": "Matcap texture authoring tool",
   "license": "SEE LICENSE IN LICENCE/LICENSE.txt",

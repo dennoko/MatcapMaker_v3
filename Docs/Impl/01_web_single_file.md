@@ -67,7 +67,7 @@ export interface Platform {
   - JS と CSS を HTML に埋め込む Vite プラグイン（`vite-plugin-singlefile` か、数十行の自作プラグイン）
   - 出力先：`dist-single/MatcapMaker.html`
 - `define` の `__WEB_BUILD__` は `web` と `single` の両方で `true` にする。1 ファイル版に固有の処理が必要な場合だけ `__SINGLE_FILE__` を足す（更新通知のリンク先など）。
-- バージョンは今までどおり `package.json` だけが情報源。
+- バージョンは `version.json` だけが情報源。
 - `pnpm build:single` を追加する。GitHub Pages も同じ成果物を使うため、`build:web`（複数ファイル版）は廃止する。
 
 ### 3.4 ライセンス一覧とアセットの軽量化

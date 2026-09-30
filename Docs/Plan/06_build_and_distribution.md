@@ -29,7 +29,7 @@ src-tauri/target/release/matcap-maker.exe                         ← ポータ�
 src-tauri/target/release/bundle/nsis/MatcapMaker_<ver>_x64-setup.exe ← インストーラ
 ```
 
-- **バージョンの唯一の情報源**は `package.json` の `version`。`tauri.conf.json` は `"version": "../package.json"` でこれを参照する（Tauri 2 の機能）。
+- **バージョンの唯一の情報源**はリポジトリ直下の `version.json` の `version`。`tauri.conf.json` は `"version": "../version.json"` でこれを参照する（Tauri 2 は `version` フィールドを持つ任意の JSON ファイルを指定できる）。フロントエンドは `vite.config.ts` が `__APP_VERSION__` として、Rust 側は `build.rs` が `APP_VERSION` 環境変数として埋め込む。`package.json` と `Cargo.toml` にはバージョンを書かない。
 - プロジェクトファイルの `schemaVersion` は、アプリのバージョンとは独立して管理する（現行の方針を引き継ぐ）。
 
 ### 2.4 サイズ最適化（`Cargo.toml`）

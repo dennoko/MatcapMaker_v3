@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [svelte(), ...(['web', 'single'].includes(mode) ? [webLicenses()] : []), ...(mode === 'single' ? [singleFile()] : [])],
   base: ['web', 'single'].includes(mode) ? './' : '/',
   define: {
-    __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(r('./package.json'), 'utf8')).version),
+    __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(r('./version.json'), 'utf8')).version),
     __WEB_BUILD__: JSON.stringify(['web', 'single'].includes(mode)),
   },
   resolve: {

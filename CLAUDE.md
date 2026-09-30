@@ -29,7 +29,7 @@ CI (`.github/workflows/ci.yml`) runs `check`, `test`, `test:golden`, and `tauri 
 
 - **Golden images**: `tests/golden/render.spec.ts` renders projects through `tests/golden/harness.html` and compares with `tests/golden/reference/*.png` (tolerance: >3 per channel on <0.5% of channels). A missing reference is written automatically, so to update a golden, delete its reference PNG and rerun. Actual output goes to `tests/golden/__output__/`.
 - `Docs/Review/` holds a separate review probe suite: `pnpm exec vitest run --config Docs/Review/vitest.config.ts`.
-- The version lives only in `package.json` (`tauri.conf.json` reads it). Pushing a `v*` tag triggers `release.yml`.
+- The app version lives only in `version.json` (read by `vite.config.ts`, `tauri.conf.json`, `src-tauri/build.rs` and the release scripts; `package.json` and `Cargo.toml` have none). It is separate from the project file `schemaVersion`. `pnpm check` validates it and, on tag builds, that the tag is `v<version>`. Pushing a `v*` tag triggers `release.yml`.
 - `pnpm build` regenerates `src/generated/licenses.json` via `scripts/gen-licenses.mjs`.
 
 ## Architecture

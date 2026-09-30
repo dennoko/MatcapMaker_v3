@@ -1,6 +1,6 @@
 [package]
 name = "matcap-maker"
-version = "3.0.0"
+# the app version lives in ../version.json (see build.rs)
 description = "Matcap Maker"
 authors = ["dennoko"]
 edition = "2021"
@@ -12,6 +12,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2.7", features = [] }
+serde_json = "1"
 
 [dependencies]
 tauri = { version = "2.12", features = [] }

@@ -137,24 +137,22 @@ Windows（Tauri デスクトップ）版および Web 版（ブラウザ／単�
 
 ## 4. バージョン管理と整合性の維持（SSOT）
 
-Matcap Maker v3 におけるバージョンの正（Single Source of Truth）は `package.json` の `"version"` です（`CLAUDE.md` 参照）。
-
-### 課題：`version.json` の手動更新漏れ防止
-リポジトリルートに `version.json` を配置した場合、「`package.json` のバージョンは更新したが、`version.json` を更新し忘れた」という事故が起こり得ます。
+Matcap Maker v3 におけるバージョンの正（Single Source of Truth）はリポジトリ直下の `version.json` の `"version"` です（`CLAUDE.md` 参照）。アプリ（Vite の `__APP_VERSION__`、`tauri.conf.json`、`src-tauri/build.rs`）もリリース用スクリプトもこのファイルを読むため、更新通知用のファイルとアプリのバージョンが食い違うことはありません。`package.json` と `Cargo.toml` にはバージョンを書きません。
 
 ### 対策：CI およびチェックスクリプトでの自動検証
-1. **チェックスクリプトの作成または拡張**：
-   `scripts/check-version.mjs` を用意し、以下を検証します：
-   - `package.json` の `version` とルートの `version.json` の `version` が完全に一致していること。
-   - `version.json` の JSON 構造が正しく、`url` が設定されていること。
+1. **チェックスクリプト**：
+   `scripts/check-version.mjs` で以下を検証します：
+   - `version.json` の `version` が `MAJOR.MINOR.PATCH` 形式で、`url` が HTTP(S) URL であること。
+   - `package.json` に `version` フィールドが再び追加されていないこと（二重管理の防止）。
+   - タグ push 時は、タグ名が `v<version.json の version>` と一致すること。
 2. **CI（`.github/workflows/ci.yml`）への組み込み**：
    PR ごとの検査ステップ（`pnpm check` や `pnpm test` の一環）でスクリプトを実行し、不整合があれば即座に CI を落とします。
 3. **リリースフローとの連動**：
    タグ push（`v*`）時に `release.yml` でも整合性を確認します。
 
 ### 注意：通知タイミングとプレリリース
-- 利用者は main の `version.json` を見て通知されます。`check-version.mjs` により `package.json` と一致が必須のため、**main でバージョンを上げた時点で通知が始まります**。バージョン更新コミットはタグ push と同時に main へ入れ、`release.yml` が失敗した場合は速やかに修正または差し戻してください（ダウンロード先が存在しない通知を出さないため）。
-- 比較ではプレリリース記号を除去します（`3.1.0-beta` は `3.1.0` 扱い）。プレリリース版を main の `package.json` に設定すると安定版利用者に通知され、ベータ利用者には正式版が通知されません。プレリリースは main 以外のブランチで扱ってください。
+- 利用者は main の `version.json` を見て通知されます。アプリのバージョンも同じ `version.json` から決まるため、**main でバージョンを上げた時点で通知が始まります**。バージョン更新コミットはタグ push と同時に main へ入れ、`release.yml` が失敗した場合は速やかに修正または差し戻してください（ダウンロード先が存在しない通知を出さないため）。
+- 比較ではプレリリース記号を除去します（`3.1.0-beta` は `3.1.0` 扱い）。プレリリース版を main の `version.json` に設定すると安定版利用者に通知され、ベータ利用者には正式版が通知されません。プレリリースは main 以外のブランチで扱ってください。
 
 ---
 

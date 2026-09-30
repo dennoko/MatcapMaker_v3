@@ -29,6 +29,6 @@ pub fn init() -> Option<WorkerGuard> {
         let _ = std::fs::write(crash, format!("{info}\n"));
         default_hook(info);
     }));
-    tracing::info!("Matcap Maker {} starting", env!("CARGO_PKG_VERSION"));
+    tracing::info!("Matcap Maker {} starting", env!("APP_VERSION"));
     Some(guard)
 }

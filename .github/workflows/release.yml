@@ -36,14 +36,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: Matcap Maker v__VERSION__
+          # `pnpm check` above verified that the tag matches version.json
+          tagName: ${{ github.ref_name }}
+          releaseName: Matcap Maker ${{ github.ref_name }}
           releaseDraft: true
           releaseBody: See the assets below. The portable exe needs no installation; SHA256SUMS.txt lists checksums.
       - name: Portable exe + checksums
         shell: pwsh
         run: |
-          $ver = (Get-Content package.json | ConvertFrom-Json).version
+          $ver = (Get-Content version.json | ConvertFrom-Json).version
           New-Item -ItemType Directory -Force dist-release | Out-Null
           Copy-Item src-tauri/target/release/matcap-maker.exe "dist-release/MatcapMaker_${ver}_x64_portable.exe"
           Copy-Item src-tauri/target/release/bundle/nsis/*.exe dist-release/

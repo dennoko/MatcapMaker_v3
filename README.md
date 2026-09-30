@@ -63,7 +63,7 @@ src-tauri/target/release/bundle/nsis/MatcapMaker_<ver>_x64-setup.exe   ← イ�
 dist-single/MatcapMaker.html                                         ← Web版（単一HTML）
 ```
 
-バージョンの唯一の情報源は `package.json` の `version` です（`tauri.conf.json` はこれを参照します）。
+バージョンの唯一の情報源はリポジトリ直下の `version.json` の `version` です（Vite・`tauri.conf.json`・`src-tauri/build.rs`・リリース用スクリプトがこれを参照します。`package.json` と `Cargo.toml` にはバージョンを書きません）。プロジェクトファイルの `schemaVersion` とは別物です。
 タグ `v<version>` を push すると `.github/workflows/release.yml` がビルドし、下書きのリリースに exe・インストーラ・固定名とバージョン付きの Web HTML・`SHA256SUMS.txt` を添付します。同じ HTML を Pages に配置します。`latest/download` のリンクは下書きを公開するまで更新されません。
 
 ### 構成
