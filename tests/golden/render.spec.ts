@@ -277,6 +277,27 @@ test.describe('pipeline', () => {
     compareGolden('padding', r);
   });
 
+  test('padding ignores the degraded anti-aliased fringe', async ({ page }) => {
+    await open(page);
+    const S = 64;
+    // multiply barely applies where the backdrop alpha is ~0, so the fringe is
+    // pinkish while the disc is red; the fill must still be pure red
+    const json = project({ type: 'solidColor', blendMode: 'multiply', params: { color: [1, 1, 1] } }, { type: 'solidColor', params: { color: [1, 0, 0] } });
+    const r = await render(page, json, S, 6);
+    let filled = 0;
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const d = Math.hypot(x + 0.5 - S / 2, y + 0.5 - S / 2);
+        if (d < S / 2 + 1.5) continue; // disc and its fringe
+        const c = px(r, S, x, y);
+        if (c[3] === 0) continue;
+        filled++;
+        expect(c, `(${x}, ${y})`).toEqual([255, 0, 0, 255]);
+      }
+    }
+    expect(filled).toBeGreaterThan(0);
+  });
+
   test('outer background fills pixels beyond the padding', async ({ page }) => {
     await open(page);
     const S = 64;

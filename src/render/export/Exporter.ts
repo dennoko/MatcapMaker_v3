@@ -71,21 +71,34 @@ void main() {
   o_color = vec4(best, 0.0, 1.0);
 }`);
 
+// The disc's anti-aliased rim is a poor colour source: every layer's alpha is
+// scaled by the coverage there, so blend modes only partly apply and its colour
+// is off (darker or washed out). Copied outward it streaks in fans, so a rim
+// seed takes its colour from the fully covered pixel radially inward instead,
+// and pixels that are not seeds, the rim included, are laid over the fill by
+// their alpha.
 const JFA_RESOLVE = withCommon(`
 uniform sampler2D u_src;
 uniform sampler2D u_seeds;
 uniform float u_padding;
 uniform float u_threshold;
+vec2 fillSource(vec2 s) {
+  float radius = u_resolution.x * 0.5;
+  vec2 d = s - vec2(radius);
+  float r = length(d);
+  // the rim is at most ~1.4px wide (makeCtx: aa <= 2*sqrt(2)/size in r)
+  float inner = radius - 1.5;
+  return r > radius - 1.0 && r > 0.0 ? vec2(radius) + d * (inner / r) : s;
+}
 void main() {
   ivec2 px = ivec2(gl_FragCoord.xy);
   vec4 own = texelFetch(u_src, px, 0);
-  if (own.a > u_threshold) { o_color = vec4(own.rgb, 1.0); return; }
   vec2 s = texelFetch(u_seeds, px, 0).xy;
-  if (s.x >= 0.0 && distance(s, gl_FragCoord.xy) <= u_padding + 0.5) {
-    o_color = vec4(texelFetch(u_src, ivec2(s), 0).rgb, 1.0);
-  } else {
-    o_color = own;
-  }
+  if (s.x < 0.0 || distance(s, gl_FragCoord.xy) > u_padding + 0.5) { o_color = own; return; }
+  vec3 fill = texelFetch(u_src, ivec2(fillSource(s)), 0).rgb;
+  // interior seeds keep their colour as before
+  float keep = own.a > u_threshold && fillSource(s) == s ? 1.0 : clamp(own.a, 0.0, 1.0);
+  o_color = vec4(mix(fill, own.rgb, keep), 1.0);
 }`);
 
 const PAD_SMOOTH = withCommon(`
@@ -287,6 +300,7 @@ export class Exporter {
     resolve.tex('u_seeds', a.texture);
     resolve.f('u_padding', spec.padding);
     resolve.f('u_threshold', spec.alphaThreshold);
+    resolve.v2('u_resolution', w, h);
     ctx.drawFullscreen();
 
     // the seed buffers are done: free them before the next allocation
